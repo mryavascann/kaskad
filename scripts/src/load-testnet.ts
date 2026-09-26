@@ -62,7 +62,8 @@ const ethFiles = args.includes("--no-eth")
 for (const f of ethFiles) {
   const eth: EthBook = JSON.parse(readFileSync(join(root, "scripts/data", f), "utf8"));
   data.reserves.push(...eth.reserves);
-  data.positions.push(...eth.positions);
+  // skip dust (storage costs MON); the syrupUSDT book (15) was loaded before this filter existed
+  data.positions.push(...eth.positions.filter((p) => p.debtUsd >= 100 || eth.reserves[0].id === 15));
   depth[String(eth.reserves[0].id)] = eth.depth;
 }
 const dep = JSON.parse(readFileSync(join(root, "contracts/deployments/testnet.json"), "utf8")) as {

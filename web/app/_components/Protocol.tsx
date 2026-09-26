@@ -9,13 +9,15 @@ import { fmtNum, fmtPct, fmtUsd, shortAddr, wadToNum } from "@/lib/kaskad/format
 import { simulateGasLimit } from "@/lib/kaskad/math";
 import { MAX_FEE_PER_GAS } from "@/lib/kaskad/tx";
 import { CascadeChart, CurveChart } from "./Charts";
+import { ComparePanel } from "./ComparePanel";
 import { GuardPanel } from "./GuardPanel";
 import { LimitGauge } from "./LimitGauge";
 import { previewCurve, usePreview, type Result, type Scenario } from "./useKaskad";
 
-const CURVE_SHOCKS = [10, 20, 50, 100, 200, 300, 500, 1000];
+const CURVE_SHOCKS = [10, 50, 100, 300, 500, 1000, 2000, 3000];
 const BASE_FEE_GWEI = 102n; // what the chain actually charges today (min base fee 100 gwei + tip)
-const ETH_SYRUP = 15; // syrupUSDC positions from Aave on Ethereum, simulated on Monad
+const ETH_SYRUP = 15; // syrupUSDT positions from Aave on Ethereum, simulated on Monad
+const ETH_BOOKS = [7, 13, 14, 15]; // books read from Aave on Ethereum
 
 type TxInfo = { hash: string; ms: number; sync: boolean };
 
@@ -71,11 +73,25 @@ const PRESETS: Preset[] = [
     s: { ...BASE, assetId: 12, shockPct: 1 },
   },
   {
-    id: "eth",
+    id: "maple-eth",
     emoji: "🌊",
     title: "Aynı döngü, Ethereum'da",
     story: "Ethereum Aave'deki syrupUSDT borçluları: aynı Maple döngüsü, $98,8M borç. Hesap yine Monad'da.",
     s: { ...BASE, assetId: ETH_SYRUP },
+  },
+  {
+    id: "eth",
+    emoji: "📉",
+    title: "ETH %20 çakılırsa",
+    story: "Klasik pozisyon: ETH yatır, USDC borç al. ETH 20 blokta %20 düşüyor.",
+    s: { ...BASE, assetId: 5, shockPct: 20 },
+  },
+  {
+    id: "derin",
+    emoji: "💧",
+    title: "Derin havuz: USDC",
+    story: "Ethereum'da USDC teminatı %10 düşüyor. Havuz borcun yüzlerce katı derin.",
+    s: { ...BASE, assetId: 13, shockPct: 10 },
   },
   {
     id: "stres",
@@ -252,7 +268,7 @@ export function Protocol() {
 
   const t = DEPLOYMENT.totals;
   const syrup = DEPLOYMENT.assets[9];
-  const isEth = st.assetId === ETH_SYRUP;
+  const isEth = ETH_BOOKS.includes(st.assetId);
 
   return (
     <div className="space-y-6">
@@ -315,13 +331,13 @@ export function Protocol() {
             <input
               type="range"
               min={0}
-              max={10}
+              max={50}
               step={0.1}
               value={st.shockPct}
               onChange={(e) => set({ shockPct: +e.target.value })}
             />
             <div className="mt-2 flex flex-wrap gap-1">
-              {[0.1, 0.2, 0.5, 1, 2, 3, 5].map((v) => (
+              {[0.1, 0.5, 1, 3, 5, 10, 20, 30].map((v) => (
                 <button
                   key={v}
                   onClick={() => set({ shockPct: v })}
@@ -519,6 +535,8 @@ export function Protocol() {
           {r && <LimitGauge r={r} />}
         </section>
       </div>
+
+      <ComparePanel shockBps={scenario.shockBps} feedback={st.feedback} steps={st.steps} rounds={st.rounds} />
 
       <div className="grid gap-6 lg:grid-cols-2">
         <GuardPanel />

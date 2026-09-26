@@ -1,0 +1,6129 @@
+{
+ "generatedAt": "2026-09-26T09:58:56.213Z",
+ "chainId": 1,
+ "block": 26060872,
+ "source": "aave-v3-ethereum-core",
+ "addresses": {
+  "pool": "0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2",
+  "poolAddressesProvider": "0x2f39d218133AFaB8F2B819B1066c7E434Ad94E9e",
+  "dataProvider": "0x0a16f2FCC0D44FaE41cc54e079281D84A363bECD",
+  "oracle": "0x54586bE62E3c3580375aE3723C145253060Ca0C2",
+  "asset": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48"
+ },
+ "notes": {
+  "scope": "Aave V3 Ethereum Core borrowers (debt > 0) whose dominant collateral (largest USD among collateral-enabled aToken balances) is USDC. Candidates = unique onBehalfOf of Pool Supply events with reserve in {USDC} (HyperSync, blocks 24764855..26060867), pre-filtered by getUserConfiguration (borrowing any reserve AND a target enabled as collateral). Holders who only received the aToken by transfer are not covered. Candidate window limited to the last 1296000 blocks (~180 days, from block 24764853) because the full Supply history is very large; positions whose owner has not supplied USDC in that window are missed.",
+  "selfDebtFilter": "Excluded 241 USDC-dominant positions (debt $9,443,149, collateral $19,276,106) whose USDC debt is >= 10% of their total debt: Kaskad shocks the collateral price with debt fixed in USD, but a USDC depeg would move both sides of such a loop. Nothing else is subtracted (other stablecoin debt stays).",
+  "syntheticId": "collateralId is the synthetic Kaskad id 13 (\"USDC on Ethereum\") for every position; the real Aave Ethereum reserve index is ethReserveId (3). debtByAsset keys are Ethereum reserve indices (see ethReserves).",
+  "cap": "Kept the top 300 of 507 USDC-dominant positions by debtUsd; dropped 207. Kept positions hold 100.00% of the USDC-dominant debt ($26,850,843 of $26,851,897).",
+  "hfModel": "hfModel = (collateralUsd + otherCollateralUsd) * ltBps / 1e4 / debtUsd, i.e. the dominant collateral's LT applied to ALL collateral (MVP approximation). hfOnchain = Pool.getUserAccountData.healthFactor / 1e18.",
+  "ltRule": "ltBps/bonusBps: eMode category values if user eMode > 0 and dominant asset is in the category collateralBitmap (aave-v3-origin GenericLogic/LiquidationLogic), else reserve values. bonusBps is the extra part (10400 -> 400). See totals.ltBreakdown.",
+  "totals": "totals.collateralUsd/debtUsd are over the kept positions (collateralUsd includes otherCollateralUsd; byAsset collateralUsd = dominant collateral only). totals.reserveSuppliedUsd = USDC aToken totalSupply on Aave Ethereum Core (all suppliers); reserveDebtUsd = 0 (not used by the consumer). totals.all* = before the cap.",
+  "depth": "depth = Ethereum DEX exit liquidity for USDC (GeckoTerminal reserve_in_usd sum, TVL proxy) with DefiLlama cross-check, same format as data/depth.json entries."
+ },
+ "reserves": [
+  {
+   "id": 13,
+   "symbol": "USDC (Ethereum)",
+   "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+   "decimals": 6,
+   "priceUsd8": "99988810",
+   "ltBps": 7800,
+   "ltvBps": 7500,
+   "bonusBps": 450,
+   "totalSupplied": "2405761454186530",
+   "totalDebt": "0",
+   "suppliedUsd": 2405492249.48,
+   "debtUsd": 0,
+   "ethReserveId": 3,
+   "chainId": 1
+  }
+ ],
+ "ethReserves": [
+  {
+   "id": 0,
+   "symbol": "WETH",
+   "address": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2",
+   "decimals": 18,
+   "priceUsd8": "268973000000",
+   "ltBps": 8300,
+   "ltvBps": 8050,
+   "bonusBps": 500,
+   "suppliedUsd": 5581691926.02,
+   "debtUsd": 4677061259.38
+  },
+  {
+   "id": 1,
+   "symbol": "wstETH",
+   "address": "0x7f39C581F595B53c5cb19bD0b3f8dA6c935E2Ca0",
+   "decimals": 18,
+   "priceUsd8": "334835330594",
+   "ltBps": 8100,
+   "ltvBps": 7850,
+   "bonusBps": 600,
+   "suppliedUsd": 2622071339.91,
+   "debtUsd": 63541314.49
+  },
+  {
+   "id": 2,
+   "symbol": "WBTC",
+   "address": "0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599",
+   "decimals": 8,
+   "priceUsd8": "8413505642010",
+   "ltBps": 7800,
+   "ltvBps": 7300,
+   "bonusBps": 500,
+   "suppliedUsd": 2904603089.76,
+   "debtUsd": 61221395.21
+  },
+  {
+   "id": 3,
+   "symbol": "USDC",
+   "address": "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+   "decimals": 6,
+   "priceUsd8": "99988810",
+   "ltBps": 7800,
+   "ltvBps": 7500,
+   "bonusBps": 450,
+   "suppliedUsd": 2405492249.48,
+   "debtUsd": 2204252303.62
+  },
+  {
+   "id": 4,
+   "symbol": "DAI",
+   "address": "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+   "decimals": 18,
+   "priceUsd8": "99985275",
+   "ltBps": 7700,
+   "ltvBps": 0,
+   "bonusBps": 500,
+   "suppliedUsd": 130523859.3,
+   "debtUsd": 115386342.31
+  },
+  {
+   "id": 5,
+   "symbol": "LINK",
+   "address": "0x514910771AF9Ca656af840dff83E8264EcF986CA",
+   "decimals": 18,
+   "priceUsd8": "1395737751",
+   "ltBps": 7100,
+   "ltvBps": 0,
+   "bonusBps": 700,
+   "suppliedUsd": 106582539.79,
+   "debtUsd": 4286119.33
+  },
+  {
+   "id": 8,
+   "symbol": "USDT",
+   "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+   "decimals": 6,
+   "priceUsd8": "99971748",
+   "ltBps": 7800,
+   "ltvBps": 7500,
+   "bonusBps": 450,
+   "suppliedUsd": 2883723599.83,
+   "debtUsd": 2715482496.57
+  },
+  {
+   "id": 9,
+   "symbol": "rETH",
+   "address": "0xae78736Cd615f374D3085123A210448E74Fc6393",
+   "decimals": 18,
+   "priceUsd8": "315381086657",
+   "ltBps": 7900,
+   "ltvBps": 7500,
+   "bonusBps": 750,
+   "suppliedUsd": 113029958.45,
+   "debtUsd": 127441.94
+  },
+  {
+   "id": 12,
+   "symbol": "MKR",
+   "address": "0x9f8F72aA9304c8B593d555F12eF6589cC3A579A2",
+   "decimals": 18,
+   "priceUsd8": "180735987600",
+   "ltBps": 7000,
+   "ltvBps": 0,
+   "bonusBps": 850,
+   "suppliedUsd": 226994.43,
+   "debtUsd": 2401.83
+  },
+  {
+   "id": 13,
+   "symbol": "SNX",
+   "address": "0xC011a73ee8576Fb46F5E1c5751cA3B9Fe0af2a6F",
+   "decimals": 18,
+   "priceUsd8": "25939000",
+   "ltBps": 6500,
+   "ltvBps": 0,
+   "bonusBps": 850,
+   "suppliedUsd": 63134.38,
+   "debtUsd": 14919.33
+  },
+  {
+   "id": 17,
+   "symbol": "ENS",
+   "address": "0xC18360217D8F7Ab5e7c516566761Ea12Ce7F9D72",
+   "decimals": 18,
+   "priceUsd8": "716098000",
+   "ltBps": 4900,
+   "ltvBps": 0,
+   "bonusBps": 800,
+   "suppliedUsd": 105103.86,
+   "debtUsd": 8417.7
+  },
+  {
+   "id": 20,
+   "symbol": "GHO",
+   "address": "0x40D16FC0246aD3160Ccc09B8D0D3A2cD28aE6C2f",
+   "decimals": 18,
+   "priceUsd8": "100000000",
+   "ltBps": 0,
+   "ltvBps": 0,
+   "bonusBps": 0,
+   "suppliedUsd": 135101535.9,
+   "debtUsd": 115287174.58
+  },
+  {
+   "id": 27,
+   "symbol": "PYUSD",
+   "address": "0x6c3ea9036406852006290770BEdFcAbA0e23A0e8",
+   "decimals": 6,
+   "priceUsd8": "100017727",
+   "ltBps": 7800,
+   "ltvBps": 0,
+   "bonusBps": 750,
+   "suppliedUsd": 7375319.89,
+   "debtUsd": 6656348.27
+  },
+  {
+   "id": 30,
+   "symbol": "USDe",
+   "address": "0x4c9EDD5852cd905f086C759E8383e09bff1E68B3",
+   "decimals": 18,
+   "priceUsd8": "99971748",
+   "ltBps": 7500,
+   "ltvBps": 0,
+   "bonusBps": 850,
+   "suppliedUsd": 600300959.56,
+   "debtUsd": 54999609.54
+  },
+  {
+   "id": 33,
+   "symbol": "tBTC",
+   "address": "0x18084fbA666a33d37592fA2633fD49a74DD93a88",
+   "decimals": 18,
+   "priceUsd8": "8416451400000",
+   "ltBps": 7800,
+   "ltvBps": 7300,
+   "bonusBps": 750,
+   "suppliedUsd": 144616858.51,
+   "debtUsd": 217979.82
+  },
+  {
+   "id": 34,
+   "symbol": "cbBTC",
+   "address": "0xcbB7C0000aB88B473b1f5aFd9ef808440eed33Bf",
+   "decimals": 8,
+   "priceUsd8": "8416451400000",
+   "ltBps": 7800,
+   "ltvBps": 7300,
+   "bonusBps": 750,
+   "suppliedUsd": 1490494003.76,
+   "debtUsd": 11162757.29
+  },
+  {
+   "id": 35,
+   "symbol": "USDS",
+   "address": "0xdC035D45d973E3EC169d2276DDab16f1e407384F",
+   "decimals": 18,
+   "priceUsd8": "99990036",
+   "ltBps": 7800,
+   "ltvBps": 0,
+   "bonusBps": 750,
+   "suppliedUsd": 8845300.59,
+   "debtUsd": 337006.68
+  },
+  {
+   "id": 39,
+   "symbol": "RLUSD",
+   "address": "0x8292Bb45bf1Ee4d140127049757C2E0fF06317eD",
+   "decimals": 18,
+   "priceUsd8": "100009370",
+   "ltBps": 0,
+   "ltvBps": 0,
+   "bonusBps": 0,
+   "suppliedUsd": 4167418.17,
+   "debtUsd": 2901129.13
+  },
+  {
+   "id": 42,
+   "symbol": "USDtb",
+   "address": "0xC139190F447e929f090Edeb554D95AbB8b18aC1C",
+   "decimals": 18,
+   "priceUsd8": "100000000",
+   "ltBps": 0,
+   "ltvBps": 0,
+   "bonusBps": 0,
+   "suppliedUsd": 14062092.07,
+   "debtUsd": 11246608.77
+  },
+  {
+   "id": 47,
+   "symbol": "EURC",
+   "address": "0x1aBaEA1f7C830bD89Acc67eC4af516284b1bC33c",
+   "decimals": 6,
+   "priceUsd8": "113985610",
+   "ltBps": 7800,
+   "ltvBps": 0,
+   "bonusBps": 500,
+   "suppliedUsd": 45999323.48,
+   "debtUsd": 29416532.85
+  },
+  {
+   "id": 59,
+   "symbol": "USDG",
+   "address": "0xe343167631d89B6Ffc58B88d6b7fB0228795491D",
+   "decimals": 6,
+   "priceUsd8": "99992498",
+   "ltBps": 0,
+   "ltvBps": 0,
+   "bonusBps": 0,
+   "suppliedUsd": 6239102.39,
+   "debtUsd": 3604692.37
+  }
+ ],
+ "eModes": [
+  {
+   "id": 1,
+   "label": "ETH correlated",
+   "ltvBps": 9300,
+   "ltBps": 9500,
+   "bonusBps": 100,
+   "collateralBitmap": "2952790659",
+   "borrowableBitmap": "1",
+   "assetIsCollateral": false,
+   "keptPositions": 1
+  },
+  {
+   "id": 2,
+   "label": "sUSDe Stablecoins",
+   "ltvBps": 9000,
+   "ltBps": 9200,
+   "bonusBps": 400,
+   "collateralBitmap": "5368709120",
+   "borrowableBitmap": "264",
+   "assetIsCollateral": false,
+   "keptPositions": 3
+  },
+  {
+   "id": 11,
+   "label": "USDe Stablecoin",
+   "ltvBps": 9000,
+   "ltBps": 9300,
+   "bonusBps": 200,
+   "collateralBitmap": "1073741824",
+   "borrowableBitmap": "264",
+   "assetIsCollateral": false,
+   "keptPositions": 1
+  },
+  {
+   "id": 32,
+   "label": "PTsUSDe5FEB/USDe",
+   "ltvBps": 9200,
+   "ltBps": 9400,
+   "bonusBps": 200,
+   "collateralBitmap": "81064797587636224",
+   "borrowableBitmap": "1073741824",
+   "assetIsCollateral": false,
+   "keptPositions": 1
+  },
+  {
+   "id": 34,
+   "label": "PT_USDe_7MAY2026__Stablecoins",
+   "ltvBps": 9100,
+   "ltBps": 9300,
+   "bonusBps": 270,
+   "collateralBitmap": "1188950302699552768",
+   "borrowableBitmap": "4399120253192",
+   "assetIsCollateral": false,
+   "keptPositions": 1
+  },
+  {
+   "id": 40,
+   "label": "LINK__USDC_USDT",
+   "ltvBps": 6600,
+   "ltBps": 7100,
+   "bonusBps": 700,
+   "collateralBitmap": "32",
+   "borrowableBitmap": "264",
+   "assetIsCollateral": false,
+   "keptPositions": 2
+  },
+  {
+   "id": 41,
+   "label": "EURC__USDC_USDT_GHO",
+   "ltvBps": 7500,
+   "ltBps": 7800,
+   "bonusBps": 500,
+   "collateralBitmap": "140737488355328",
+   "borrowableBitmap": "1048840",
+   "assetIsCollateral": false,
+   "keptPositions": 3
+  },
+  {
+   "id": 43,
+   "label": "XAUt__USDC_USDT_GHO",
+   "ltvBps": 7000,
+   "ltBps": 7500,
+   "bonusBps": 600,
+   "collateralBitmap": "4503599627370496",
+   "borrowableBitmap": "1048840",
+   "assetIsCollateral": false,
+   "keptPositions": 1
+  }
+ ],
+ "totals": {
+  "positions": 300,
+  "collateralUsd": 71167942.16,
+  "debtUsd": 26850843.15,
+  "reserveSuppliedUsd": 2405492249.48,
+  "reserveDebtUsd": 0,
+  "candidates": 18360,
+  "candidatesPrefiltered": 1717,
+  "candidatesWithDebt": 1717,
+  "chosenMember": "USDC",
+  "familyBreakdown": {
+   "USDC": {
+    "ethReserveId": 3,
+    "positions": 507,
+    "collateralUsd": 77124349.69,
+    "debtUsd": 26851897.34
+   }
+  },
+  "dominantAll": 507,
+  "dropped": 207,
+  "allCollateralUsd": 77124349.69,
+  "allDebtUsd": 26851897.34,
+  "keptDebtShare": 0.999961,
+  "selfDebtExcluded": {
+   "maxSelfDebtShare": 0.1,
+   "positions": 241,
+   "debtUsd": 9443149.21,
+   "collateralUsd": 19276105.73
+  },
+  "otherDominantCollateral": {
+   "WETH": 360,
+   "WBTC": 316,
+   "USDT": 69,
+   "cbBTC": 68,
+   "wstETH": 50,
+   "LINK": 29,
+   "AAVE": 24,
+   "XAUt": 10,
+   "weETH": 9,
+   "tBTC": 9,
+   "cbETH": 5,
+   "LBTC": 4,
+   "EURC": 4,
+   "PYUSD": 2,
+   "sUSDe": 2,
+   "USDe": 2,
+   "BTC.b": 2,
+   "osETH": 1,
+   "rETH": 1,
+   "eBTC": 1,
+   "ezETH": 1
+  },
+  "ltBreakdown": [
+   {
+    "params": "eMode 0 (none) LT 7800 bonus 450",
+    "positions": 287,
+    "debtUsd": 26210002.29
+   },
+   {
+    "params": "eMode 2 (sUSDe Stablecoins) LT 7800 bonus 450",
+    "positions": 3,
+    "debtUsd": 302139.24
+   },
+   {
+    "params": "eMode 40 (LINK__USDC_USDT) LT 7800 bonus 450",
+    "positions": 2,
+    "debtUsd": 132636.85
+   },
+   {
+    "params": "eMode 41 (EURC__USDC_USDT_GHO) LT 7800 bonus 450",
+    "positions": 3,
+    "debtUsd": 103344
+   },
+   {
+    "params": "eMode 1 (ETH correlated) LT 7800 bonus 450",
+    "positions": 1,
+    "debtUsd": 54951.24
+   },
+   {
+    "params": "eMode 32 (PTsUSDe5FEB/USDe) LT 7800 bonus 450",
+    "positions": 1,
+    "debtUsd": 25460.69
+   },
+   {
+    "params": "eMode 11 (USDe Stablecoin) LT 7800 bonus 450",
+    "positions": 1,
+    "debtUsd": 21233.06
+   },
+   {
+    "params": "eMode 43 (XAUt__USDC_USDT_GHO) LT 7800 bonus 450",
+    "positions": 1,
+    "debtUsd": 1005.09
+   },
+   {
+    "params": "eMode 34 (PT_USDe_7MAY2026__Stablecoins) LT 7800 bonus 450",
+    "positions": 1,
+    "debtUsd": 70.69
+   }
+  ],
+  "byAsset": {
+   "13": {
+    "positions": 300,
+    "collateralUsd": 63085537.27,
+    "debtUsd": 26850843.15,
+    "ltBpsUsed": [
+     7800
+    ]
+   }
+  }
+ },
+ "depth": {
+  "depthUsd": 631620591,
+  "source": "https://api.geckoterminal.com/api/v2/networks/eth/tokens/0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48/pools?page=1",
+  "isAssumption": false,
+  "note": "Sum of GeckoTerminal reserve_in_usd over 20 Ethereum DEX pool(s) (page 1 = top pools by GeckoTerminal ranking); largest: DAI / USDC / USDT on curve ($161,334,992). TVL proxy (both sides of each pool), not a slippage curve. Primary USDC redemption goes through Circle (institutional accounts, not instant for a liquidator), so the immediate exit is the DEX market. DefiLlama (yields.llama.fi) Ethereum DEX pools containing USDC: 478 pools, $1,181,906,959 total; top: curve-dex DAI-USDC-USDT $161,237,591; uniswap-v3 USDC-WETH $99,357,312 (0.05%); uniswap-v4 BMD-USDC $97,046,575 (0.01%); curve-dex USDC-RLUSD $59,713,377; uniswap-v4 ETH-USDC $44,721,773 (0.30%); uniswap-v3 USDC-WETH $42,478,643 (0.3%); fluid-dex USDC-USDT $34,608,142; uniswap-v3 USDC-USDT $34,325,387 (0.01%). Non-DEX venues using it (lending / Pendle / vaults; not spot exit liquidity): maple $2,920,664,385; spark-savings $305,194,675; re $272,279,226; aave-v3 $201,316,424; pareto-credit $155,286,444; fluid-lending $130,015,185.",
+  "pools": [
+   {
+    "name": "DAI / USDC / USDT",
+    "dex": "curve",
+    "reserveUsd": 161334992,
+    "volume24hUsd": 7499240,
+    "address": "0xbebc44782c7db0a1a60cb6fe97d0b483032ff1c7"
+   },
+   {
+    "name": "WETH / USDC 0.05%",
+    "dex": "uniswap_v3",
+    "reserveUsd": 99270049,
+    "volume24hUsd": 36293764,
+    "address": "0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640"
+   },
+   {
+    "name": "USDC / RLUSD",
+    "dex": "curve",
+    "reserveUsd": 59699290,
+    "volume24hUsd": 17250493,
+    "address": "0xd001ae433f254283fece51d4acce8c53263aa186"
+   },
+   {
+    "name": "ETH / USDC 0.3%",
+    "dex": "uniswap-v4-ethereum",
+    "reserveUsd": 44576792,
+    "volume24hUsd": 4638753,
+    "address": "0xdce6394339af00981949f5f3baf27e3610c76326a700af57e4b3e3ae4977f78d"
+   },
+   {
+    "name": "USDC / WETH 0.3%",
+    "dex": "uniswap_v3",
+    "reserveUsd": 42397561,
+    "volume24hUsd": 7792475,
+    "address": "0x8ad599c3a0ff1de082011efddc58f1908eb6e6d8"
+   },
+   {
+    "name": "USDC / USDT",
+    "dex": "fluid-ethereum",
+    "reserveUsd": 34770241,
+    "volume24hUsd": 65734211,
+    "address": "0x667701e51b4d1ca244f17c78f7ab8744b4c99f9b"
+   },
+   {
+    "name": "USDC / USDT 0.01%",
+    "dex": "uniswap_v3",
+    "reserveUsd": 34338804,
+    "volume24hUsd": 5618193,
+    "address": "0x3416cf6c708da44db2624d63ea0aaef7113527c6"
+   },
+   {
+    "name": "PYUSD / USDC",
+    "dex": "curve",
+    "reserveUsd": 32909251,
+    "volume24hUsd": 3290340,
+    "address": "0x383e6b4437b59fff47b619cba855ca29342a8559"
+   },
+   {
+    "name": "sUSDai / USDC",
+    "dex": "fluid-ethereum",
+    "reserveUsd": 26441907,
+    "volume24hUsd": 1162041,
+    "address": "0xa2e3a4e2a08b5714fa974ce88466d736bd8b39d9"
+   },
+   {
+    "name": "USDG / USDC",
+    "dex": "curve",
+    "reserveUsd": 20019213,
+    "volume24hUsd": 3271464,
+    "address": "0xc061caa073f3d95f80f8e5428d32d2d76f5e1622"
+   },
+   {
+    "name": "GHO / USDC",
+    "dex": "fluid-ethereum",
+    "reserveUsd": 19676374,
+    "volume24hUsd": 8009491,
+    "address": "0xde632c3a214d5f14c1d8ddf0b92f8bcd188fee45"
+   },
+   {
+    "name": "crvUSD / USDC",
+    "dex": "curve",
+    "reserveUsd": 14060824,
+    "volume24hUsd": 1613064,
+    "address": "0x4dece678ceceb27446b35c672dc7d61f30bad69e"
+   },
+   {
+    "name": "USDC / WBTC 0.05%",
+    "dex": "uniswap-v4-ethereum",
+    "reserveUsd": 7683070,
+    "volume24hUsd": 3606554,
+    "address": "0x3ea74c37fbb79dfcd6d760870f0f4e00cf4c3960b3259d0d43f211c0547394c1"
+   },
+   {
+    "name": "USDC / USDT 0.001%",
+    "dex": "uniswap-v4-ethereum",
+    "reserveUsd": 6689259,
+    "volume24hUsd": 7279251,
+    "address": "0x8aa4e11cbdf30eedc92100f4c8a31ff748e201d44712cc8c90d189edaa8e4e47"
+   },
+   {
+    "name": "USDC / WETH 0.01%",
+    "dex": "uniswap_v3",
+    "reserveUsd": 6080568,
+    "volume24hUsd": 54694601,
+    "address": "0xe0554a476a092703abdb3ef35c80e0d76d32939f"
+   },
+   {
+    "name": "USDC / USDT",
+    "dex": "uniswap-v4-ethereum",
+    "reserveUsd": 5753733,
+    "volume24hUsd": 141183257,
+    "address": "0x2b21c65d9a7dc6926ee330a1c6e5a8037fd81774f3dc066536f800128e39f634"
+   },
+   {
+    "name": "USDC / USDT",
+    "dex": "curve",
+    "reserveUsd": 5122802,
+    "volume24hUsd": 19776774,
+    "address": "0x4f493b7de8aac7d55f71853688b1f7c8f0243c85"
+   },
+   {
+    "name": "USDC / USDT",
+    "dex": "uniswap-v4-ethereum",
+    "reserveUsd": 3835798,
+    "volume24hUsd": 16983339,
+    "address": "0x395f91b34aa34a477ce3bc6505639a821b286a62b1a164fc1887fa3a5ef713a5"
+   },
+   {
+    "name": "USDC / USDT",
+    "dex": "uniswap-v4-ethereum",
+    "reserveUsd": 3526906,
+    "volume24hUsd": 55570295,
+    "address": "0x0fb0e40cec3bb23e13abc585958a93c796fbea56955e19a23727a716a0423239"
+   },
+   {
+    "name": "USDC / WETH",
+    "dex": "uniswap-v4-ethereum",
+    "reserveUsd": 3433157,
+    "volume24hUsd": 7004373,
+    "address": "0xe500210c7ea6bfd9f69dce044b09ef384ec2b34832f132baec3b418208e3a657"
+   }
+  ]
+ },
+ "positions": [
+  {
+   "user": "0xdc77B2C59Db1b02f988e8E08A60fbE9139447cc3",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "5880962442874",
+   "collateralDecimals": 6,
+   "collateralUsd": 5880304.36,
+   "otherCollateralUsd": 2310452.33,
+   "debtUsd": 3315825.42,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.926757,
+   "hfModel": 1.926757,
+   "debtByAsset": {
+    "0": 3315825.42
+   }
+  },
+  {
+   "user": "0x4D76ee2d0A5aeFedAD77f05ba81a035533a20e45",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "15370810538257",
+   "collateralDecimals": 6,
+   "collateralUsd": 15369090.54,
+   "otherCollateralUsd": 943687.87,
+   "debtUsd": 2565682.11,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 4.959292,
+   "hfModel": 4.959292,
+   "debtByAsset": {
+    "34": 2565682.11
+   }
+  },
+  {
+   "user": "0x6BD04Ec35C3fa6179227a30C3b19F8B3007E0BdB",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "3609198278847",
+   "collateralDecimals": 6,
+   "collateralUsd": 3608794.41,
+   "otherCollateralUsd": 0,
+   "debtUsd": 2258331.53,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.246433,
+   "hfModel": 1.246433,
+   "debtByAsset": {
+    "0": 2258331.53
+   }
+  },
+  {
+   "user": "0x887e314bc54FD8E3FdEBbBCE302DaEddfB418c2B",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "1837449937582",
+   "collateralDecimals": 6,
+   "collateralUsd": 1837244.33,
+   "otherCollateralUsd": 205138.53,
+   "debtUsd": 1225565.16,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.299856,
+   "hfModel": 1.299856,
+   "debtByAsset": {
+    "0": 978248.42,
+    "2": 247316.74
+   }
+  },
+  {
+   "user": "0xdb1aABE42f48F4B6B40CdEd8EEefaeA3Ebab2766",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "3285983259112",
+   "collateralDecimals": 6,
+   "collateralUsd": 3285615.56,
+   "otherCollateralUsd": 0,
+   "debtUsd": 1070708.8,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 2.393536,
+   "hfModel": 2.393536,
+   "debtByAsset": {
+    "0": 1070708.8
+   }
+  },
+  {
+   "user": "0x7a367F72779370beDEEf4784ba885D3188b78886",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "1287442599800",
+   "collateralDecimals": 6,
+   "collateralUsd": 1287298.53,
+   "otherCollateralUsd": 38097.51,
+   "debtUsd": 888364.11,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.165866,
+   "hfModel": 1.163722,
+   "debtByAsset": {
+    "2": 888364.05,
+    "8": 0.06
+   }
+  },
+  {
+   "user": "0xE4D318E9F8247bFaC325B6AC540E451AbF23122e",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "871749638281",
+   "collateralDecimals": 6,
+   "collateralUsd": 871652.09,
+   "otherCollateralUsd": 0,
+   "debtUsd": 600113.99,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.132932,
+   "hfModel": 1.132932,
+   "debtByAsset": {
+    "3": 0,
+    "39": 600113.99
+   }
+  },
+  {
+   "user": "0xdfD2310e40767cB442900aa35E354F8D7c1817F3",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "541546116600",
+   "collateralDecimals": 6,
+   "collateralUsd": 541485.52,
+   "otherCollateralUsd": 484608.28,
+   "debtUsd": 572214.93,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.415309,
+   "hfModel": 1.398693,
+   "debtByAsset": {
+    "3": 8.1,
+    "8": 331364.88,
+    "30": 240841.95
+   }
+  },
+  {
+   "user": "0xe7dE0C1c5b900ecA200947dC4ba88C8d4Becc7Df",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "991492521340",
+   "collateralDecimals": 6,
+   "collateralUsd": 991381.57,
+   "otherCollateralUsd": 0,
+   "debtUsd": 510984.17,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.51331,
+   "hfModel": 1.51331,
+   "debtByAsset": {
+    "34": 510984.17
+   }
+  },
+  {
+   "user": "0x352eC9467EA15E5ad76E2F27EBE563589E93875f",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "366157238755",
+   "collateralDecimals": 6,
+   "collateralUsd": 366116.27,
+   "otherCollateralUsd": 238959.51,
+   "debtUsd": 460647.96,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.024554,
+   "hfModel": 1.024555,
+   "debtByAsset": {
+    "8": 460647.96
+   }
+  },
+  {
+   "user": "0x7662E9a3548f11B90f1f5Ea75aB566255e00f609",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "533354928377",
+   "collateralDecimals": 6,
+   "collateralUsd": 533295.25,
+   "otherCollateralUsd": 0,
+   "debtUsd": 351006.19,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.185079,
+   "hfModel": 1.18508,
+   "debtByAsset": {
+    "39": 351006.19
+   }
+  },
+  {
+   "user": "0x41cF64CE7bd0d4D13A9De8171b869cA7FE152Fa1",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "421292902826",
+   "collateralDecimals": 6,
+   "collateralUsd": 421245.76,
+   "otherCollateralUsd": 57518.75,
+   "debtUsd": 331994.05,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.133374,
+   "hfModel": 1.124828,
+   "debtByAsset": {
+    "8": 331994.05
+   }
+  },
+  {
+   "user": "0x5d91AEA302976d2A405E872638EDA95b373E788F",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "470514581718",
+   "collateralDecimals": 6,
+   "collateralUsd": 470461.93,
+   "otherCollateralUsd": 19414.4,
+   "debtUsd": 326047.83,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.171924,
+   "hfModel": 1.171925,
+   "debtByAsset": {
+    "0": 326047.83
+   }
+  },
+  {
+   "user": "0xb45E5Ac66FDF8726C67d25Db4Eb57DfDB6791Da7",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "502944395126",
+   "collateralDecimals": 6,
+   "collateralUsd": 502888.12,
+   "otherCollateralUsd": 0,
+   "debtUsd": 324022.88,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.210571,
+   "hfModel": 1.210571,
+   "debtByAsset": {
+    "8": 221185.26,
+    "47": 102837.62
+   }
+  },
+  {
+   "user": "0x09BBF4c01906CC3d30B20c6507213142ad6D414C",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "1353979007592",
+   "collateralDecimals": 6,
+   "collateralUsd": 1353827.5,
+   "otherCollateralUsd": 1009.28,
+   "debtUsd": 323680.17,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 3.265022,
+   "hfModel": 3.264867,
+   "debtByAsset": {
+    "0": 323680.17
+   }
+  },
+  {
+   "user": "0x9437Eb7afefaBE1Ed9a34579e3983148726B6D1A",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "236347632097",
+   "collateralDecimals": 6,
+   "collateralUsd": 236321.18,
+   "otherCollateralUsd": 251402.44,
+   "debtUsd": 310240.91,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.259874,
+   "hfModel": 1.226223,
+   "debtByAsset": {
+    "0": 9191.05,
+    "8": 301049.86
+   }
+  },
+  {
+   "user": "0xaf047b52F1a08DEBe1872eeC5b628DA65a3Be5b6",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "772592164858",
+   "collateralDecimals": 6,
+   "collateralUsd": 772505.71,
+   "otherCollateralUsd": 141162.58,
+   "debtUsd": 300133.11,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 2.383984,
+   "hfModel": 2.374484,
+   "debtByAsset": {
+    "8": 300133.11
+   }
+  },
+  {
+   "user": "0x13020E7bB76EAd4AB37BAaC8fa9B11ce0FA04D5C",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "1126034135304",
+   "collateralDecimals": 6,
+   "collateralUsd": 1125908.13,
+   "otherCollateralUsd": 206389.63,
+   "debtUsd": 300131.85,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 3.477618,
+   "hfModel": 3.462452,
+   "debtByAsset": {
+    "8": 300131.85
+   }
+  },
+  {
+   "user": "0x2c363cf3c11B130bFe5Bba8169a825D65b930e16",
+   "eMode": 2,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "267427364601",
+   "collateralDecimals": 6,
+   "collateralUsd": 267397.44,
+   "otherCollateralUsd": 377650.64,
+   "debtUsd": 275496.78,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.889794,
+   "hfModel": 1.826292,
+   "debtByAsset": {
+    "8": 275496.78
+   }
+  },
+  {
+   "user": "0x0B5a6a15B975fD35f0B301748C8DaBD35b50d8C5",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "596005721945",
+   "collateralDecimals": 6,
+   "collateralUsd": 595939.03,
+   "otherCollateralUsd": 0,
+   "debtUsd": 269043.3,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.727723,
+   "hfModel": 1.727724,
+   "debtByAsset": {
+    "0": 269043.3
+   }
+  },
+  {
+   "user": "0xCF9B8c876aC4B8750a799c772BCd204afE5A19Fc",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "447421989339",
+   "collateralDecimals": 6,
+   "collateralUsd": 447371.92,
+   "otherCollateralUsd": 0,
+   "debtUsd": 256022.35,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.362967,
+   "hfModel": 1.362967,
+   "debtByAsset": {
+    "0": 256022.35
+   }
+  },
+  {
+   "user": "0xA11A70829e1A7614B51676783904838aBCb5Fcc1",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "441449954716",
+   "collateralDecimals": 6,
+   "collateralUsd": 441400.56,
+   "otherCollateralUsd": 0,
+   "debtUsd": 247434.22,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.39145,
+   "hfModel": 1.39145,
+   "debtByAsset": {
+    "0": 53909.5,
+    "2": 193524.72
+   }
+  },
+  {
+   "user": "0xfCBa0ba49C5b4DD5Ff2849bB7EfeAA4ff135a80b",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "447530494199",
+   "collateralDecimals": 6,
+   "collateralUsd": 447480.42,
+   "otherCollateralUsd": 0,
+   "debtUsd": 235188.13,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.484066,
+   "hfModel": 1.484066,
+   "debtByAsset": {
+    "0": 235188.13
+   }
+  },
+  {
+   "user": "0x70b1B4016b9f875d798c75F4D2C5E8D30787c187",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "388664204925",
+   "collateralDecimals": 6,
+   "collateralUsd": 388620.71,
+   "otherCollateralUsd": 0,
+   "debtUsd": 219103.11,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.383477,
+   "hfModel": 1.383477,
+   "debtByAsset": {
+    "3": 21144.25,
+    "8": 25187.81,
+    "20": 172771.05
+   }
+  },
+  {
+   "user": "0x54E34562ab64E26CC07013827328f1e8862db16C",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "491749655735",
+   "collateralDecimals": 6,
+   "collateralUsd": 491694.63,
+   "otherCollateralUsd": 0,
+   "debtUsd": 211580.27,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.812653,
+   "hfModel": 1.812654,
+   "debtByAsset": {
+    "2": 211580.27
+   }
+  },
+  {
+   "user": "0xEad5B7d86C681C036C59Cd00A0390541061c69F2",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "252865667108",
+   "collateralDecimals": 6,
+   "collateralUsd": 252837.37,
+   "otherCollateralUsd": 76833.71,
+   "debtUsd": 208804.85,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.231501,
+   "hfModel": 1.231501,
+   "debtByAsset": {
+    "0": 54171.51,
+    "5": 140360.69,
+    "8": 28.27,
+    "12": 0,
+    "13": 14143.76,
+    "17": 99.95,
+    "20": 0.67
+   }
+  },
+  {
+   "user": "0x10b78C8CCB0dC1F9f1c841BbE26C97E4BaEeDc90",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "341907150459",
+   "collateralDecimals": 6,
+   "collateralUsd": 341868.89,
+   "otherCollateralUsd": 0,
+   "debtUsd": 208431.47,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.279354,
+   "hfModel": 1.279354,
+   "debtByAsset": {
+    "0": 40432.65,
+    "2": 167998.82
+   }
+  },
+  {
+   "user": "0xD31b5B316e6D4598ec3738635E491fF6cBc992Be",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "376419104462",
+   "collateralDecimals": 6,
+   "collateralUsd": 376376.98,
+   "otherCollateralUsd": 0,
+   "debtUsd": 200460.64,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.464497,
+   "hfModel": 1.464497,
+   "debtByAsset": {
+    "0": 95435.95,
+    "5": 105024.69
+   }
+  },
+  {
+   "user": "0x10e4a285E03e20fC637d8640e43622D792e37985",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "304200108203",
+   "collateralDecimals": 6,
+   "collateralUsd": 304166.07,
+   "otherCollateralUsd": 4635.8,
+   "debtUsd": 195832.42,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.229957,
+   "hfModel": 1.229957,
+   "debtByAsset": {
+    "0": 37741.04,
+    "2": 158091.38
+   }
+  },
+  {
+   "user": "0xF932DccD7AEC8fE628bC777BAd6871A4Cd9d4f85",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "172643284607",
+   "collateralDecimals": 6,
+   "collateralUsd": 172623.97,
+   "otherCollateralUsd": 164427.75,
+   "debtUsd": 189647.37,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.386258,
+   "hfModel": 1.386259,
+   "debtByAsset": {
+    "47": 189647.37
+   }
+  },
+  {
+   "user": "0x3658a2F4Be3C67e0A740D457096587BF0DF66024",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "494731372076",
+   "collateralDecimals": 6,
+   "collateralUsd": 494676.01,
+   "otherCollateralUsd": 0.12,
+   "debtUsd": 184767.09,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 2.08829,
+   "hfModel": 2.088291,
+   "debtByAsset": {
+    "3": 1007.27,
+    "8": 183759.82
+   }
+  },
+  {
+   "user": "0x7a759A170C3AEA65B3b373299D33BF5221785C48",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "294009636734",
+   "collateralDecimals": 6,
+   "collateralUsd": 293976.74,
+   "otherCollateralUsd": 0,
+   "debtUsd": 178291.05,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.286109,
+   "hfModel": 1.28611,
+   "debtByAsset": {
+    "0": 44515.37,
+    "2": 83233.15,
+    "34": 50542.52
+   }
+  },
+  {
+   "user": "0xE733a79bDe1E30Bb87BcCD5cffAD2D0B0963a2c0",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "237100441503",
+   "collateralDecimals": 6,
+   "collateralUsd": 237073.91,
+   "otherCollateralUsd": 0,
+   "debtUsd": 172014.67,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.07501,
+   "hfModel": 1.075011,
+   "debtByAsset": {
+    "0": 158976.87,
+    "3": 600.71,
+    "8": 12437.09
+   }
+  },
+  {
+   "user": "0xB372ED5cA2FEf2B5fCDd16288E8fE9ac73696761",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "250752058940",
+   "collateralDecimals": 6,
+   "collateralUsd": 250724,
+   "otherCollateralUsd": 29146.03,
+   "debtUsd": 169863.15,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.285144,
+   "hfModel": 1.285144,
+   "debtByAsset": {
+    "0": 144855.5,
+    "8": 25007.65
+   }
+  },
+  {
+   "user": "0x33d3B460A6763077491d623A882c4D5910336263",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "282522039254",
+   "collateralDecimals": 6,
+   "collateralUsd": 282490.43,
+   "otherCollateralUsd": 0.01,
+   "debtUsd": 168777.64,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.305519,
+   "hfModel": 1.30552,
+   "debtByAsset": {
+    "0": 168777.64
+   }
+  },
+  {
+   "user": "0x3a707A794510e2a2779675Da0414dBE1C03bD534",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "267632403615",
+   "collateralDecimals": 6,
+   "collateralUsd": 267602.46,
+   "otherCollateralUsd": 0,
+   "debtUsd": 168579.71,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.238167,
+   "hfModel": 1.238168,
+   "debtByAsset": {
+    "2": 168579.71
+   }
+  },
+  {
+   "user": "0xf620cd62813E2a74BDF0CAD74A65981303946487",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "260697735583",
+   "collateralDecimals": 6,
+   "collateralUsd": 260668.56,
+   "otherCollateralUsd": 56198.11,
+   "debtUsd": 167391.09,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.487739,
+   "hfModel": 1.476518,
+   "debtByAsset": {
+    "0": 94400.2,
+    "2": 46884.29,
+    "20": 26106.59
+   }
+  },
+  {
+   "user": "0x552B42287c4fE1e913ea9a159B69bD7E9B81ec76",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "241759579851",
+   "collateralDecimals": 6,
+   "collateralUsd": 241732.53,
+   "otherCollateralUsd": 0,
+   "debtUsd": 167018.96,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.128921,
+   "hfModel": 1.128922,
+   "debtByAsset": {
+    "0": 167018.96
+   }
+  },
+  {
+   "user": "0x0937aA6d83C851D506433aB342387A337C8B512a",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "269376923194",
+   "collateralDecimals": 6,
+   "collateralUsd": 269346.78,
+   "otherCollateralUsd": 72637.89,
+   "debtUsd": 162623.99,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.662607,
+   "hfModel": 1.640275,
+   "debtByAsset": {
+    "2": 151456,
+    "5": 11167.99
+   }
+  },
+  {
+   "user": "0xCF0cC4554E018a66ffbce9F15a79bD4cd3b7E49A",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "296466799955",
+   "collateralDecimals": 6,
+   "collateralUsd": 296433.63,
+   "otherCollateralUsd": 0,
+   "debtUsd": 161753.52,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.429447,
+   "hfModel": 1.429448,
+   "debtByAsset": {
+    "0": 161753.52
+   }
+  },
+  {
+   "user": "0xde47C36b3Bf9B958EE002f7Db867c45847cA6d6a",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "237786363527",
+   "collateralDecimals": 6,
+   "collateralUsd": 237759.76,
+   "otherCollateralUsd": 0,
+   "debtUsd": 152851.84,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.213283,
+   "hfModel": 1.213283,
+   "debtByAsset": {
+    "0": 152851.84
+   }
+  },
+  {
+   "user": "0x88Aad701c39Aa2Acd2CC170bC7C90750cFd36DA1",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "241073390966",
+   "collateralDecimals": 6,
+   "collateralUsd": 241046.41,
+   "otherCollateralUsd": 0,
+   "debtUsd": 147770.68,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.272351,
+   "hfModel": 1.272351,
+   "debtByAsset": {
+    "0": 21530.89,
+    "2": 58902.27,
+    "34": 67337.53
+   }
+  },
+  {
+   "user": "0xc9708e783E059aDd4d36F169d8a0C8aA09E64FF5",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "182941065426",
+   "collateralDecimals": 6,
+   "collateralUsd": 182920.59,
+   "otherCollateralUsd": 162135.4,
+   "debtUsd": 140912.27,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.967539,
+   "hfModel": 1.910009,
+   "debtByAsset": {
+    "1": 140912.27
+   }
+  },
+  {
+   "user": "0xEc82a7912AEEF74fB212e799F25468d96fb68635",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "325019171344",
+   "collateralDecimals": 6,
+   "collateralUsd": 324982.8,
+   "otherCollateralUsd": 0,
+   "debtUsd": 134652.64,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.882522,
+   "hfModel": 1.882522,
+   "debtByAsset": {
+    "0": 134652.64
+   }
+  },
+  {
+   "user": "0x94edD1FE37a5439844f0999Dd0c32FB248aF514d",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "233851812511",
+   "collateralDecimals": 6,
+   "collateralUsd": 233825.64,
+   "otherCollateralUsd": 0,
+   "debtUsd": 129810.8,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.404998,
+   "hfModel": 1.404999,
+   "debtByAsset": {
+    "47": 129810.8
+   }
+  },
+  {
+   "user": "0x47DB6aAcd1036d51bbdF9260485bC18c4e083c3b",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "155388915914",
+   "collateralDecimals": 6,
+   "collateralUsd": 155371.53,
+   "otherCollateralUsd": 49895.32,
+   "debtUsd": 126964.41,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.280696,
+   "hfModel": 1.261047,
+   "debtByAsset": {
+    "8": 126964.41
+   }
+  },
+  {
+   "user": "0xD6cA95805412a325430c9406769bBB0cC7b1F9Db",
+   "eMode": 40,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "178354325417",
+   "collateralDecimals": 6,
+   "collateralUsd": 178334.37,
+   "otherCollateralUsd": 0,
+   "debtUsd": 126187.19,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.102337,
+   "hfModel": 1.102337,
+   "debtByAsset": {
+    "8": 126187.19
+   }
+  },
+  {
+   "user": "0x2Be3Dec0DD2eC5F6fa9E16aA3d65C90A56D4A799",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "168508917655",
+   "collateralDecimals": 6,
+   "collateralUsd": 168490.06,
+   "otherCollateralUsd": 0,
+   "debtUsd": 115908.76,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.133842,
+   "hfModel": 1.133842,
+   "debtByAsset": {
+    "2": 115908.76
+   }
+  },
+  {
+   "user": "0xEE83Bb34e42f5eFd0725DF7dfb045006febc4f74",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "227189512431",
+   "collateralDecimals": 6,
+   "collateralUsd": 227164.09,
+   "otherCollateralUsd": 0,
+   "debtUsd": 114669.56,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.545205,
+   "hfModel": 1.545205,
+   "debtByAsset": {
+    "47": 114669.56
+   }
+  },
+  {
+   "user": "0xE6aE9bEb6A234A3658168CC853989921a6cFeD8A",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "484312070361",
+   "collateralDecimals": 6,
+   "collateralUsd": 484257.88,
+   "otherCollateralUsd": 0,
+   "debtUsd": 110015.6,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 3.433341,
+   "hfModel": 3.433342,
+   "debtByAsset": {
+    "8": 80008.13,
+    "30": 30007.47
+   }
+  },
+  {
+   "user": "0x9cA0dAfA3Acc172a37b5cCa26Ff7962117B5965b",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "161852953327",
+   "collateralDecimals": 6,
+   "collateralUsd": 161834.84,
+   "otherCollateralUsd": 0,
+   "debtUsd": 104940.73,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.20288,
+   "hfModel": 1.202881,
+   "debtByAsset": {
+    "0": 104940.73
+   }
+  },
+  {
+   "user": "0xC00a6614B8030cE216302016e11C6B4140B5e499",
+   "eMode": 41,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "93225386461",
+   "collateralDecimals": 6,
+   "collateralUsd": 93214.95,
+   "otherCollateralUsd": 203632.14,
+   "debtUsd": 99503.34,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 2.360685,
+   "hfModel": 2.326965,
+   "debtByAsset": {
+    "20": 99503.34
+   }
+  },
+  {
+   "user": "0x746f313283d0B58a244c6E58612f91aa0dC5b129",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "263963582245",
+   "collateralDecimals": 6,
+   "collateralUsd": 263934.04,
+   "otherCollateralUsd": 0,
+   "debtUsd": 98976.19,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 2.07998,
+   "hfModel": 2.079981,
+   "debtByAsset": {
+    "8": 50853.5,
+    "27": 48122.68
+   }
+  },
+  {
+   "user": "0x1Bd967D0BfddC2B5752336bf391BE1030087FFd3",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "145874087529",
+   "collateralDecimals": 6,
+   "collateralUsd": 145857.76,
+   "otherCollateralUsd": 0,
+   "debtUsd": 98730.89,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.152314,
+   "hfModel": 1.152315,
+   "debtByAsset": {
+    "2": 98730.89
+   }
+  },
+  {
+   "user": "0xF3e745E93dA375033549A45c426D0a2548d75973",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "148725083540",
+   "collateralDecimals": 6,
+   "collateralUsd": 148708.44,
+   "otherCollateralUsd": 0,
+   "debtUsd": 96129.51,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.206628,
+   "hfModel": 1.206628,
+   "debtByAsset": {
+    "2": 96129.51
+   }
+  },
+  {
+   "user": "0x644e7d3bB12b3e1BfF85aAB7E296d1d651b0105e",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "202272334755",
+   "collateralDecimals": 6,
+   "collateralUsd": 202249.7,
+   "otherCollateralUsd": 0,
+   "debtUsd": 93447.06,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.688172,
+   "hfModel": 1.688173,
+   "debtByAsset": {
+    "2": 93447.06
+   }
+  },
+  {
+   "user": "0x46bc07b5EE8f53A542C5d70e73dD0d854bDa403A",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "162360661916",
+   "collateralDecimals": 6,
+   "collateralUsd": 162342.49,
+   "otherCollateralUsd": 0.02,
+   "debtUsd": 92626.78,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.367068,
+   "hfModel": 1.367069,
+   "debtByAsset": {
+    "2": 92626.78
+   }
+  },
+  {
+   "user": "0x7F62d903e8352A73966BB97af5A4F490765baf93",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "141415104494",
+   "collateralDecimals": 6,
+   "collateralUsd": 141399.28,
+   "otherCollateralUsd": 0,
+   "debtUsd": 91494.83,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.205439,
+   "hfModel": 1.205439,
+   "debtByAsset": {
+    "0": 91494.83
+   }
+  },
+  {
+   "user": "0xf715E017b21D64bf0fDeD13FE565605102022001",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "150233049206",
+   "collateralDecimals": 6,
+   "collateralUsd": 150216.24,
+   "otherCollateralUsd": 0,
+   "debtUsd": 90993.05,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.287666,
+   "hfModel": 1.287666,
+   "debtByAsset": {
+    "5": 90993.05
+   }
+  },
+  {
+   "user": "0xEB2Cafb6Ea9DEF8084842558Ad1242bBF7Fcac2B",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "140592251715",
+   "collateralDecimals": 6,
+   "collateralUsd": 140576.52,
+   "otherCollateralUsd": 0,
+   "debtUsd": 90053.15,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.21761,
+   "hfModel": 1.217611,
+   "debtByAsset": {
+    "20": 90053.15
+   }
+  },
+  {
+   "user": "0x30DEE05cCF2472306f6013E1740ed762E4689F5c",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "178484385550",
+   "collateralDecimals": 6,
+   "collateralUsd": 178464.41,
+   "otherCollateralUsd": 0,
+   "debtUsd": 88527.85,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.572411,
+   "hfModel": 1.572412,
+   "debtByAsset": {
+    "2": 88527.85
+   }
+  },
+  {
+   "user": "0x04010C1756beC12ff09C7bcA3b9F9BbfD434E1c5",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "479831151557",
+   "collateralDecimals": 6,
+   "collateralUsd": 479777.46,
+   "otherCollateralUsd": 20.73,
+   "debtUsd": 87445.05,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 4.279757,
+   "hfModel": 4.279746,
+   "debtByAsset": {
+    "0": 87445.05
+   }
+  },
+  {
+   "user": "0x456eE5b6Ea8ca03aDc0AA7c9A65Bc07f396B70dC",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "323258624305",
+   "collateralDecimals": 6,
+   "collateralUsd": 323222.45,
+   "otherCollateralUsd": 5843.87,
+   "debtUsd": 86197.01,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 2.977733,
+   "hfModel": 2.977733,
+   "debtByAsset": {
+    "0": 86197.01
+   }
+  },
+  {
+   "user": "0xF36543FF0d3E7d25B335A957546095f5b4aeD9b0",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "233147086176",
+   "collateralDecimals": 6,
+   "collateralUsd": 233121,
+   "otherCollateralUsd": 0.01,
+   "debtUsd": 84146.79,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 2.160918,
+   "hfModel": 2.160919,
+   "debtByAsset": {
+    "2": 84146.79
+   }
+  },
+  {
+   "user": "0x6Ebd40ce68f2F15f6A429F8348E547c4C8398888",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "151671123050",
+   "collateralDecimals": 6,
+   "collateralUsd": 151654.15,
+   "otherCollateralUsd": 0.01,
+   "debtUsd": 81801.22,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.446069,
+   "hfModel": 1.44607,
+   "debtByAsset": {
+    "8": 81801.22
+   }
+  },
+  {
+   "user": "0xe43b8DA76619F54930541b4834EBbFe5FEf43678",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "165399922018",
+   "collateralDecimals": 6,
+   "collateralUsd": 165381.41,
+   "otherCollateralUsd": 13534.63,
+   "debtUsd": 80930.33,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.73274,
+   "hfModel": 1.724378,
+   "debtByAsset": {
+    "0": 80930.33
+   }
+  },
+  {
+   "user": "0xb386B3370F3C258d241fED394050d60F7c421bE7",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "143895312325",
+   "collateralDecimals": 6,
+   "collateralUsd": 143879.21,
+   "otherCollateralUsd": 0,
+   "debtUsd": 80824.96,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.388504,
+   "hfModel": 1.388504,
+   "debtByAsset": {
+    "0": 80824.96
+   }
+  },
+  {
+   "user": "0xabd00AFd2e0ba5365Eda75Db6aF7DedE413720ef",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "300129896913",
+   "collateralDecimals": 6,
+   "collateralUsd": 300096.31,
+   "otherCollateralUsd": 266795.06,
+   "debtUsd": 80320.27,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 5.571584,
+   "hfModel": 5.505152,
+   "debtByAsset": {
+    "47": 80320.27
+   }
+  },
+  {
+   "user": "0x0d3d08eA7f89893F35312AAA08e296901F8e42D4",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "232281556839",
+   "collateralDecimals": 6,
+   "collateralUsd": 232255.56,
+   "otherCollateralUsd": 52549.99,
+   "debtUsd": 80118.04,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 2.772763,
+   "hfModel": 2.772763,
+   "debtByAsset": {
+    "8": 80118.04
+   }
+  },
+  {
+   "user": "0x6294969d39BE30EAbaa418357D59611b17024ee9",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "64584441625",
+   "collateralDecimals": 6,
+   "collateralUsd": 64577.21,
+   "otherCollateralUsd": 42573.34,
+   "debtUsd": 73599.07,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.139362,
+   "hfModel": 1.135577,
+   "debtByAsset": {
+    "8": 67250.78,
+    "20": 6348.29
+   }
+  },
+  {
+   "user": "0xD95cac751D4DB601b4C51b2d23921C0c93325F2d",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "127770720434",
+   "collateralDecimals": 6,
+   "collateralUsd": 127756.42,
+   "otherCollateralUsd": 0,
+   "debtUsd": 72779.5,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.369204,
+   "hfModel": 1.369204,
+   "debtByAsset": {
+    "2": 72779.5
+   }
+  },
+  {
+   "user": "0x3972D3EA2350bA3b9bE4AB35fbAb70017fa64614",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "128582305164",
+   "collateralDecimals": 6,
+   "collateralUsd": 128567.92,
+   "otherCollateralUsd": 0,
+   "debtUsd": 67426.45,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.487294,
+   "hfModel": 1.487294,
+   "debtByAsset": {
+    "2": 67426.45
+   }
+  },
+  {
+   "user": "0x61009dBE61C7916Fa0d184672aA37F500a1F1127",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "111128245525",
+   "collateralDecimals": 6,
+   "collateralUsd": 111115.81,
+   "otherCollateralUsd": 0,
+   "debtUsd": 67324.91,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.287344,
+   "hfModel": 1.287344,
+   "debtByAsset": {
+    "2": 67324.91
+   }
+  },
+  {
+   "user": "0xfB54eC51595d7f75817465E1134Cb68A4Ad3dBf5",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "98312126020",
+   "collateralDecimals": 6,
+   "collateralUsd": 98301.12,
+   "otherCollateralUsd": 0.02,
+   "debtUsd": 64352.39,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.191484,
+   "hfModel": 1.191485,
+   "debtByAsset": {
+    "20": 64352.39
+   }
+  },
+  {
+   "user": "0xAe66144A9890A3D349EDFbA9646E28d22CA117c9",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "227762756860",
+   "collateralDecimals": 6,
+   "collateralUsd": 227737.27,
+   "otherCollateralUsd": 51474.11,
+   "debtUsd": 64082.82,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 3.39849,
+   "hfModel": 3.398491,
+   "debtByAsset": {
+    "8": 64082.82
+   }
+  },
+  {
+   "user": "0x4385662fEb355d0CB01413493f75112C2ebCB455",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "79883468242",
+   "collateralDecimals": 6,
+   "collateralUsd": 79874.53,
+   "otherCollateralUsd": 25494.86,
+   "debtUsd": 61797.39,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.329961,
+   "hfModel": 1.329961,
+   "debtByAsset": {
+    "8": 61797.39
+   }
+  },
+  {
+   "user": "0xac03c75654379629646603aC748BBdaeE2E6384E",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "90974221316",
+   "collateralDecimals": 6,
+   "collateralUsd": 90964.04,
+   "otherCollateralUsd": 0,
+   "debtUsd": 61156.17,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.160176,
+   "hfModel": 1.160176,
+   "debtByAsset": {
+    "0": 61156.17
+   }
+  },
+  {
+   "user": "0x11cf3F4017437e3545e1A293901A2163492f39DB",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "61246955247",
+   "collateralDecimals": 6,
+   "collateralUsd": 61240.1,
+   "otherCollateralUsd": 42123.48,
+   "debtUsd": 60511.06,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.332377,
+   "hfModel": 1.332378,
+   "debtByAsset": {
+    "2": 56428.66,
+    "20": 4082.4
+   }
+  },
+  {
+   "user": "0xb13ac633b976fE6f31ca3d7236b88FfF9ecf1259",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "182222301045",
+   "collateralDecimals": 6,
+   "collateralUsd": 182201.91,
+   "otherCollateralUsd": 26149.12,
+   "debtUsd": 60026.41,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 2.707371,
+   "hfModel": 2.707372,
+   "debtByAsset": {
+    "8": 60026.41
+   }
+  },
+  {
+   "user": "0xCf517E151B3b5c133F37585078c4507e934c0cDD",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "128615818747",
+   "collateralDecimals": 6,
+   "collateralUsd": 128601.43,
+   "otherCollateralUsd": 30212.28,
+   "debtUsd": 59088.67,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 2.121985,
+   "hfModel": 2.09642,
+   "debtByAsset": {
+    "0": 54051.78,
+    "30": 5036.89
+   }
+  },
+  {
+   "user": "0x3a43eF65Ada72e0b2732236e956CbdD4713d41e0",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "96597367513",
+   "collateralDecimals": 6,
+   "collateralUsd": 96586.56,
+   "otherCollateralUsd": 0.02,
+   "debtUsd": 57413.75,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.312186,
+   "hfModel": 1.312186,
+   "debtByAsset": {
+    "0": 133.13,
+    "8": 57280.62
+   }
+  },
+  {
+   "user": "0xdCf7c642d1CCC0dAE231e3Cd89d966eA181F772d",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "74107025836",
+   "collateralDecimals": 6,
+   "collateralUsd": 74098.73,
+   "otherCollateralUsd": 51166.51,
+   "debtUsd": 56509.14,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.729045,
+   "hfModel": 1.729046,
+   "debtByAsset": {
+    "0": 56509.14
+   }
+  },
+  {
+   "user": "0x2752356b88C05d52A1A7eBb2DDD1B93F5b423a22",
+   "eMode": 1,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "74556241593",
+   "collateralDecimals": 6,
+   "collateralUsd": 74547.9,
+   "otherCollateralUsd": 14113.15,
+   "debtUsd": 54951.24,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.25849,
+   "hfModel": 1.258491,
+   "debtByAsset": {
+    "0": 54951.24
+   }
+  },
+  {
+   "user": "0xc2f573F32e6f9Cc4D7b29acE820247bAAd80E30B",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "250671683545",
+   "collateralDecimals": 6,
+   "collateralUsd": 250643.63,
+   "otherCollateralUsd": 100210.94,
+   "debtUsd": 54555.44,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 5.016301,
+   "hfModel": 5.016302,
+   "debtByAsset": {
+    "0": 49541.68,
+    "8": 5013.76
+   }
+  },
+  {
+   "user": "0x6309BaA804e6d63Bf74c1cA58365CF499d75dCd4",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "56243170385",
+   "collateralDecimals": 6,
+   "collateralUsd": 56236.88,
+   "otherCollateralUsd": 40970.33,
+   "debtUsd": 51351.83,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.460555,
+   "hfModel": 1.476512,
+   "debtByAsset": {
+    "20": 51351.83
+   }
+  },
+  {
+   "user": "0x920ef33c3DBa9Ea7607aB8f6b8181ad1dAC80F9A",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "69674044374",
+   "collateralDecimals": 6,
+   "collateralUsd": 69666.25,
+   "otherCollateralUsd": 938.5,
+   "debtUsd": 50947.82,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.081864,
+   "hfModel": 1.080943,
+   "debtByAsset": {
+    "20": 50947.82
+   }
+  },
+  {
+   "user": "0xb1E3F276073D14AE7b92CF00A57209583FA654b1",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "78683452433",
+   "collateralDecimals": 6,
+   "collateralUsd": 78674.65,
+   "otherCollateralUsd": 0,
+   "debtUsd": 48793.89,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.257662,
+   "hfModel": 1.257662,
+   "debtByAsset": {
+    "0": 48793.89
+   }
+  },
+  {
+   "user": "0x7393C019b686C9669C40f16b3b39d139aB99B851",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "82931098311",
+   "collateralDecimals": 6,
+   "collateralUsd": 82921.82,
+   "otherCollateralUsd": 0,
+   "debtUsd": 47867.72,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.351203,
+   "hfModel": 1.351203,
+   "debtByAsset": {
+    "2": 47867.72
+   }
+  },
+  {
+   "user": "0x814Ab47FB173C63c8B58Ebeffd5a6Fc26440EB5d",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "98456924669",
+   "collateralDecimals": 6,
+   "collateralUsd": 98445.91,
+   "otherCollateralUsd": 80631.53,
+   "debtUsd": 47688.92,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 3.00082,
+   "hfModel": 2.92899,
+   "debtByAsset": {
+    "8": 47688.92
+   }
+  },
+  {
+   "user": "0x667848e46bD03251e8C221D9151f29C88D9C2E5b",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "112611243991",
+   "collateralDecimals": 6,
+   "collateralUsd": 112598.64,
+   "otherCollateralUsd": 6931.01,
+   "debtUsd": 47547.8,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.960829,
+   "hfModel": 1.960829,
+   "debtByAsset": {
+    "0": 44361.22,
+    "8": 3186.59
+   }
+  },
+  {
+   "user": "0x3be04566184E2a47155b55F95F3B1d72e7bcf20a",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "51042165445",
+   "collateralDecimals": 6,
+   "collateralUsd": 51036.45,
+   "otherCollateralUsd": 53169.04,
+   "debtUsd": 46584.93,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.75085,
+   "hfModel": 1.744776,
+   "debtByAsset": {
+    "0": 8070.62,
+    "2": 15569.83,
+    "3": 3634.92,
+    "8": 19309.56
+   }
+  },
+  {
+   "user": "0xF4Da47d5AA4BbB0734D1Fee4fE41B8C45c60515b",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "26348849055",
+   "collateralDecimals": 6,
+   "collateralUsd": 26345.9,
+   "otherCollateralUsd": 36760.35,
+   "debtUsd": 42854.08,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.154752,
+   "hfModel": 1.148616,
+   "debtByAsset": {
+    "0": 34568.72,
+    "2": 8284.85,
+    "3": 0.07,
+    "8": 0.44
+   }
+  },
+  {
+   "user": "0x28D1606d89c1C505e9765a4E1C27F57a14570609",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "121684417098",
+   "collateralDecimals": 6,
+   "collateralUsd": 121670.8,
+   "otherCollateralUsd": 0,
+   "debtUsd": 42192.18,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 2.249308,
+   "hfModel": 2.249308,
+   "debtByAsset": {
+    "2": 42192.18
+   }
+  },
+  {
+   "user": "0x16702D0E1b8178366FaB5145004F11be93B4dF9e",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "214288724888",
+   "collateralDecimals": 6,
+   "collateralUsd": 214264.75,
+   "otherCollateralUsd": 0,
+   "debtUsd": 42134.24,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 3.966524,
+   "hfModel": 3.966525,
+   "debtByAsset": {
+    "2": 42134.24
+   }
+  },
+  {
+   "user": "0x38301905225C2E53221D557af35B16e767a45626",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "53915695105",
+   "collateralDecimals": 6,
+   "collateralUsd": 53909.66,
+   "otherCollateralUsd": 29018.37,
+   "debtUsd": 41197.92,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.579464,
+   "hfModel": 1.570076,
+   "debtByAsset": {
+    "2": 41196.84,
+    "8": 1.08
+   }
+  },
+  {
+   "user": "0x130b261DA8c75ED5103625577ABdef1d0421A161",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "486578658637",
+   "collateralDecimals": 6,
+   "collateralUsd": 486524.21,
+   "otherCollateralUsd": 0,
+   "debtUsd": 39001.34,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 9.730151,
+   "hfModel": 9.730151,
+   "debtByAsset": {
+    "8": 39001.34
+   }
+  },
+  {
+   "user": "0x736aa918B9099a4f46d3499E3E62C67c158D1561",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "44568817602",
+   "collateralDecimals": 6,
+   "collateralUsd": 44563.83,
+   "otherCollateralUsd": 13646.98,
+   "debtUsd": 37986.29,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.209721,
+   "hfModel": 1.195285,
+   "debtByAsset": {
+    "2": 143.6,
+    "5": 37842.69
+   }
+  },
+  {
+   "user": "0xDb98176D578F63d7043C761aC406A32cDa81fCcc",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "60125201780",
+   "collateralDecimals": 6,
+   "collateralUsd": 60118.47,
+   "otherCollateralUsd": 0,
+   "debtUsd": 37695.19,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.243989,
+   "hfModel": 1.243989,
+   "debtByAsset": {
+    "0": 37695.19
+   }
+  },
+  {
+   "user": "0x07AcD47681FF4b1e50b9C22166623CC886e80b2A",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "86806856080",
+   "collateralDecimals": 6,
+   "collateralUsd": 86797.14,
+   "otherCollateralUsd": 0,
+   "debtUsd": 37145.65,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.822602,
+   "hfModel": 1.822603,
+   "debtByAsset": {
+    "30": 37145.65
+   }
+  },
+  {
+   "user": "0x24546ef6D51236677F43c21c04Ec400Dd2217710",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "52598697863",
+   "collateralDecimals": 6,
+   "collateralUsd": 52592.81,
+   "otherCollateralUsd": 0,
+   "debtUsd": 35955.9,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.140908,
+   "hfModel": 1.140909,
+   "debtByAsset": {
+    "47": 35955.9
+   }
+  },
+  {
+   "user": "0xd7215DbBd6e595a57e4dDc7786EF068F8dA8B564",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "59721284277",
+   "collateralDecimals": 6,
+   "collateralUsd": 59714.6,
+   "otherCollateralUsd": 0,
+   "debtUsd": 35394.4,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.315953,
+   "hfModel": 1.315954,
+   "debtByAsset": {
+    "34": 35394.4
+   }
+  },
+  {
+   "user": "0x9161d214972a52958F5a38695A524Db4Ec8B77De",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "63108676417",
+   "collateralDecimals": 6,
+   "collateralUsd": 63101.61,
+   "otherCollateralUsd": 0,
+   "debtUsd": 34528.58,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.425464,
+   "hfModel": 1.425464,
+   "debtByAsset": {
+    "0": 9498.11,
+    "5": 16860.02,
+    "17": 8170.45
+   }
+  },
+  {
+   "user": "0x6dE7943421c3c924808B6E173B9a656b447B1d78",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "60550937193",
+   "collateralDecimals": 6,
+   "collateralUsd": 60544.16,
+   "otherCollateralUsd": 0,
+   "debtUsd": 34371.41,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.373945,
+   "hfModel": 1.373945,
+   "debtByAsset": {
+    "2": 34371.41
+   }
+  },
+  {
+   "user": "0xC80dDF4F71497b5a3C35204475EDD3F4dDBcb729",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "48579849106",
+   "collateralDecimals": 6,
+   "collateralUsd": 48574.41,
+   "otherCollateralUsd": 0,
+   "debtUsd": 33664.89,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.125446,
+   "hfModel": 1.125447,
+   "debtByAsset": {
+    "2": 33664.89
+   }
+  },
+  {
+   "user": "0x58Cc4A6cE429134f2fe2C6056Ecfa9eac7014A42",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "93693011000",
+   "collateralDecimals": 6,
+   "collateralUsd": 93682.53,
+   "otherCollateralUsd": 0,
+   "debtUsd": 32324.28,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 2.260603,
+   "hfModel": 2.260604,
+   "debtByAsset": {
+    "0": 32324.28
+   }
+  },
+  {
+   "user": "0x87Ea8Ae579aB007d46E66b3bD2bd045ea9Cc30c1",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "53098959740",
+   "collateralDecimals": 6,
+   "collateralUsd": 53093.02,
+   "otherCollateralUsd": 0,
+   "debtUsd": 32096.4,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.290255,
+   "hfModel": 1.290255,
+   "debtByAsset": {
+    "8": 32096.4
+   }
+  },
+  {
+   "user": "0xeF5EB6342FFed7334be0316EC50Ef814Cf048ffb",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "44487514857",
+   "collateralDecimals": 6,
+   "collateralUsd": 44482.54,
+   "otherCollateralUsd": 36041.08,
+   "debtUsd": 30705.05,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 2.055757,
+   "hfModel": 2.045541,
+   "debtByAsset": {
+    "8": 30705.05
+   }
+  },
+  {
+   "user": "0x815e568E70663B33310680fA68f9dA08ed0ab65A",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "44554659305",
+   "collateralDecimals": 6,
+   "collateralUsd": 44549.67,
+   "otherCollateralUsd": 0,
+   "debtUsd": 29806.47,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.165812,
+   "hfModel": 1.165812,
+   "debtByAsset": {
+    "2": 29806.47
+   }
+  },
+  {
+   "user": "0xDfDA6449B4C071A2539624c5DdD76Bca836d5DCd",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "49745180174",
+   "collateralDecimals": 6,
+   "collateralUsd": 49739.61,
+   "otherCollateralUsd": 0,
+   "debtUsd": 27377.9,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.417087,
+   "hfModel": 1.417088,
+   "debtByAsset": {
+    "0": 8086.31,
+    "2": 19291.6
+   }
+  },
+  {
+   "user": "0xaE19A98e719E34146b97c39B91C093E64F2AeC1d",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "41048794624",
+   "collateralDecimals": 6,
+   "collateralUsd": 41044.2,
+   "otherCollateralUsd": 0,
+   "debtUsd": 26953.11,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.187784,
+   "hfModel": 1.187784,
+   "debtByAsset": {
+    "0": 26953.11
+   }
+  },
+  {
+   "user": "0x82f6D130eeD310ad84EeaD5EfDfEE686BF97035E",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "97526128902",
+   "collateralDecimals": 6,
+   "collateralUsd": 97515.22,
+   "otherCollateralUsd": 30267.39,
+   "debtUsd": 26750.82,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 3.742251,
+   "hfModel": 3.725884,
+   "debtByAsset": {
+    "0": 2692.36,
+    "8": 24058.46
+   }
+  },
+  {
+   "user": "0x5190F0d2d94F461E5ad1CFC018bd24Ee562a86c2",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "38971392291",
+   "collateralDecimals": 6,
+   "collateralUsd": 38967.03,
+   "otherCollateralUsd": 36751.43,
+   "debtUsd": 26414.69,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 2.305458,
+   "hfModel": 2.235892,
+   "debtByAsset": {
+    "8": 26414.69
+   }
+  },
+  {
+   "user": "0x5ed846F401ecb9ac68267e5c184a14F0dBBF262d",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "23644278976",
+   "collateralDecimals": 6,
+   "collateralUsd": 23641.63,
+   "otherCollateralUsd": 19135.05,
+   "debtUsd": 25987.42,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.283921,
+   "hfModel": 1.283922,
+   "debtByAsset": {
+    "0": 25987.42
+   }
+  },
+  {
+   "user": "0x6A034E0339352840A9eCe7f062438a8948599101",
+   "eMode": 32,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "20113672474",
+   "collateralDecimals": 6,
+   "collateralUsd": 20111.42,
+   "otherCollateralUsd": 13034.54,
+   "debtUsd": 25460.69,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.097353,
+   "hfModel": 1.015442,
+   "debtByAsset": {
+    "30": 25460.69
+   }
+  },
+  {
+   "user": "0x641AD78BAca220C5BD28b51Ce8e0F495e85Fe689",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "40111032726",
+   "collateralDecimals": 6,
+   "collateralUsd": 40106.54,
+   "otherCollateralUsd": 0,
+   "debtUsd": 25370.81,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.233035,
+   "hfModel": 1.233035,
+   "debtByAsset": {
+    "2": 25370.81
+   }
+  },
+  {
+   "user": "0x03fE795973E2049d1d4e08570aE82e80F299b644",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "68018682016",
+   "collateralDecimals": 6,
+   "collateralUsd": 68011.07,
+   "otherCollateralUsd": 8817.79,
+   "debtUsd": 25256.51,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 2.378247,
+   "hfModel": 2.372715,
+   "debtByAsset": {
+    "2": 25256.51
+   }
+  },
+  {
+   "user": "0xc889754fbf5F7769F6801BE03147a9468cEE5560",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "62070296577",
+   "collateralDecimals": 6,
+   "collateralUsd": 62063.35,
+   "otherCollateralUsd": 0,
+   "debtUsd": 24138.09,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 2.00552,
+   "hfModel": 2.00552,
+   "debtByAsset": {
+    "0": 10759.3,
+    "2": 13378.78
+   }
+  },
+  {
+   "user": "0x525f59A73d1e37f489DbAc02F22D3321a93D0b91",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "31348750293",
+   "collateralDecimals": 6,
+   "collateralUsd": 31345.24,
+   "otherCollateralUsd": 0,
+   "debtUsd": 22901.88,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.067566,
+   "hfModel": 1.067567,
+   "debtByAsset": {
+    "8": 22901.88
+   }
+  },
+  {
+   "user": "0xc27D1CFd66fc58d9731A1669D312327b722B5492",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "21469438851",
+   "collateralDecimals": 6,
+   "collateralUsd": 21467.04,
+   "otherCollateralUsd": 21450.09,
+   "debtUsd": 22213.88,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.555237,
+   "hfModel": 1.506957,
+   "debtByAsset": {
+    "0": 22213.88
+   }
+  },
+  {
+   "user": "0x9c822f7754A185aFEDcDf548124Dc41Aa2B74Fc6",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "41599046796",
+   "collateralDecimals": 6,
+   "collateralUsd": 41594.39,
+   "otherCollateralUsd": 50357.02,
+   "debtUsd": 21692.77,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 3.308603,
+   "hfModel": 3.306267,
+   "debtByAsset": {
+    "8": 21692.77
+   }
+  },
+  {
+   "user": "0xBeAC574C6533c5F872E7b76b0E73d6572020e0cC",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "25262602157",
+   "collateralDecimals": 6,
+   "collateralUsd": 25259.78,
+   "otherCollateralUsd": 9760.72,
+   "debtUsd": 21684.5,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.268931,
+   "hfModel": 1.259701,
+   "debtByAsset": {
+    "47": 21684.5
+   }
+  },
+  {
+   "user": "0x86680319c2594Db1bF4c063934ceE49Ecc827c30",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "30501665787",
+   "collateralDecimals": 6,
+   "collateralUsd": 30498.25,
+   "otherCollateralUsd": 0,
+   "debtUsd": 21568.25,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.102947,
+   "hfModel": 1.102947,
+   "debtByAsset": {
+    "0": 21568.25
+   }
+  },
+  {
+   "user": "0x476551e292547C70bB27307d87Df54bAeb0f644b",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "58379084767",
+   "collateralDecimals": 6,
+   "collateralUsd": 58372.55,
+   "otherCollateralUsd": 0,
+   "debtUsd": 21525.52,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 2.115191,
+   "hfModel": 2.115191,
+   "debtByAsset": {
+    "0": 21525.52
+   }
+  },
+  {
+   "user": "0x46224aDc611146a0Af57e097D453D93A05cad259",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "80042099625",
+   "collateralDecimals": 6,
+   "collateralUsd": 80033.14,
+   "otherCollateralUsd": 0,
+   "debtUsd": 21523.42,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 2.900368,
+   "hfModel": 2.900368,
+   "debtByAsset": {
+    "0": 21523.42
+   }
+  },
+  {
+   "user": "0x0A5887d169d3169b717Baae08DB609a6EF4dcC5D",
+   "eMode": 11,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "180563747075",
+   "collateralDecimals": 6,
+   "collateralUsd": 180543.54,
+   "otherCollateralUsd": 14242.38,
+   "debtUsd": 21233.06,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 7.18903,
+   "hfModel": 7.155492,
+   "debtByAsset": {
+    "8": 21233.06
+   }
+  },
+  {
+   "user": "0xfbCf4309b401612086082345BB56F2154f70c7e0",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "38134895521",
+   "collateralDecimals": 6,
+   "collateralUsd": 38130.63,
+   "otherCollateralUsd": 0,
+   "debtUsd": 20909.82,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.422388,
+   "hfModel": 1.422388,
+   "debtByAsset": {
+    "0": 20909.82
+   }
+  },
+  {
+   "user": "0x73EaE712b784883D628Ae5C371D54cb360faB8B1",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "26429146857",
+   "collateralDecimals": 6,
+   "collateralUsd": 26426.19,
+   "otherCollateralUsd": 28629.18,
+   "debtUsd": 20840.82,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 2.06589,
+   "hfModel": 2.060532,
+   "debtByAsset": {
+    "0": 16211.95,
+    "2": 4628.87
+   }
+  },
+  {
+   "user": "0x1f3674D090C0a742f56734F57c4007666F096161",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "39162521863",
+   "collateralDecimals": 6,
+   "collateralUsd": 39158.14,
+   "otherCollateralUsd": 0,
+   "debtUsd": 20670.97,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.477596,
+   "hfModel": 1.477596,
+   "debtByAsset": {
+    "8": 20670.97
+   }
+  },
+  {
+   "user": "0x3ED95bA2AF10B5809fe4ccD28a2d3Da138A43992",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "111154851465",
+   "collateralDecimals": 6,
+   "collateralUsd": 111142.41,
+   "otherCollateralUsd": 73316.86,
+   "debtUsd": 20193.47,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 7.124987,
+   "hfModel": 7.124988,
+   "debtByAsset": {
+    "30": 20193.47
+   }
+  },
+  {
+   "user": "0x69749B3F0DcBed34Aa2c6267483B06Cd4e0Cc677",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "45335399714",
+   "collateralDecimals": 6,
+   "collateralUsd": 45330.33,
+   "otherCollateralUsd": 15.72,
+   "debtUsd": 20184.31,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.752347,
+   "hfModel": 1.752347,
+   "debtByAsset": {
+    "30": 20184.31
+   }
+  },
+  {
+   "user": "0xBc3F8b685b0622c46292f8A876d3a66B365b2582",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "22495120799",
+   "collateralDecimals": 6,
+   "collateralUsd": 22492.6,
+   "otherCollateralUsd": 21727.78,
+   "debtUsd": 20036.76,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.749231,
+   "hfModel": 1.721431,
+   "debtByAsset": {
+    "0": 270.61,
+    "20": 19766.15
+   }
+  },
+  {
+   "user": "0xAA7ca0c0ca1F8508ee2611ed0A9b8C86e80046d5",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "32751338099",
+   "collateralDecimals": 6,
+   "collateralUsd": 32747.67,
+   "otherCollateralUsd": 0,
+   "debtUsd": 19856.99,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.286357,
+   "hfModel": 1.286357,
+   "debtByAsset": {
+    "0": 19856.99
+   }
+  },
+  {
+   "user": "0x110fd1E52EC70578eaEEC0e514eED4b63a5846b8",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "48230804607",
+   "collateralDecimals": 6,
+   "collateralUsd": 48225.41,
+   "otherCollateralUsd": 0,
+   "debtUsd": 19821.57,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.897721,
+   "hfModel": 1.897721,
+   "debtByAsset": {
+    "5": 19821.57
+   }
+  },
+  {
+   "user": "0xc76f66D9C1Fe491DbDFD3EB568d348bCf18d91d5",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "34950637511",
+   "collateralDecimals": 6,
+   "collateralUsd": 34946.73,
+   "otherCollateralUsd": 4529.71,
+   "debtUsd": 19241.37,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.600282,
+   "hfModel": 1.600282,
+   "debtByAsset": {
+    "2": 19241.37
+   }
+  },
+  {
+   "user": "0x74aC7831680B07f1B8c4dF3dBECd2e95342A9543",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "29277599139",
+   "collateralDecimals": 6,
+   "collateralUsd": 29274.32,
+   "otherCollateralUsd": 0,
+   "debtUsd": 18212.38,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.25376,
+   "hfModel": 1.253761,
+   "debtByAsset": {
+    "2": 18212.38
+   }
+  },
+  {
+   "user": "0x5D4070A9cc3c8DA1dd798271A638E4D485572bE7",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "58368227122",
+   "collateralDecimals": 6,
+   "collateralUsd": 58361.7,
+   "otherCollateralUsd": 0,
+   "debtUsd": 18000.94,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 2.528874,
+   "hfModel": 2.528875,
+   "debtByAsset": {
+    "0": 18000.94
+   }
+  },
+  {
+   "user": "0xD14069fd60dfFA35c5E1e000FA2A7Eb978F40b70",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "68157484865",
+   "collateralDecimals": 6,
+   "collateralUsd": 68149.86,
+   "otherCollateralUsd": 0,
+   "debtUsd": 17294.79,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 3.073578,
+   "hfModel": 3.073579,
+   "debtByAsset": {
+    "2": 17294.79
+   }
+  },
+  {
+   "user": "0xdbe92a7F60ecAb8129f9226160FdA251c33cAD4D",
+   "eMode": 2,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "65314873829",
+   "collateralDecimals": 6,
+   "collateralUsd": 65307.57,
+   "otherCollateralUsd": 25920.53,
+   "debtUsd": 16597.18,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 4.365436,
+   "hfModel": 4.28735,
+   "debtByAsset": {
+    "8": 16597.18
+   }
+  },
+  {
+   "user": "0x6648B5554632Ed5d6Ec27Ec6737e98A0A3DBbc94",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "24229136962",
+   "collateralDecimals": 6,
+   "collateralUsd": 24226.43,
+   "otherCollateralUsd": 0,
+   "debtUsd": 16397.19,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.152429,
+   "hfModel": 1.15243,
+   "debtByAsset": {
+    "20": 16397.19
+   }
+  },
+  {
+   "user": "0x1B0c19589b20E55362aB6EfeA1546D429046839f",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "28589426260",
+   "collateralDecimals": 6,
+   "collateralUsd": 28586.23,
+   "otherCollateralUsd": 0,
+   "debtUsd": 16173.08,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.378665,
+   "hfModel": 1.378665,
+   "debtByAsset": {
+    "0": 16173.08
+   }
+  },
+  {
+   "user": "0x8aed2cc38221798782dC619e01Dd8e8e29c43f9F",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "27001425290",
+   "collateralDecimals": 6,
+   "collateralUsd": 26998.4,
+   "otherCollateralUsd": 0,
+   "debtUsd": 15155.75,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.389489,
+   "hfModel": 1.389489,
+   "debtByAsset": {
+    "2": 15155.75
+   }
+  },
+  {
+   "user": "0x184eaFfA0e30f47E051a98E5baD0A4211E382b1a",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "30393706310",
+   "collateralDecimals": 6,
+   "collateralUsd": 30390.31,
+   "otherCollateralUsd": 0,
+   "debtUsd": 14906.66,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.590191,
+   "hfModel": 1.590191,
+   "debtByAsset": {
+    "0": 14906.66
+   }
+  },
+  {
+   "user": "0x9452d07387feFeAD9FbEc9bb38Ce0D18eEA9ba06",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "12231347284",
+   "collateralDecimals": 6,
+   "collateralUsd": 12229.98,
+   "otherCollateralUsd": 11360.09,
+   "debtUsd": 14614.32,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.297922,
+   "hfModel": 1.259056,
+   "debtByAsset": {
+    "8": 14614.32
+   }
+  },
+  {
+   "user": "0x480C2a583f4ddc1b817C734Ab412F8b49752eef4",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "20098390859",
+   "collateralDecimals": 6,
+   "collateralUsd": 20096.14,
+   "otherCollateralUsd": 10745.27,
+   "debtUsd": 14583.47,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.649559,
+   "hfModel": 1.649559,
+   "debtByAsset": {
+    "30": 14583.47
+   }
+  },
+  {
+   "user": "0xd5784fd1fb87176EDa8479Fb38b698cD28A33f1C",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "37739399167",
+   "collateralDecimals": 6,
+   "collateralUsd": 37735.18,
+   "otherCollateralUsd": 3873.81,
+   "debtUsd": 14316.66,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 2.266939,
+   "hfModel": 2.26694,
+   "debtByAsset": {
+    "0": 10671.23,
+    "2": 3645.44
+   }
+  },
+  {
+   "user": "0x7913505bdf17ee77ed1594f4060f0578351136eB",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "32994362265",
+   "collateralDecimals": 6,
+   "collateralUsd": 32990.67,
+   "otherCollateralUsd": 0,
+   "debtUsd": 14301.49,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.799303,
+   "hfModel": 1.799303,
+   "debtByAsset": {
+    "0": 14301.49
+   }
+  },
+  {
+   "user": "0xe79c70b7fF8d8766557B0351D0deA77605b6E85c",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "36292641808",
+   "collateralDecimals": 6,
+   "collateralUsd": 36288.58,
+   "otherCollateralUsd": 33315.51,
+   "debtUsd": 14185.8,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 3.827151,
+   "hfModel": 3.827152,
+   "debtByAsset": {
+    "8": 14185.8
+   }
+  },
+  {
+   "user": "0x31c64760c61Aec68A5dc335Da7acBa8c627b0Ae8",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "20040054944",
+   "collateralDecimals": 6,
+   "collateralUsd": 20037.81,
+   "otherCollateralUsd": 22865.19,
+   "debtUsd": 14010.39,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 2.409765,
+   "hfModel": 2.388537,
+   "debtByAsset": {
+    "8": 14010.39
+   }
+  },
+  {
+   "user": "0xFDa16932cd56B9dCaB6877df96c3A6bbc6CB33c0",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "71768780606",
+   "collateralDecimals": 6,
+   "collateralUsd": 71760.75,
+   "otherCollateralUsd": 0,
+   "debtUsd": 13975.04,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 4.005238,
+   "hfModel": 4.005239,
+   "debtByAsset": {
+    "47": 13975.04
+   }
+  },
+  {
+   "user": "0x605fC2BEa73b909E6590D450C5AE7c6F6A057145",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "19894760111",
+   "collateralDecimals": 6,
+   "collateralUsd": 19892.53,
+   "otherCollateralUsd": 0,
+   "debtUsd": 13831.37,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.12181,
+   "hfModel": 1.12181,
+   "debtByAsset": {
+    "0": 13831.37
+   }
+  },
+  {
+   "user": "0x73264fEF47769FbdF206e4C7476213ED753abA42",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "25265580714",
+   "collateralDecimals": 6,
+   "collateralUsd": 25262.75,
+   "otherCollateralUsd": 0,
+   "debtUsd": 13551.69,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.454058,
+   "hfModel": 1.454058,
+   "debtByAsset": {
+    "0": 13551.69
+   }
+  },
+  {
+   "user": "0x1398866560695967931226606775610771122707",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "20341752153",
+   "collateralDecimals": 6,
+   "collateralUsd": 20339.48,
+   "otherCollateralUsd": 0,
+   "debtUsd": 13083.18,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.21261,
+   "hfModel": 1.21261,
+   "debtByAsset": {
+    "0": 2738.32,
+    "34": 10344.85
+   }
+  },
+  {
+   "user": "0xaBf76A13C5D6E388C3eB6C04930013695f574D10",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "10021574760",
+   "collateralDecimals": 6,
+   "collateralUsd": 10020.45,
+   "otherCollateralUsd": 9038.71,
+   "debtUsd": 12999.3,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.178377,
+   "hfModel": 1.143611,
+   "debtByAsset": {
+    "0": 5999.28,
+    "8": 7000.02
+   }
+  },
+  {
+   "user": "0x9b3b0167198D44a79Cb35399DF4f64fC64901201",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "18585673690",
+   "collateralDecimals": 6,
+   "collateralUsd": 18583.59,
+   "otherCollateralUsd": 10729.03,
+   "debtUsd": 12764.77,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.791167,
+   "hfModel": 1.791168,
+   "debtByAsset": {
+    "0": 12764.22,
+    "20": 0.55
+   }
+  },
+  {
+   "user": "0xcA11c406fE4A54d58232dc29C8D07e7EECcB0900",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "18408640117",
+   "collateralDecimals": 6,
+   "collateralUsd": 18406.58,
+   "otherCollateralUsd": 9872.39,
+   "debtUsd": 12635.96,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.740711,
+   "hfModel": 1.745621,
+   "debtByAsset": {
+    "2": 4212.9,
+    "34": 8423.06
+   }
+  },
+  {
+   "user": "0xfb08624687b80F49Ab56832Bbf6FFDfd6cD063A2",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "30283459237",
+   "collateralDecimals": 6,
+   "collateralUsd": 30280.07,
+   "otherCollateralUsd": 0,
+   "debtUsd": 12595.3,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.87518,
+   "hfModel": 1.87518,
+   "debtByAsset": {
+    "0": 12595.3
+   }
+  },
+  {
+   "user": "0x5e027FA6Ca6255bA12365a9ed4ADD5b1c2C12d91",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "57741164873",
+   "collateralDecimals": 6,
+   "collateralUsd": 57734.7,
+   "otherCollateralUsd": 0,
+   "debtUsd": 12129.49,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 3.712692,
+   "hfModel": 3.712692,
+   "debtByAsset": {
+    "0": 12129.49
+   }
+  },
+  {
+   "user": "0x53d75F169baAE9EF670A7f71Ff2B16C5329D11dB",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "25529892004",
+   "collateralDecimals": 6,
+   "collateralUsd": 25527.04,
+   "otherCollateralUsd": 0,
+   "debtUsd": 11595.92,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.717076,
+   "hfModel": 1.717077,
+   "debtByAsset": {
+    "0": 11595.92
+   }
+  },
+  {
+   "user": "0x9A77166327Cc8221298Ae1e3F53327b8Fd11e12c",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "16754913916",
+   "collateralDecimals": 6,
+   "collateralUsd": 16753.04,
+   "otherCollateralUsd": 0,
+   "debtUsd": 11430.85,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.143166,
+   "hfModel": 1.143167,
+   "debtByAsset": {
+    "3": 111.2,
+    "47": 11319.65
+   }
+  },
+  {
+   "user": "0xE712431CC5c894C9A85ebfBCA59e5652dd634578",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "62698739960",
+   "collateralDecimals": 6,
+   "collateralUsd": 62691.72,
+   "otherCollateralUsd": 27429.75,
+   "debtUsd": 11283.67,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 6.302703,
+   "hfModel": 6.229775,
+   "debtByAsset": {
+    "3": 1007.11,
+    "8": 10276.57
+   }
+  },
+  {
+   "user": "0xcE8179be38201bBC05CD2116E0a4c09dEBEc95b1",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "146412212090",
+   "collateralDecimals": 6,
+   "collateralUsd": 146395.83,
+   "otherCollateralUsd": 0,
+   "debtUsd": 10761.69,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 10.610674,
+   "hfModel": 10.610675,
+   "debtByAsset": {
+    "0": 10761.69
+   }
+  },
+  {
+   "user": "0xA419b10203A78D91C52a47f71DCA0Df88E5F0e35",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "34793290682",
+   "collateralDecimals": 6,
+   "collateralUsd": 34789.4,
+   "otherCollateralUsd": 21920.73,
+   "debtUsd": 10716.64,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 4.229865,
+   "hfModel": 4.127591,
+   "debtByAsset": {
+    "8": 5004.49,
+    "47": 5712.15
+   }
+  },
+  {
+   "user": "0x225C63381cb487f64Aa1fc37A59baA3228d6d4ef",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "100516049560",
+   "collateralDecimals": 6,
+   "collateralUsd": 100504.8,
+   "otherCollateralUsd": 0,
+   "debtUsd": 10613.42,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 7.386287,
+   "hfModel": 7.386288,
+   "debtByAsset": {
+    "8": 5569.26,
+    "30": 5044.16
+   }
+  },
+  {
+   "user": "0x7aE9AD67C72BD31694d6249Bad93B2C56c03D046",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "16025022288",
+   "collateralDecimals": 6,
+   "collateralUsd": 16023.23,
+   "otherCollateralUsd": 0,
+   "debtUsd": 10233.99,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.221236,
+   "hfModel": 1.221236,
+   "debtByAsset": {
+    "2": 10233.99
+   }
+  },
+  {
+   "user": "0x3002b77Df353a199d61DaaF63933014CB82B28Fd",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "20570397715",
+   "collateralDecimals": 6,
+   "collateralUsd": 20568.1,
+   "otherCollateralUsd": 3973.12,
+   "debtUsd": 10230.88,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.871016,
+   "hfModel": 1.871016,
+   "debtByAsset": {
+    "8": 6087.6,
+    "30": 4143.29
+   }
+  },
+  {
+   "user": "0x6216013c5D1EF3Bcc300E2800eD8C763AC090607",
+   "eMode": 2,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "20853353439",
+   "collateralDecimals": 6,
+   "collateralUsd": 20851.02,
+   "otherCollateralUsd": 6825.28,
+   "debtUsd": 10045.28,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 2.145464,
+   "hfModel": 2.14902,
+   "debtByAsset": {
+    "8": 10045.28
+   }
+  },
+  {
+   "user": "0xa6C8e4705D9f6Aa0c8deACb47007C24e333566B3",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "16931559389",
+   "collateralDecimals": 6,
+   "collateralUsd": 16929.66,
+   "otherCollateralUsd": 0,
+   "debtUsd": 9946.21,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.327654,
+   "hfModel": 1.327655,
+   "debtByAsset": {
+    "2": 5404.41,
+    "5": 4541.8
+   }
+  },
+  {
+   "user": "0xa2C468A5C323B9Fc596e60B225E9Bf54450De25E",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "26075754990",
+   "collateralDecimals": 6,
+   "collateralUsd": 26072.84,
+   "otherCollateralUsd": 0,
+   "debtUsd": 9745.18,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 2.086859,
+   "hfModel": 2.086859,
+   "debtByAsset": {
+    "8": 33.65,
+    "30": 9711.53
+   }
+  },
+  {
+   "user": "0x0f5160a922986895Fe0B5Ea2152BC6Ef9eDA40C7",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "14490593812",
+   "collateralDecimals": 6,
+   "collateralUsd": 14488.97,
+   "otherCollateralUsd": 0,
+   "debtUsd": 9343.71,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.209519,
+   "hfModel": 1.20952,
+   "debtByAsset": {
+    "4": 1270.32,
+    "20": 2691.8,
+    "39": 5381.59
+   }
+  },
+  {
+   "user": "0x6075E83dC4a5e714B55cdF0630362D567e47f36A",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "12337875112",
+   "collateralDecimals": 6,
+   "collateralUsd": 12336.49,
+   "otherCollateralUsd": 0,
+   "debtUsd": 9069.32,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.060991,
+   "hfModel": 1.060991,
+   "debtByAsset": {
+    "2": 9069.32
+   }
+  },
+  {
+   "user": "0xb4755eDCC4850EfF901758A1d9fC3C622e84cC19",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "12031787926",
+   "collateralDecimals": 6,
+   "collateralUsd": 12030.44,
+   "otherCollateralUsd": 0,
+   "debtUsd": 8861.32,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.058955,
+   "hfModel": 1.058956,
+   "debtByAsset": {
+    "2": 8861.32
+   }
+  },
+  {
+   "user": "0x51E5AB0277E8bf69D228d6aD3EB4169B13BAc6Ee",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "12245924067",
+   "collateralDecimals": 6,
+   "collateralUsd": 12244.55,
+   "otherCollateralUsd": 0,
+   "debtUsd": 8691.2,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.098899,
+   "hfModel": 1.0989,
+   "debtByAsset": {
+    "8": 8691.2
+   }
+  },
+  {
+   "user": "0x49bba59FD9B73929Bb316cc5c0Dfbe5b87C45a96",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "41337343210",
+   "collateralDecimals": 6,
+   "collateralUsd": 41332.72,
+   "otherCollateralUsd": 0,
+   "debtUsd": 8425.14,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 3.826584,
+   "hfModel": 3.826585,
+   "debtByAsset": {
+    "2": 8425.14
+   }
+  },
+  {
+   "user": "0x4A97C1F9CA71F91A0C98648b30F70584a8d3684c",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "15928971167",
+   "collateralDecimals": 6,
+   "collateralUsd": 15927.19,
+   "otherCollateralUsd": 0,
+   "debtUsd": 8416.31,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.476086,
+   "hfModel": 1.476087,
+   "debtByAsset": {
+    "2": 8416.31
+   }
+  },
+  {
+   "user": "0x7C190c9EaEC6Be39cFE14B1FEB1e72a8E3640Df4",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "17631358046",
+   "collateralDecimals": 6,
+   "collateralUsd": 17629.39,
+   "otherCollateralUsd": 0,
+   "debtUsd": 8185.29,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.679954,
+   "hfModel": 1.679954,
+   "debtByAsset": {
+    "2": 8185.29,
+    "59": 0
+   }
+  },
+  {
+   "user": "0x38D1c84Ff09901da88bd23BB7a474324108051c5",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "13218602654",
+   "collateralDecimals": 6,
+   "collateralUsd": 13217.12,
+   "otherCollateralUsd": 0,
+   "debtUsd": 8176.55,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.260844,
+   "hfModel": 1.260844,
+   "debtByAsset": {
+    "47": 8176.55
+   }
+  },
+  {
+   "user": "0x8D17c1B895e9c85068Fff7F9fa6d35cC3dD594c2",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "10786954753",
+   "collateralDecimals": 6,
+   "collateralUsd": 10785.75,
+   "otherCollateralUsd": 6553.23,
+   "debtUsd": 8097.14,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.670268,
+   "hfModel": 1.670268,
+   "debtByAsset": {
+    "0": 8087.34,
+    "30": 9.8
+   }
+  },
+  {
+   "user": "0x4FC100907230cBF787b72ef0958dB3C50cE48484",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "9494731262",
+   "collateralDecimals": 6,
+   "collateralUsd": 9493.67,
+   "otherCollateralUsd": 3258.05,
+   "debtUsd": 8072.31,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.232155,
+   "hfModel": 1.232156,
+   "debtByAsset": {
+    "20": 8072.31
+   }
+  },
+  {
+   "user": "0xE2c00Fe345ACBce385ac2bEc764eA0F163ef9d3E",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "20002235330",
+   "collateralDecimals": 6,
+   "collateralUsd": 20000,
+   "otherCollateralUsd": 0,
+   "debtUsd": 8069.67,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.933165,
+   "hfModel": 1.933165,
+   "debtByAsset": {
+    "0": 8069.67
+   }
+  },
+  {
+   "user": "0x1eEED838590aA42b230E463ff98464124695A9DB",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "13024872655",
+   "collateralDecimals": 6,
+   "collateralUsd": 13023.42,
+   "otherCollateralUsd": 0,
+   "debtUsd": 7884.65,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.288359,
+   "hfModel": 1.28836,
+   "debtByAsset": {
+    "0": 1352.96,
+    "8": 6531.69
+   }
+  },
+  {
+   "user": "0x8d0925145bD4a8B68AF80E8B53718168e523b149",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "13461725986",
+   "collateralDecimals": 6,
+   "collateralUsd": 13460.22,
+   "otherCollateralUsd": 0,
+   "debtUsd": 7731.97,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.357865,
+   "hfModel": 1.357865,
+   "debtByAsset": {
+    "2": 7731.97
+   }
+  },
+  {
+   "user": "0xe6Be9657D93C5a7302f3448aF9DF1076A2794CB5",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "11023327834",
+   "collateralDecimals": 6,
+   "collateralUsd": 11022.09,
+   "otherCollateralUsd": 0,
+   "debtUsd": 7494.22,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.147181,
+   "hfModel": 1.147181,
+   "debtByAsset": {
+    "59": 7494.22
+   }
+  },
+  {
+   "user": "0xE4ac208Ef3DB62532eebA9Ca8A2890d69F5dD5ba",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "18476756944",
+   "collateralDecimals": 6,
+   "collateralUsd": 18474.69,
+   "otherCollateralUsd": 0,
+   "debtUsd": 7406.15,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.945714,
+   "hfModel": 1.945714,
+   "debtByAsset": {
+    "0": 7406.15
+   }
+  },
+  {
+   "user": "0x0669e92740fE50b8e679f84bbe85c2FE78A6992C",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "11006049128",
+   "collateralDecimals": 6,
+   "collateralUsd": 11004.82,
+   "otherCollateralUsd": 0,
+   "debtUsd": 7110.41,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.207209,
+   "hfModel": 1.20721,
+   "debtByAsset": {
+    "8": 7110.41
+   }
+  },
+  {
+   "user": "0xBdf2969aFf0462C986513FD8B3848D9F30ddC731",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "9841769468",
+   "collateralDecimals": 6,
+   "collateralUsd": 9840.67,
+   "otherCollateralUsd": 0,
+   "debtUsd": 7097.43,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.081479,
+   "hfModel": 1.081479,
+   "debtByAsset": {
+    "0": 579.81,
+    "3": 255.99,
+    "4": 932.1,
+    "8": 5329.54
+   }
+  },
+  {
+   "user": "0xa66EA0BE224515b1a828D51e905515AABfC787e0",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "10485579263",
+   "collateralDecimals": 6,
+   "collateralUsd": 10484.41,
+   "otherCollateralUsd": 0,
+   "debtUsd": 7022.86,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.164459,
+   "hfModel": 1.16446,
+   "debtByAsset": {
+    "0": 7022.86
+   }
+  },
+  {
+   "user": "0x62cEF17A6aa71820c837a6ACc518d4c2556c44EC",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "10091276576",
+   "collateralDecimals": 6,
+   "collateralUsd": 10090.15,
+   "otherCollateralUsd": 6839.24,
+   "debtUsd": 6869.22,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.972113,
+   "hfModel": 1.922331,
+   "debtByAsset": {
+    "1": 6869.22
+   }
+  },
+  {
+   "user": "0x99E966555dE8bC4FAB97d3971fa37216deF48FE3",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "19127776114",
+   "collateralDecimals": 6,
+   "collateralUsd": 19125.64,
+   "otherCollateralUsd": 0,
+   "debtUsd": 6851.16,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 2.177442,
+   "hfModel": 2.177442,
+   "debtByAsset": {
+    "2": 6851.16
+   }
+  },
+  {
+   "user": "0x5B07f8dD2d595dfe6539f49E3bbaE1e846c137cb",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "11253307940",
+   "collateralDecimals": 6,
+   "collateralUsd": 11252.05,
+   "otherCollateralUsd": 0,
+   "debtUsd": 6795.14,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.291599,
+   "hfModel": 1.291599,
+   "debtByAsset": {
+    "0": 6795.14
+   }
+  },
+  {
+   "user": "0x1e7E7Ea51b7cbB7c3cE6DA943870d802b59d8A1B",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "11143764271",
+   "collateralDecimals": 6,
+   "collateralUsd": 11142.52,
+   "otherCollateralUsd": 0,
+   "debtUsd": 6736.89,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.290086,
+   "hfModel": 1.290086,
+   "debtByAsset": {
+    "2": 6736.89
+   }
+  },
+  {
+   "user": "0xF486D0DF4f44F40428e18BDfa15C6B11A2637C9D",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "6643619225",
+   "collateralDecimals": 6,
+   "collateralUsd": 6642.88,
+   "otherCollateralUsd": 6547.91,
+   "debtUsd": 6717.17,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.531719,
+   "hfModel": 1.531719,
+   "debtByAsset": {
+    "2": 6717.17
+   }
+  },
+  {
+   "user": "0x435620729cAe122a8E300F61d578BA3dbeF81B7E",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "13805168445",
+   "collateralDecimals": 6,
+   "collateralUsd": 13803.62,
+   "otherCollateralUsd": 0,
+   "debtUsd": 6710.11,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.604567,
+   "hfModel": 1.604567,
+   "debtByAsset": {
+    "20": 6710.11
+   }
+  },
+  {
+   "user": "0xadb7DB2DdC457B7891a15a7a45332aC8DB1cEfb4",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "12119233320",
+   "collateralDecimals": 6,
+   "collateralUsd": 12117.88,
+   "otherCollateralUsd": 0,
+   "debtUsd": 6651.87,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.420945,
+   "hfModel": 1.420945,
+   "debtByAsset": {
+    "2": 6651.87
+   }
+  },
+  {
+   "user": "0x86DE945f1d8046914A1c4D9D0798a0E9695f080B",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "16840241489",
+   "collateralDecimals": 6,
+   "collateralUsd": 16838.36,
+   "otherCollateralUsd": 0,
+   "debtUsd": 6650.88,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.974764,
+   "hfModel": 1.974765,
+   "debtByAsset": {
+    "34": 6650.88
+   }
+  },
+  {
+   "user": "0x20a21207fB4b11Cd2b3d0DFc779D622cF13E0A5E",
+   "eMode": 40,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "9957513768",
+   "collateralDecimals": 6,
+   "collateralUsd": 9956.4,
+   "otherCollateralUsd": 0,
+   "debtUsd": 6449.66,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.204094,
+   "hfModel": 1.204094,
+   "debtByAsset": {
+    "8": 6449.66
+   }
+  },
+  {
+   "user": "0xb12dB3e45B386E474c8397A12d514889E46ED52d",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "9213234618",
+   "collateralDecimals": 6,
+   "collateralUsd": 9212.2,
+   "otherCollateralUsd": 0,
+   "debtUsd": 6366,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.128732,
+   "hfModel": 1.128733,
+   "debtByAsset": {
+    "30": 6366
+   }
+  },
+  {
+   "user": "0x17C7BbeA67EF3d79f836498122060EF4026cD42B",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "11034825395",
+   "collateralDecimals": 6,
+   "collateralUsd": 11033.59,
+   "otherCollateralUsd": 0,
+   "debtUsd": 6354.25,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.3544,
+   "hfModel": 1.354401,
+   "debtByAsset": {
+    "8": 2926.76,
+    "30": 3427.49
+   }
+  },
+  {
+   "user": "0xAe127Af7AFE07D23cCf2Ad91bc4cA702A630Dd95",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "10352151447",
+   "collateralDecimals": 6,
+   "collateralUsd": 10350.99,
+   "otherCollateralUsd": 0,
+   "debtUsd": 6076.32,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.328728,
+   "hfModel": 1.328729,
+   "debtByAsset": {
+    "0": 6076.32
+   }
+  },
+  {
+   "user": "0xaaFCf4f430474Fea4F52D8D4ec72e3eF23b1f1D8",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "11957721115",
+   "collateralDecimals": 6,
+   "collateralUsd": 11956.38,
+   "otherCollateralUsd": 0,
+   "debtUsd": 5966.75,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.56299,
+   "hfModel": 1.562991,
+   "debtByAsset": {
+    "20": 5966.75
+   }
+  },
+  {
+   "user": "0xa966ddB5bdbd5e8b1352766D5B12A7bf5E9f2DF6",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "12916162779",
+   "collateralDecimals": 6,
+   "collateralUsd": 12914.72,
+   "otherCollateralUsd": 0,
+   "debtUsd": 5931.04,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.698432,
+   "hfModel": 1.698433,
+   "debtByAsset": {
+    "0": 5931.04
+   }
+  },
+  {
+   "user": "0x7D94283d7C15B87aeD6a296C3d1c2Fb334509907",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "15587811618",
+   "collateralDecimals": 6,
+   "collateralUsd": 15586.07,
+   "otherCollateralUsd": 0,
+   "debtUsd": 5900.19,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 2.060465,
+   "hfModel": 2.060466,
+   "debtByAsset": {
+    "34": 5900.19
+   }
+  },
+  {
+   "user": "0xAF1A5da793203F765fC3c196a97d70BAE7f297DF",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "14427094961",
+   "collateralDecimals": 6,
+   "collateralUsd": 14425.48,
+   "otherCollateralUsd": 2200.2,
+   "debtUsd": 5889.67,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 2.201824,
+   "hfModel": 2.201825,
+   "debtByAsset": {
+    "2": 5889.67
+   }
+  },
+  {
+   "user": "0xE1C1671aD486D91d31F595E3b124750A2eAeB9d9",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "10329846019",
+   "collateralDecimals": 6,
+   "collateralUsd": 10328.69,
+   "otherCollateralUsd": 0,
+   "debtUsd": 5684.64,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.417219,
+   "hfModel": 1.417219,
+   "debtByAsset": {
+    "0": 5684.64
+   }
+  },
+  {
+   "user": "0x342C3aff9A8F33C35c74003503E7B95cb47db99F",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "7678364109",
+   "collateralDecimals": 6,
+   "collateralUsd": 7677.5,
+   "otherCollateralUsd": 0,
+   "debtUsd": 5652.13,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.059504,
+   "hfModel": 1.059505,
+   "debtByAsset": {
+    "8": 5652.13
+   }
+  },
+  {
+   "user": "0x9286F05C159Dd9fd989BD1BbB5fd7D5f38551012",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "7500772246",
+   "collateralDecimals": 6,
+   "collateralUsd": 7499.93,
+   "otherCollateralUsd": 1776.43,
+   "debtUsd": 5640.14,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.282869,
+   "hfModel": 1.282869,
+   "debtByAsset": {
+    "2": 5640.14
+   }
+  },
+  {
+   "user": "0x84285B82f4f995A0CB67E324265F76959029e5d3",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "12214121041",
+   "collateralDecimals": 6,
+   "collateralUsd": 12212.75,
+   "otherCollateralUsd": 0,
+   "debtUsd": 5385.86,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.768697,
+   "hfModel": 1.768698,
+   "debtByAsset": {
+    "8": 5385.86
+   }
+  },
+  {
+   "user": "0x9CbbeEad4AD5432e9017ff48506011A80D0Eb598",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "12509578931",
+   "collateralDecimals": 6,
+   "collateralUsd": 12508.18,
+   "otherCollateralUsd": 10767.02,
+   "debtUsd": 5242.1,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 3.454515,
+   "hfModel": 3.463243,
+   "debtByAsset": {
+    "0": 5242.1
+   }
+  },
+  {
+   "user": "0xd5e4965Af82E06cF5A8e8E67454010f9518197b8",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "17424528504",
+   "collateralDecimals": 6,
+   "collateralUsd": 17422.58,
+   "otherCollateralUsd": 13134.23,
+   "debtUsd": 5168.91,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 4.611093,
+   "hfModel": 4.611094,
+   "debtByAsset": {
+    "0": 5168.91
+   }
+  },
+  {
+   "user": "0x9dC593064AB0E2e02e405f1b82B578092000AaE2",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "7537323378",
+   "collateralDecimals": 6,
+   "collateralUsd": 7536.48,
+   "otherCollateralUsd": 0,
+   "debtUsd": 5164.08,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.138335,
+   "hfModel": 1.138336,
+   "debtByAsset": {
+    "2": 5164.08
+   }
+  },
+  {
+   "user": "0x228886C2A2e918D46234a9C1941Ca0b485594495",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "8093329301",
+   "collateralDecimals": 6,
+   "collateralUsd": 8092.42,
+   "otherCollateralUsd": 0,
+   "debtUsd": 5127.72,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.230973,
+   "hfModel": 1.230973,
+   "debtByAsset": {
+    "8": 5127.72
+   }
+  },
+  {
+   "user": "0x1987f733E4C9b95E895c3c4dEC6efbf2E6167199",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "6526500212",
+   "collateralDecimals": 6,
+   "collateralUsd": 6525.77,
+   "otherCollateralUsd": 0,
+   "debtUsd": 5017.3,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.014509,
+   "hfModel": 1.014509,
+   "debtByAsset": {
+    "20": 5017.3
+   }
+  },
+  {
+   "user": "0xc0977B92283382b8172efc5bE9Ba3fd874213c78",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "14184825171",
+   "collateralDecimals": 6,
+   "collateralUsd": 14183.24,
+   "otherCollateralUsd": 0,
+   "debtUsd": 4887.48,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 2.263521,
+   "hfModel": 2.263522,
+   "debtByAsset": {
+    "5": 4887.48
+   }
+  },
+  {
+   "user": "0x3cf51787493cf545DCd9EF74E655AE36D5C5e8BC",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "8404748866",
+   "collateralDecimals": 6,
+   "collateralUsd": 8403.81,
+   "otherCollateralUsd": 4919.87,
+   "debtUsd": 4796.7,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 2.166587,
+   "hfModel": 2.166588,
+   "debtByAsset": {
+    "2": 4796.7
+   }
+  },
+  {
+   "user": "0xF8F226dA66244F89e70C5B5D1a5C5b0d505Eb1d8",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "7590704291",
+   "collateralDecimals": 6,
+   "collateralUsd": 7589.85,
+   "otherCollateralUsd": 0,
+   "debtUsd": 4580.89,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.292344,
+   "hfModel": 1.292345,
+   "debtByAsset": {
+    "2": 4580.89
+   }
+  },
+  {
+   "user": "0x5922369A1D651752BCf1b5bfec16ed034aD41843",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "7832881619",
+   "collateralDecimals": 6,
+   "collateralUsd": 7832.01,
+   "otherCollateralUsd": 0,
+   "debtUsd": 4554.12,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.341413,
+   "hfModel": 1.341413,
+   "debtByAsset": {
+    "30": 885.76,
+    "59": 3668.37
+   }
+  },
+  {
+   "user": "0xB3A086b8E36Aa7bD1BEcaFC19bedAfC05098740f",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "6336773031",
+   "collateralDecimals": 6,
+   "collateralUsd": 6336.06,
+   "otherCollateralUsd": 689.52,
+   "debtUsd": 4392.1,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.247683,
+   "hfModel": 1.247684,
+   "debtByAsset": {
+    "0": 4392.1
+   }
+  },
+  {
+   "user": "0xFF3FaD1e859807b9B05d8D22Fa9bf8b983fe5Bfa",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "10006656042",
+   "collateralDecimals": 6,
+   "collateralUsd": 10005.54,
+   "otherCollateralUsd": 0,
+   "debtUsd": 4362.55,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.788934,
+   "hfModel": 1.788935,
+   "debtByAsset": {
+    "8": 4362.55
+   }
+  },
+  {
+   "user": "0x92E9C53CEaf2B7548d8186f26D1815a3b934D185",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "6790687737",
+   "collateralDecimals": 6,
+   "collateralUsd": 6789.93,
+   "otherCollateralUsd": 0,
+   "debtUsd": 4321.53,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.225524,
+   "hfModel": 1.225524,
+   "debtByAsset": {
+    "30": 4321.53
+   }
+  },
+  {
+   "user": "0xdb24ab0C1bd99573557eEEEA683cde04BD126029",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "9790025798",
+   "collateralDecimals": 6,
+   "collateralUsd": 9788.93,
+   "otherCollateralUsd": 0,
+   "debtUsd": 4307.37,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.772628,
+   "hfModel": 1.772629,
+   "debtByAsset": {
+    "2": 4307.37
+   }
+  },
+  {
+   "user": "0x694ca240F9Ce1b7b16706570AdcF0BeA57828CdB",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "20239718587",
+   "collateralDecimals": 6,
+   "collateralUsd": 20237.45,
+   "otherCollateralUsd": 4206.84,
+   "debtUsd": 4211.78,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 4.526958,
+   "hfModel": 4.526958,
+   "debtByAsset": {
+    "2": 4211.78
+   }
+  },
+  {
+   "user": "0x18A01f947148fAca8CD3071455067947bE2A2d76",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "6579196998",
+   "collateralDecimals": 6,
+   "collateralUsd": 6578.46,
+   "otherCollateralUsd": 0,
+   "debtUsd": 4133.48,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.241374,
+   "hfModel": 1.241374,
+   "debtByAsset": {
+    "39": 600.93,
+    "42": 3532.55
+   }
+  },
+  {
+   "user": "0xAb1b1dECB8F2bBAdE3BF9F58401E46b1f70a52ee",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "6069837168",
+   "collateralDecimals": 6,
+   "collateralUsd": 6069.16,
+   "otherCollateralUsd": 71.77,
+   "debtUsd": 3945.38,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.214059,
+   "hfModel": 1.214059,
+   "debtByAsset": {
+    "0": 3945.38
+   }
+  },
+  {
+   "user": "0xd8EbF98B3FF15d34bD28AC59DF83acae1c55F36A",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "10421790268",
+   "collateralDecimals": 6,
+   "collateralUsd": 10420.62,
+   "otherCollateralUsd": 866.16,
+   "debtUsd": 3924.98,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 2.242988,
+   "hfModel": 2.242988,
+   "debtByAsset": {
+    "0": 3924.98
+   }
+  },
+  {
+   "user": "0x8B8f01a75E34E4DfCD97C3b7a049F309F8f8360C",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "171046997531",
+   "collateralDecimals": 6,
+   "collateralUsd": 171027.86,
+   "otherCollateralUsd": 83775.02,
+   "debtUsd": 3822.47,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 51.994192,
+   "hfModel": 51.994193,
+   "debtByAsset": {
+    "0": 3822.47
+   }
+  },
+  {
+   "user": "0x657EDD090186055F63c589702872909D0E35E0fa",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "5017306109",
+   "collateralDecimals": 6,
+   "collateralUsd": 5016.74,
+   "otherCollateralUsd": 0,
+   "debtUsd": 3592.1,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.089351,
+   "hfModel": 1.089351,
+   "debtByAsset": {
+    "2": 3592.1
+   }
+  },
+  {
+   "user": "0xC5Ae60E2dA80e355ebD8E80c228230B466f4317b",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "6520565566",
+   "collateralDecimals": 6,
+   "collateralUsd": 6519.84,
+   "otherCollateralUsd": 0,
+   "debtUsd": 3571.71,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.42382,
+   "hfModel": 1.423821,
+   "debtByAsset": {
+    "0": 3571.71
+   }
+  },
+  {
+   "user": "0x9331EcAE0D0D4c081683641007870e78c73aCF6e",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "4779469057",
+   "collateralDecimals": 6,
+   "collateralUsd": 4778.93,
+   "otherCollateralUsd": 0,
+   "debtUsd": 3419.25,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.090171,
+   "hfModel": 1.090171,
+   "debtByAsset": {
+    "2": 3419.25
+   }
+  },
+  {
+   "user": "0x20E133CF0982a6Ff6BC0A7b6Ce59Ac65918A1f5c",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "5001366400",
+   "collateralDecimals": 6,
+   "collateralUsd": 5000.81,
+   "otherCollateralUsd": 0,
+   "debtUsd": 3414.38,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.142411,
+   "hfModel": 1.142411,
+   "debtByAsset": {
+    "8": 3414.38
+   }
+  },
+  {
+   "user": "0x6F923E527a9Ac0fCA4E4a14EE10778fbf0d8013c",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "22989461660",
+   "collateralDecimals": 6,
+   "collateralUsd": 22986.89,
+   "otherCollateralUsd": 0,
+   "debtUsd": 3191.08,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 5.618721,
+   "hfModel": 5.618722,
+   "debtByAsset": {
+    "2": 3191.08
+   }
+  },
+  {
+   "user": "0x6C4AdC31109C95e38eC1195A8aE6d8ED965CFbE2",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "10299200561",
+   "collateralDecimals": 6,
+   "collateralUsd": 10298.05,
+   "otherCollateralUsd": 0,
+   "debtUsd": 2791.16,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 2.877827,
+   "hfModel": 2.877828,
+   "debtByAsset": {
+    "5": 2791.16
+   }
+  },
+  {
+   "user": "0x4f598d0F247664D9cd1A2cDfE5dc45dcBB489d35",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "2419970294",
+   "collateralDecimals": 6,
+   "collateralUsd": 2419.7,
+   "otherCollateralUsd": 2683.81,
+   "debtUsd": 2727.98,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.497708,
+   "hfModel": 1.459225,
+   "debtByAsset": {
+    "8": 2727.98
+   }
+  },
+  {
+   "user": "0x7EB9448A6564CF9dF58Ab65A655C0AD6909269b9",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "5020382569",
+   "collateralDecimals": 6,
+   "collateralUsd": 5019.82,
+   "otherCollateralUsd": 1306.62,
+   "debtUsd": 2695.8,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.830485,
+   "hfModel": 1.830486,
+   "debtByAsset": {
+    "0": 2695.8
+   }
+  },
+  {
+   "user": "0x89Ac9a2e9F4686B9F530354529A1BBFA648aac21",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "8878150369",
+   "collateralDecimals": 6,
+   "collateralUsd": 8877.16,
+   "otherCollateralUsd": 0,
+   "debtUsd": 2524.86,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 2.742405,
+   "hfModel": 2.742405,
+   "debtByAsset": {
+    "2": 2524.86
+   }
+  },
+  {
+   "user": "0x28Dc80603ED9eD6bEAE17d8bB101c0f49538f56f",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "3770043879",
+   "collateralDecimals": 6,
+   "collateralUsd": 3769.62,
+   "otherCollateralUsd": 0,
+   "debtUsd": 2439.9,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.205094,
+   "hfModel": 1.205094,
+   "debtByAsset": {
+    "0": 2439.9
+   }
+  },
+  {
+   "user": "0x14eDB4315472a40b0600BC13CBc4b2B22E476594",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "200142489660",
+   "collateralDecimals": 6,
+   "collateralUsd": 200120.09,
+   "otherCollateralUsd": 242348.44,
+   "debtUsd": 2201.09,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 157.216901,
+   "hfModel": 156.797525,
+   "debtByAsset": {
+    "20": 2201.09
+   }
+  },
+  {
+   "user": "0x282c8d5CAD767a93e1E042E33E7A15877A8E6A1b",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "8577486836",
+   "collateralDecimals": 6,
+   "collateralUsd": 8576.53,
+   "otherCollateralUsd": 0,
+   "debtUsd": 2152.41,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 3.108007,
+   "hfModel": 3.108007,
+   "debtByAsset": {
+    "0": 2152.41
+   }
+  },
+  {
+   "user": "0xbb269cC63FdAC8c03C5C6e1E9a0553d300727aD1",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "5021288148",
+   "collateralDecimals": 6,
+   "collateralUsd": 5020.73,
+   "otherCollateralUsd": 0,
+   "debtUsd": 2093.62,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.87052,
+   "hfModel": 1.87052,
+   "debtByAsset": {
+    "5": 2093.62
+   }
+  },
+  {
+   "user": "0xC501936feff596935177e8b96a0037D8Cb1AED6E",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "3006134281",
+   "collateralDecimals": 6,
+   "collateralUsd": 3005.8,
+   "otherCollateralUsd": 0,
+   "debtUsd": 2086.69,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.12356,
+   "hfModel": 1.12356,
+   "debtByAsset": {
+    "2": 2086.69
+   }
+  },
+  {
+   "user": "0x23eB9C07e1f8800F938732f59E93C1100978D419",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "3010859710",
+   "collateralDecimals": 6,
+   "collateralUsd": 3010.52,
+   "otherCollateralUsd": 1047.56,
+   "debtUsd": 2053.03,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.54177,
+   "hfModel": 1.541771,
+   "debtByAsset": {
+    "8": 802.19,
+    "20": 1250.85
+   }
+  },
+  {
+   "user": "0x0fAc6d17fc33efb763Ab374c187Cda275D80Cdd4",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "2947959727",
+   "collateralDecimals": 6,
+   "collateralUsd": 2947.63,
+   "otherCollateralUsd": 0,
+   "debtUsd": 2016.24,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.140318,
+   "hfModel": 1.140318,
+   "debtByAsset": {
+    "47": 2016.24
+   }
+  },
+  {
+   "user": "0x96E6A8e54d425aC6fFC38Df4b365444931Da8f12",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "3447551612",
+   "collateralDecimals": 6,
+   "collateralUsd": 3447.17,
+   "otherCollateralUsd": 826.59,
+   "debtUsd": 2009.54,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.66193,
+   "hfModel": 1.65885,
+   "debtByAsset": {
+    "30": 2009.54
+   }
+  },
+  {
+   "user": "0x657Ef359f23A624560Ad106eC0617E5fD069BD02",
+   "eMode": 41,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "5015049191",
+   "collateralDecimals": 6,
+   "collateralUsd": 5014.49,
+   "otherCollateralUsd": 0,
+   "debtUsd": 1965.37,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.990112,
+   "hfModel": 1.990112,
+   "debtByAsset": {
+    "20": 1965.37
+   }
+  },
+  {
+   "user": "0x87ff1A059f1c55E758B1FFF6D6668247A5626DE8",
+   "eMode": 41,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "1678316944",
+   "collateralDecimals": 6,
+   "collateralUsd": 1678.13,
+   "otherCollateralUsd": 1225.37,
+   "debtUsd": 1875.29,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.231375,
+   "hfModel": 1.207668,
+   "debtByAsset": {
+    "8": 1875.29
+   }
+  },
+  {
+   "user": "0x74b7E6d4336df8038A44393CAc5B7aC53fd75C7A",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "6502160127",
+   "collateralDecimals": 6,
+   "collateralUsd": 6501.43,
+   "otherCollateralUsd": 0,
+   "debtUsd": 1804.22,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 2.810703,
+   "hfModel": 2.810703,
+   "debtByAsset": {
+    "2": 1804.22
+   }
+  },
+  {
+   "user": "0x13e1db591bedd5fAe84b54cfB682E91C70acEe63",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "2426627547",
+   "collateralDecimals": 6,
+   "collateralUsd": 2426.36,
+   "otherCollateralUsd": 0,
+   "debtUsd": 1700.01,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.113262,
+   "hfModel": 1.113263,
+   "debtByAsset": {
+    "35": 1700.01
+   }
+  },
+  {
+   "user": "0x991bf8332F5FB2471c5DB606e8F9245178c23AcB",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "2455153909",
+   "collateralDecimals": 6,
+   "collateralUsd": 2454.88,
+   "otherCollateralUsd": 0,
+   "debtUsd": 1683.39,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.137473,
+   "hfModel": 1.137473,
+   "debtByAsset": {
+    "2": 1683.39
+   }
+  },
+  {
+   "user": "0x8eD3298654965B1db9FD3047635986526bF902c1",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "4970009493",
+   "collateralDecimals": 6,
+   "collateralUsd": 4969.45,
+   "otherCollateralUsd": 0,
+   "debtUsd": 1662.95,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 2.330903,
+   "hfModel": 2.330903,
+   "debtByAsset": {
+    "0": 934.93,
+    "5": 728.02
+   }
+  },
+  {
+   "user": "0xE7A7F6b7B9A835E82B67435F056D29BBd56b14B3",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "2220432131",
+   "collateralDecimals": 6,
+   "collateralUsd": 2220.18,
+   "otherCollateralUsd": 0,
+   "debtUsd": 1648.77,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.050326,
+   "hfModel": 1.050326,
+   "debtByAsset": {
+    "59": 1648.77
+   }
+  },
+  {
+   "user": "0x51d17b37F6E1B83bCa82885692A9823f804c342b",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "2662682470",
+   "collateralDecimals": 6,
+   "collateralUsd": 2662.38,
+   "otherCollateralUsd": 0,
+   "debtUsd": 1622.67,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.279776,
+   "hfModel": 1.279776,
+   "debtByAsset": {
+    "0": 1622.67
+   }
+  },
+  {
+   "user": "0x4978bC6e932BB40cC494Cd14490420C5521De4A1",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "6128224250",
+   "collateralDecimals": 6,
+   "collateralUsd": 6127.54,
+   "otherCollateralUsd": 0,
+   "debtUsd": 1524.81,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 3.134477,
+   "hfModel": 3.134478,
+   "debtByAsset": {
+    "27": 1524.81
+   }
+  },
+  {
+   "user": "0x2DE0aF048dFcE49B0dC92560F5DC31CdF60B060d",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "1659101136",
+   "collateralDecimals": 6,
+   "collateralUsd": 1658.92,
+   "otherCollateralUsd": 1702.98,
+   "debtUsd": 1521.71,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.739608,
+   "hfModel": 1.723237,
+   "debtByAsset": {
+    "8": 1521.71
+   }
+  },
+  {
+   "user": "0xB61600cdA2193780be7639385C7e01160a8E5cF0",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "3452463848",
+   "collateralDecimals": 6,
+   "collateralUsd": 3452.08,
+   "otherCollateralUsd": 0,
+   "debtUsd": 1518.64,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.773052,
+   "hfModel": 1.773053,
+   "debtByAsset": {
+    "2": 1518.64
+   }
+  },
+  {
+   "user": "0xdC127290b279Ba39dC42DfFd8571A920315843BE",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "2500298658",
+   "collateralDecimals": 6,
+   "collateralUsd": 2500.02,
+   "otherCollateralUsd": 2205.49,
+   "debtUsd": 1515.4,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 2.422004,
+   "hfModel": 2.422005,
+   "debtByAsset": {
+    "34": 1515.4
+   }
+  },
+  {
+   "user": "0xfe024e4F313180c7A8E64f5B5122c6B59F9fBB8a",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "4799873604",
+   "collateralDecimals": 6,
+   "collateralUsd": 4799.34,
+   "otherCollateralUsd": 0,
+   "debtUsd": 1442.88,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 2.594457,
+   "hfModel": 2.594457,
+   "debtByAsset": {
+    "47": 1442.88
+   }
+  },
+  {
+   "user": "0x3Ff8e039b8cbCfDA7DffFC8337a578e89a25E568",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "2253626833",
+   "collateralDecimals": 6,
+   "collateralUsd": 2253.37,
+   "otherCollateralUsd": 492.12,
+   "debtUsd": 1439.44,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.487722,
+   "hfModel": 1.487722,
+   "debtByAsset": {
+    "2": 1439.44
+   }
+  },
+  {
+   "user": "0x7338383c9CDFDb4191fc55EE148FaD3b5d84f04B",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "2311309018",
+   "collateralDecimals": 6,
+   "collateralUsd": 2311.05,
+   "otherCollateralUsd": 85.29,
+   "debtUsd": 1426.45,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.310351,
+   "hfModel": 1.310352,
+   "debtByAsset": {
+    "2": 842.53,
+    "20": 583.92
+   }
+  },
+  {
+   "user": "0x21CA169147A38d25e7f7E4b537043696bb4EeA7F",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "21120845281",
+   "collateralDecimals": 6,
+   "collateralUsd": 21118.48,
+   "otherCollateralUsd": 11624.77,
+   "debtUsd": 1418.08,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 18.01004,
+   "hfModel": 18.01004,
+   "debtByAsset": {
+    "30": 907.58,
+    "42": 510.5
+   }
+  },
+  {
+   "user": "0xC819Bd476bE47Abb5F733081D4F96C649aDC7d50",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "4337108563",
+   "collateralDecimals": 6,
+   "collateralUsd": 4336.62,
+   "otherCollateralUsd": 0,
+   "debtUsd": 1402.23,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 2.412273,
+   "hfModel": 2.412273,
+   "debtByAsset": {
+    "0": 1402.23
+   }
+  },
+  {
+   "user": "0xEe6fd6b63ffa0a23524C31baA8F68b934aABA0E4",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "4124580672",
+   "collateralDecimals": 6,
+   "collateralUsd": 4124.12,
+   "otherCollateralUsd": 0,
+   "debtUsd": 1370.49,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 2.347191,
+   "hfModel": 2.347191,
+   "debtByAsset": {
+    "0": 1370.49
+   }
+  },
+  {
+   "user": "0x4AA0321119dA2512E5552c90F8Ff37a462F26446",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "3171115702",
+   "collateralDecimals": 6,
+   "collateralUsd": 3170.76,
+   "otherCollateralUsd": 513.64,
+   "debtUsd": 1366.94,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 2.091116,
+   "hfModel": 2.102389,
+   "debtByAsset": {
+    "8": 1366.94
+   }
+  },
+  {
+   "user": "0xD29980D59213982B011E7a6b2fCAF0BDAC1B4d00",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "1897580746",
+   "collateralDecimals": 6,
+   "collateralUsd": 1897.37,
+   "otherCollateralUsd": 0,
+   "debtUsd": 1346.67,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.098968,
+   "hfModel": 1.098968,
+   "debtByAsset": {
+    "8": 1346.67
+   }
+  },
+  {
+   "user": "0x4283669F51aF8495CA7De8244eB27F31181762e2",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "1508525494",
+   "collateralDecimals": 6,
+   "collateralUsd": 1508.36,
+   "otherCollateralUsd": 1303.21,
+   "debtUsd": 1279.58,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.713852,
+   "hfModel": 1.713853,
+   "debtByAsset": {
+    "34": 1279.58
+   }
+  },
+  {
+   "user": "0x272872FDFe40e080873fAF0153f214b9D30d2620",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "2408939464",
+   "collateralDecimals": 6,
+   "collateralUsd": 2408.67,
+   "otherCollateralUsd": 0,
+   "debtUsd": 1255.37,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.496577,
+   "hfModel": 1.496578,
+   "debtByAsset": {
+    "2": 1255.37
+   }
+  },
+  {
+   "user": "0xe063DbeD18a0B79d70C7E958081533196230a0F3",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "6377348485",
+   "collateralDecimals": 6,
+   "collateralUsd": 6376.63,
+   "otherCollateralUsd": 5013.92,
+   "debtUsd": 1174.71,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 7.563261,
+   "hfModel": 7.563261,
+   "debtByAsset": {
+    "8": 1174.71
+   }
+  },
+  {
+   "user": "0x6558CB454364cD09F7fF74E98C4AFf3c95E27fE0",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "2018307119",
+   "collateralDecimals": 6,
+   "collateralUsd": 2018.08,
+   "otherCollateralUsd": 0,
+   "debtUsd": 1106.7,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.422339,
+   "hfModel": 1.422339,
+   "debtByAsset": {
+    "8": 1106.7
+   }
+  },
+  {
+   "user": "0x368D6d7E3fF93393e77dfcc3CaE1Bd9Fca330ff0",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "2001728102",
+   "collateralDecimals": 6,
+   "collateralUsd": 2001.5,
+   "otherCollateralUsd": 0,
+   "debtUsd": 1076.12,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.450742,
+   "hfModel": 1.450743,
+   "debtByAsset": {
+    "0": 1076.12
+   }
+  },
+  {
+   "user": "0x68A84dAb81c7F0D11f96cDfd4A464dD03ab082BD",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "3006219588",
+   "collateralDecimals": 6,
+   "collateralUsd": 3005.88,
+   "otherCollateralUsd": 3765,
+   "debtUsd": 1052.34,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 5.118906,
+   "hfModel": 5.018599,
+   "debtByAsset": {
+    "59": 1052.34
+   }
+  },
+  {
+   "user": "0xd9D89Ae40eF4FfCBAb86f96dE7FD52ca0df308F7",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "3598719534",
+   "collateralDecimals": 6,
+   "collateralUsd": 3598.32,
+   "otherCollateralUsd": 565.13,
+   "debtUsd": 1029.01,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 3.155945,
+   "hfModel": 3.155945,
+   "debtByAsset": {
+    "20": 1029.01
+   }
+  },
+  {
+   "user": "0xEa073fF8020fB407f94533DdB42AB63241feB00D",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "2014689242",
+   "collateralDecimals": 6,
+   "collateralUsd": 2014.46,
+   "otherCollateralUsd": 0,
+   "debtUsd": 1015.96,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.546598,
+   "hfModel": 1.546599,
+   "debtByAsset": {
+    "59": 1015.96
+   }
+  },
+  {
+   "user": "0xCbA63A5c32a5cD97160131f363067479facC580E",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "16286293941",
+   "collateralDecimals": 6,
+   "collateralUsd": 16284.47,
+   "otherCollateralUsd": 0,
+   "debtUsd": 1006.76,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 12.616662,
+   "hfModel": 12.616662,
+   "debtByAsset": {
+    "2": 1006.76
+   }
+  },
+  {
+   "user": "0x9A2795454320dbDFB4e242714F10fA63432339d7",
+   "eMode": 43,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "14776849445",
+   "collateralDecimals": 6,
+   "collateralUsd": 14775.2,
+   "otherCollateralUsd": 3744.81,
+   "debtUsd": 1005.09,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 14.310926,
+   "hfModel": 14.372503,
+   "debtByAsset": {
+    "8": 1005.09
+   }
+  },
+  {
+   "user": "0x0392c328AAaE00fE1f161d4658483B0529c5F1Fa",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "1375572265",
+   "collateralDecimals": 6,
+   "collateralUsd": 1375.42,
+   "otherCollateralUsd": 801.98,
+   "debtUsd": 1001.56,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.695723,
+   "hfModel": 1.695724,
+   "debtByAsset": {
+    "8": 1001.56
+   }
+  },
+  {
+   "user": "0x378994Ccc3323188fa8D5a3F9088407DDC585047",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "101690015810",
+   "collateralDecimals": 6,
+   "collateralUsd": 101678.64,
+   "otherCollateralUsd": 0,
+   "debtUsd": 842.33,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 94.154157,
+   "hfModel": 94.154157,
+   "debtByAsset": {
+    "2": 842.33
+   }
+  },
+  {
+   "user": "0x6C0947508C03fE218d5b8947bD9D67CB1595BB21",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "1002032980",
+   "collateralDecimals": 6,
+   "collateralUsd": 1001.92,
+   "otherCollateralUsd": 1755.41,
+   "debtUsd": 839.69,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 2.472203,
+   "hfModel": 2.561314,
+   "debtByAsset": {
+    "2": 839.69
+   }
+  },
+  {
+   "user": "0x63e409b2cc425Ff56047fe6A3E7cD315e996ADd5",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "2037175916",
+   "collateralDecimals": 6,
+   "collateralUsd": 2036.95,
+   "otherCollateralUsd": 0,
+   "debtUsd": 787.29,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 2.018082,
+   "hfModel": 2.018083,
+   "debtByAsset": {
+    "0": 787.29
+   }
+  },
+  {
+   "user": "0xFd059176D392E30b74d74bbd769717a3eB6887A2",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "1585307290",
+   "collateralDecimals": 6,
+   "collateralUsd": 1585.13,
+   "otherCollateralUsd": 0,
+   "debtUsd": 753.49,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.640897,
+   "hfModel": 1.640898,
+   "debtByAsset": {
+    "0": 753.49
+   }
+  },
+  {
+   "user": "0x50CCA9FC0dA0999b957a0AE0474500ad03a1183C",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "1202137208",
+   "collateralDecimals": 6,
+   "collateralUsd": 1202,
+   "otherCollateralUsd": 0,
+   "debtUsd": 753.45,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.244356,
+   "hfModel": 1.244357,
+   "debtByAsset": {
+    "2": 753.45
+   }
+  },
+  {
+   "user": "0x8Db224C151201f0C8ba7dde6C9E5fE2E92700D2D",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "1043299940",
+   "collateralDecimals": 6,
+   "collateralUsd": 1043.18,
+   "otherCollateralUsd": 0,
+   "debtUsd": 750.91,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.083593,
+   "hfModel": 1.083594,
+   "debtByAsset": {
+    "8": 750.91
+   }
+  },
+  {
+   "user": "0x6386E334eB6F2Ab63CaCbb97133a0452F17e1502",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "2036097950",
+   "collateralDecimals": 6,
+   "collateralUsd": 2035.87,
+   "otherCollateralUsd": 0,
+   "debtUsd": 734.15,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 2.163009,
+   "hfModel": 2.163009,
+   "debtByAsset": {
+    "0": 734.15
+   }
+  },
+  {
+   "user": "0xA40454153e77d41217F71CD077574B21eBe1cC79",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "1092142634",
+   "collateralDecimals": 6,
+   "collateralUsd": 1092.02,
+   "otherCollateralUsd": 323.88,
+   "debtUsd": 608.99,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.830678,
+   "hfModel": 1.813503,
+   "debtByAsset": {
+    "8": 608.99
+   }
+  },
+  {
+   "user": "0x6748E7BC28E965e4109aDd326660e206787D16c1",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "881978192",
+   "collateralDecimals": 6,
+   "collateralUsd": 881.88,
+   "otherCollateralUsd": 0,
+   "debtUsd": 607.14,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.13296,
+   "hfModel": 1.13296,
+   "debtByAsset": {
+    "20": 607.14
+   }
+  },
+  {
+   "user": "0xfaA3B6182C7E798C9E555f0dBDDB1b745D4d1D62",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "808675478",
+   "collateralDecimals": 6,
+   "collateralUsd": 808.58,
+   "otherCollateralUsd": 0,
+   "debtUsd": 550.2,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.146308,
+   "hfModel": 1.146308,
+   "debtByAsset": {
+    "8": 550.2
+   }
+  },
+  {
+   "user": "0x67191D82784C06A05D29ee966a13711FC0B69C54",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "1564115711",
+   "collateralDecimals": 6,
+   "collateralUsd": 1563.94,
+   "otherCollateralUsd": 0,
+   "debtUsd": 547.35,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 2.228681,
+   "hfModel": 2.228682,
+   "debtByAsset": {
+    "34": 547.35
+   }
+  },
+  {
+   "user": "0x5Dc1B7697BcE578Dc928544A150c54599a7305e2",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "595529798",
+   "collateralDecimals": 6,
+   "collateralUsd": 595.46,
+   "otherCollateralUsd": 972.43,
+   "debtUsd": 424.43,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 2.901263,
+   "hfModel": 2.881386,
+   "debtByAsset": {
+    "20": 424.43
+   }
+  },
+  {
+   "user": "0x6316eBe9DFA8DE65A39af8bfD2523146b3c3239F",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "746514599",
+   "collateralDecimals": 6,
+   "collateralUsd": 746.43,
+   "otherCollateralUsd": 0,
+   "debtUsd": 368.6,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.579541,
+   "hfModel": 1.579542,
+   "debtByAsset": {
+    "2": 368.6
+   }
+  },
+  {
+   "user": "0xbc176E9CaDa297c7B7142dd7447Bb114ad90d143",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "682011688",
+   "collateralDecimals": 6,
+   "collateralUsd": 681.94,
+   "otherCollateralUsd": 0,
+   "debtUsd": 340.27,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.563192,
+   "hfModel": 1.563193,
+   "debtByAsset": {
+    "0": 340.27
+   }
+  },
+  {
+   "user": "0xec56A08b035a3DF04890ee9f621d1c2A79a94040",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "1550548681",
+   "collateralDecimals": 6,
+   "collateralUsd": 1550.38,
+   "otherCollateralUsd": 1014.68,
+   "debtUsd": 336.96,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 5.937672,
+   "hfModel": 5.937672,
+   "debtByAsset": {
+    "2": 336.96
+   }
+  },
+  {
+   "user": "0x00862320193Ede0cBC0Be71146Cb530256Ea859A",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "1315752440",
+   "collateralDecimals": 6,
+   "collateralUsd": 1315.61,
+   "otherCollateralUsd": 0,
+   "debtUsd": 336.64,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 3.048312,
+   "hfModel": 3.048312,
+   "debtByAsset": {
+    "2": 336.64
+   }
+  },
+  {
+   "user": "0xC71698510dCdfb0c45A3EBe7Dd8eD17a6299c1B4",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "340262595",
+   "collateralDecimals": 6,
+   "collateralUsd": 340.22,
+   "otherCollateralUsd": 300.59,
+   "debtUsd": 287.12,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.793234,
+   "hfModel": 1.740888,
+   "debtByAsset": {
+    "47": 287.12
+   }
+  },
+  {
+   "user": "0x41587Dd0532c7bf0b775e1B12d0e083feE128612",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "1247439251",
+   "collateralDecimals": 6,
+   "collateralUsd": 1247.3,
+   "otherCollateralUsd": 773.28,
+   "debtUsd": 244.35,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 6.478821,
+   "hfModel": 6.450053,
+   "debtByAsset": {
+    "8": 0,
+    "20": 42.28,
+    "30": 202.07
+   }
+  },
+  {
+   "user": "0x8F5c44e97DB0fe6A774edE7e94dA854d83ecF9d1",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "403204259",
+   "collateralDecimals": 6,
+   "collateralUsd": 403.16,
+   "otherCollateralUsd": 0,
+   "debtUsd": 226.98,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.385428,
+   "hfModel": 1.385428,
+   "debtByAsset": {
+    "0": 226.98
+   }
+  },
+  {
+   "user": "0xC0028E1c8ed88548C8327945a793e0fFee9b46BF",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "213987927",
+   "collateralDecimals": 6,
+   "collateralUsd": 213.96,
+   "otherCollateralUsd": 0,
+   "debtUsd": 165.19,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.010296,
+   "hfModel": 1.010296,
+   "debtByAsset": {
+    "30": 165.19
+   }
+  },
+  {
+   "user": "0x2148c27dfF8389780dcC0Ec362C27636a0fb1DD3",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "250274610",
+   "collateralDecimals": 6,
+   "collateralUsd": 250.25,
+   "otherCollateralUsd": 0,
+   "debtUsd": 134.6,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.450187,
+   "hfModel": 1.450187,
+   "debtByAsset": {
+    "0": 134.6
+   }
+  },
+  {
+   "user": "0x490BC386044cC57BA85f493E10E5743CE9FDAF50",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "199129868",
+   "collateralDecimals": 6,
+   "collateralUsd": 199.11,
+   "otherCollateralUsd": 0,
+   "debtUsd": 114.08,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.361367,
+   "hfModel": 1.361368,
+   "debtByAsset": {
+    "20": 114.08
+   }
+  },
+  {
+   "user": "0x63A892C4108303C68d80BD61688b647181bd116C",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "198629898",
+   "collateralDecimals": 6,
+   "collateralUsd": 198.61,
+   "otherCollateralUsd": 0,
+   "debtUsd": 110.47,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.402311,
+   "hfModel": 1.402311,
+   "debtByAsset": {
+    "0": 110.47
+   }
+  },
+  {
+   "user": "0x4DD4FBdCcd489A06dAF5A1A5BC7cf196A70228ce",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "5601187730",
+   "collateralDecimals": 6,
+   "collateralUsd": 5600.56,
+   "otherCollateralUsd": 5043.79,
+   "debtUsd": 101.88,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 81.490068,
+   "hfModel": 81.490068,
+   "debtByAsset": {
+    "20": 101.88
+   }
+  },
+  {
+   "user": "0x92D385172c6eC14ED5a670A8148db3fD70F62A40",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "2026612228813",
+   "collateralDecimals": 6,
+   "collateralUsd": 2026385.45,
+   "otherCollateralUsd": 0,
+   "debtUsd": 95.48,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 16554.533648,
+   "hfModel": 16554.533649,
+   "debtByAsset": {
+    "2": 49.43,
+    "9": 1.82,
+    "33": 44.23
+   }
+  },
+  {
+   "user": "0xF041Bd39a5E349D15Fd534AC9C8FaaD46A9E999B",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "163382194",
+   "collateralDecimals": 6,
+   "collateralUsd": 163.36,
+   "otherCollateralUsd": 0,
+   "debtUsd": 80.85,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.57599,
+   "hfModel": 1.57599,
+   "debtByAsset": {
+    "0": 80.85
+   }
+  },
+  {
+   "user": "0x1F624C47E902BFC2844d15246003062b93D17F4e",
+   "eMode": 0,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "312830509",
+   "collateralDecimals": 6,
+   "collateralUsd": 312.8,
+   "otherCollateralUsd": 0,
+   "debtUsd": 80.77,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 3.020802,
+   "hfModel": 3.020802,
+   "debtByAsset": {
+    "0": 80.77
+   }
+  },
+  {
+   "user": "0x568E3DDf8396b47f17faeA82Dd83fe7ba2bB10bc",
+   "eMode": 34,
+   "collateralId": 13,
+   "ethReserveId": 3,
+   "collateralRaw": "50501878",
+   "collateralDecimals": 6,
+   "collateralUsd": 50.5,
+   "otherCollateralUsd": 50.17,
+   "debtUsd": 70.69,
+   "ltBps": 7800,
+   "bonusBps": 450,
+   "hfOnchain": 1.217198,
+   "hfModel": 1.110743,
+   "debtByAsset": {
+    "30": 70.69
+   }
+  }
+ ]
+}
