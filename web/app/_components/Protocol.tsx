@@ -12,6 +12,7 @@ import { CascadeChart, CurveChart } from "./Charts";
 import { ComparePanel } from "./ComparePanel";
 import { GuardPanel } from "./GuardPanel";
 import { LimitGauge } from "./LimitGauge";
+import { MonteCarlo } from "./MonteCarlo";
 import { previewCurve, usePreview, type Result, type Scenario } from "./useKaskad";
 
 const CURVE_SHOCKS = [10, 50, 100, 300, 500, 1000, 2000, 3000];
@@ -535,6 +536,18 @@ export function Protocol() {
           {r && <LimitGauge r={r} />}
         </section>
       </div>
+
+      <MonteCarlo
+        base={{
+          assetId: st.assetId,
+          shockBps: scenario.shockBps,
+          steps: st.steps,
+          maxRoundsPerStep: st.rounds,
+          maxPositions: asset.realPositions,
+          oracleFeedbackBps: st.feedback,
+        }}
+        symbol={sym(asset)}
+      />
 
       <ComparePanel shockBps={scenario.shockBps} feedback={st.feedback} steps={st.steps} rounds={st.rounds} />
 

@@ -75,14 +75,21 @@ export function LimitGauge({ r }: { r: Result }) {
         </div>
         <div className={`rounded-lg border p-3 text-sm ${fitsEth ? "border-line" : "border-bad/60 bg-bad/10"}`}>
           <b>Ethereum'da bu simülasyon:</b> ≈ <span className="num font-mono">{fmtGas(eth)}</span> gas (soğuk SLOAD
-          2.100/slot + karesel bellek).{" "}
+          2.100/slot + karesel bellek; model, Ethereum kurallarıyla çalıştırılan fork ölçümüyle ±%1 doğrulandı).{" "}
           {fitsEth ? (
-            <>Tx tavanına (16,77M, EIP-7825) sığar.</>
+            <span className="font-semibold">
+              Tek işleme sığar, ama Monad'dakinin {fmtNum(eth / Math.max(1, gas), 1)} katı gas.
+            </span>
           ) : (
             <span className="font-semibold text-bad">
-              Tx tavanının {fmtNum(eth / ETH_TX_GAS_CAP, 1)} katı → tek tx'e sığmaz.
+              Ethereum'un tx tavanının (16.777.216, EIP-7825) {fmtNum(eth / ETH_TX_GAS_CAP, 1)} katı → Ethereum'da tek
+              işleme sığmıyor.
             </span>
           )}
+          <div className="mt-1 text-xs text-muted">
+            Bellek tek başına tavanı aşmıyor ({fmtGas(ethMemoryGas(mem))} gas); asıl fark pozisyon başına soğuk okuma
+            ve toplam hesap.
+          </div>
         </div>
         <p className="text-xs text-muted">
           Tüm motor tek kontratta: defter + simülasyon (Kaskad.sol), harici çağrı yok. Monad'da kontrat limiti 128 KB

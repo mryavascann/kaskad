@@ -68,6 +68,7 @@ for (const f of ethFiles) {
 }
 const dep = JSON.parse(readFileSync(join(root, "contracts/deployments/testnet.json"), "utf8")) as {
   kaskad: Address;
+  kaskadMC: Address;
   guard: Address;
   marketA: Address;
   marketB: Address;
@@ -258,7 +259,7 @@ function writeWebConfig() {
   }
   const cfg = {
     chainId: 10143,
-    contracts: { kaskad: dep.kaskad, guard: dep.guard, marketA: dep.marketA, marketB: dep.marketB },
+    contracts: { kaskad: dep.kaskad, kaskadMC: dep.kaskadMC, guard: dep.guard, marketA: dep.marketA, marketB: dep.marketB },
     deployBlock: dep.block,
     source: { chainId: 143, block: data.block, borrowersWithDebt: data.totals.positions },
     totals: {

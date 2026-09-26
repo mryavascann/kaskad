@@ -1173,6 +1173,1543 @@ export const kaskadAbi = [
   }
 ] as const;
 
+export const kaskadMCAbi = [
+  {
+    "type": "constructor",
+    "inputs": [
+      {
+        "name": "owner_",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "source_",
+        "type": "address",
+        "internalType": "contract Kaskad"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "CALIBRATED",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "MAX_ASSETS",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "MAX_CURVE_POINTS",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "MAX_PATHS",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "MAX_ROUNDS",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "MAX_STEPS",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "acceptOwnership",
+    "inputs": [],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "assets",
+    "inputs": [
+      {
+        "name": "assetId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "priceWad",
+        "type": "uint128",
+        "internalType": "uint128"
+      },
+      {
+        "name": "depthUsdWad",
+        "type": "uint128",
+        "internalType": "uint128"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "bookLength",
+    "inputs": [
+      {
+        "name": "bookId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "bookStats",
+    "inputs": [
+      {
+        "name": "bookId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "collateral1e6",
+        "type": "uint128",
+        "internalType": "uint128"
+      },
+      {
+        "name": "debt1e6",
+        "type": "uint128",
+        "internalType": "uint128"
+      },
+      {
+        "name": "otherCollUsd",
+        "type": "uint128",
+        "internalType": "uint128"
+      },
+      {
+        "name": "count",
+        "type": "uint32",
+        "internalType": "uint32"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "lastResult",
+    "inputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "simId",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "totalDebt",
+        "type": "uint128",
+        "internalType": "uint128"
+      },
+      {
+        "name": "totalLiquidated",
+        "type": "uint128",
+        "internalType": "uint128"
+      },
+      {
+        "name": "badDebt",
+        "type": "uint128",
+        "internalType": "uint128"
+      },
+      {
+        "name": "finalPrice",
+        "type": "uint128",
+        "internalType": "uint128"
+      },
+      {
+        "name": "blockNumber",
+        "type": "uint64",
+        "internalType": "uint64"
+      },
+      {
+        "name": "rounds",
+        "type": "uint32",
+        "internalType": "uint32"
+      },
+      {
+        "name": "positionsUsed",
+        "type": "uint32",
+        "internalType": "uint32"
+      },
+      {
+        "name": "assetId",
+        "type": "uint16",
+        "internalType": "uint16"
+      },
+      {
+        "name": "shockBps",
+        "type": "uint16",
+        "internalType": "uint16"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "loadPositions",
+    "inputs": [
+      {
+        "name": "bookId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "packed",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "nonces",
+    "inputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "owner",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "pendingOwner",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "positionAt",
+    "inputs": [
+      {
+        "name": "bookId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "index",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "internalType": "struct PositionLib.Position",
+        "components": [
+          {
+            "name": "collateral",
+            "type": "uint88",
+            "internalType": "uint88"
+          },
+          {
+            "name": "debt",
+            "type": "uint88",
+            "internalType": "uint88"
+          },
+          {
+            "name": "otherColl",
+            "type": "uint32",
+            "internalType": "uint32"
+          },
+          {
+            "name": "collateralId",
+            "type": "uint8",
+            "internalType": "uint8"
+          },
+          {
+            "name": "ltBps",
+            "type": "uint16",
+            "internalType": "uint16"
+          },
+          {
+            "name": "bonusBps",
+            "type": "uint16",
+            "internalType": "uint16"
+          },
+          {
+            "name": "eMode",
+            "type": "uint8",
+            "internalType": "uint8"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "preview",
+    "inputs": [
+      {
+        "name": "s",
+        "type": "tuple",
+        "internalType": "struct Kaskad.Scenario",
+        "components": [
+          {
+            "name": "assetId",
+            "type": "uint16",
+            "internalType": "uint16"
+          },
+          {
+            "name": "shockBps",
+            "type": "uint16",
+            "internalType": "uint16"
+          },
+          {
+            "name": "steps",
+            "type": "uint16",
+            "internalType": "uint16"
+          },
+          {
+            "name": "maxRoundsPerStep",
+            "type": "uint16",
+            "internalType": "uint16"
+          },
+          {
+            "name": "maxPositions",
+            "type": "uint32",
+            "internalType": "uint32"
+          },
+          {
+            "name": "oracleFeedbackBps",
+            "type": "uint16",
+            "internalType": "uint16"
+          }
+        ]
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "internalType": "struct Kaskad.Result",
+        "components": [
+          {
+            "name": "totalDebt",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "totalCollateral",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "totalLiquidated",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "totalSeized",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "badDebt",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "stuckDebt",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "startPrice",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "finalPrice",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "rounds",
+            "type": "uint32",
+            "internalType": "uint32"
+          },
+          {
+            "name": "liquidations",
+            "type": "uint32",
+            "internalType": "uint32"
+          },
+          {
+            "name": "positionsUsed",
+            "type": "uint32",
+            "internalType": "uint32"
+          },
+          {
+            "name": "gasUsed",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "memoryBytes",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "log",
+            "type": "tuple[]",
+            "internalType": "struct Kaskad.RoundLog[]",
+            "components": [
+              {
+                "name": "step",
+                "type": "uint16",
+                "internalType": "uint16"
+              },
+              {
+                "name": "round",
+                "type": "uint16",
+                "internalType": "uint16"
+              },
+              {
+                "name": "liquidations",
+                "type": "uint32",
+                "internalType": "uint32"
+              },
+              {
+                "name": "priceWad",
+                "type": "uint256",
+                "internalType": "uint256"
+              },
+              {
+                "name": "liquidatedDebt",
+                "type": "uint256",
+                "internalType": "uint256"
+              },
+              {
+                "name": "seized",
+                "type": "uint256",
+                "internalType": "uint256"
+              },
+              {
+                "name": "deficit",
+                "type": "uint256",
+                "internalType": "uint256"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "previewCurve",
+    "inputs": [
+      {
+        "name": "s",
+        "type": "tuple",
+        "internalType": "struct Kaskad.Scenario",
+        "components": [
+          {
+            "name": "assetId",
+            "type": "uint16",
+            "internalType": "uint16"
+          },
+          {
+            "name": "shockBps",
+            "type": "uint16",
+            "internalType": "uint16"
+          },
+          {
+            "name": "steps",
+            "type": "uint16",
+            "internalType": "uint16"
+          },
+          {
+            "name": "maxRoundsPerStep",
+            "type": "uint16",
+            "internalType": "uint16"
+          },
+          {
+            "name": "maxPositions",
+            "type": "uint32",
+            "internalType": "uint32"
+          },
+          {
+            "name": "oracleFeedbackBps",
+            "type": "uint16",
+            "internalType": "uint16"
+          }
+        ]
+      },
+      {
+        "name": "shocks",
+        "type": "uint16[]",
+        "internalType": "uint16[]"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "badDebt",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      },
+      {
+        "name": "liquidated",
+        "type": "uint256[]",
+        "internalType": "uint256[]"
+      },
+      {
+        "name": "gasUsed",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "memoryBytes",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "previewMC",
+    "inputs": [
+      {
+        "name": "s",
+        "type": "tuple",
+        "internalType": "struct Kaskad.Scenario",
+        "components": [
+          {
+            "name": "assetId",
+            "type": "uint16",
+            "internalType": "uint16"
+          },
+          {
+            "name": "shockBps",
+            "type": "uint16",
+            "internalType": "uint16"
+          },
+          {
+            "name": "steps",
+            "type": "uint16",
+            "internalType": "uint16"
+          },
+          {
+            "name": "maxRoundsPerStep",
+            "type": "uint16",
+            "internalType": "uint16"
+          },
+          {
+            "name": "maxPositions",
+            "type": "uint32",
+            "internalType": "uint32"
+          },
+          {
+            "name": "oracleFeedbackBps",
+            "type": "uint16",
+            "internalType": "uint16"
+          }
+        ]
+      },
+      {
+        "name": "paths",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "seed",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "tuple",
+        "internalType": "struct KaskadMC.MCResult",
+        "components": [
+          {
+            "name": "paths",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "positionsUsed",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "totalDebt",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "meanBadDebt",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "p95BadDebt",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "worstBadDebt",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "lossPaths",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "meanShockBps",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "worstShockBps",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "gasUsed",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "memoryBytes",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "badDebt",
+            "type": "uint256[]",
+            "internalType": "uint256[]"
+          },
+          {
+            "name": "shockBps",
+            "type": "uint256[]",
+            "internalType": "uint256[]"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "rawSlot",
+    "inputs": [
+      {
+        "name": "bookId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "index",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "renounceOwnership",
+    "inputs": [],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "resetBook",
+    "inputs": [
+      {
+        "name": "bookId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setAsset",
+    "inputs": [
+      {
+        "name": "assetId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "priceWad",
+        "type": "uint128",
+        "internalType": "uint128"
+      },
+      {
+        "name": "depthUsdWad",
+        "type": "uint128",
+        "internalType": "uint128"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setDataInfo",
+    "inputs": [
+      {
+        "name": "sourceBlock_",
+        "type": "uint64",
+        "internalType": "uint64"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "simulate",
+    "inputs": [
+      {
+        "name": "s",
+        "type": "tuple",
+        "internalType": "struct Kaskad.Scenario",
+        "components": [
+          {
+            "name": "assetId",
+            "type": "uint16",
+            "internalType": "uint16"
+          },
+          {
+            "name": "shockBps",
+            "type": "uint16",
+            "internalType": "uint16"
+          },
+          {
+            "name": "steps",
+            "type": "uint16",
+            "internalType": "uint16"
+          },
+          {
+            "name": "maxRoundsPerStep",
+            "type": "uint16",
+            "internalType": "uint16"
+          },
+          {
+            "name": "maxPositions",
+            "type": "uint32",
+            "internalType": "uint32"
+          },
+          {
+            "name": "oracleFeedbackBps",
+            "type": "uint16",
+            "internalType": "uint16"
+          }
+        ]
+      }
+    ],
+    "outputs": [
+      {
+        "name": "simId",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "r",
+        "type": "tuple",
+        "internalType": "struct Kaskad.Result",
+        "components": [
+          {
+            "name": "totalDebt",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "totalCollateral",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "totalLiquidated",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "totalSeized",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "badDebt",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "stuckDebt",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "startPrice",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "finalPrice",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "rounds",
+            "type": "uint32",
+            "internalType": "uint32"
+          },
+          {
+            "name": "liquidations",
+            "type": "uint32",
+            "internalType": "uint32"
+          },
+          {
+            "name": "positionsUsed",
+            "type": "uint32",
+            "internalType": "uint32"
+          },
+          {
+            "name": "gasUsed",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "memoryBytes",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "log",
+            "type": "tuple[]",
+            "internalType": "struct Kaskad.RoundLog[]",
+            "components": [
+              {
+                "name": "step",
+                "type": "uint16",
+                "internalType": "uint16"
+              },
+              {
+                "name": "round",
+                "type": "uint16",
+                "internalType": "uint16"
+              },
+              {
+                "name": "liquidations",
+                "type": "uint32",
+                "internalType": "uint32"
+              },
+              {
+                "name": "priceWad",
+                "type": "uint256",
+                "internalType": "uint256"
+              },
+              {
+                "name": "liquidatedDebt",
+                "type": "uint256",
+                "internalType": "uint256"
+              },
+              {
+                "name": "seized",
+                "type": "uint256",
+                "internalType": "uint256"
+              },
+              {
+                "name": "deficit",
+                "type": "uint256",
+                "internalType": "uint256"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "simulateMC",
+    "inputs": [
+      {
+        "name": "s",
+        "type": "tuple",
+        "internalType": "struct Kaskad.Scenario",
+        "components": [
+          {
+            "name": "assetId",
+            "type": "uint16",
+            "internalType": "uint16"
+          },
+          {
+            "name": "shockBps",
+            "type": "uint16",
+            "internalType": "uint16"
+          },
+          {
+            "name": "steps",
+            "type": "uint16",
+            "internalType": "uint16"
+          },
+          {
+            "name": "maxRoundsPerStep",
+            "type": "uint16",
+            "internalType": "uint16"
+          },
+          {
+            "name": "maxPositions",
+            "type": "uint32",
+            "internalType": "uint32"
+          },
+          {
+            "name": "oracleFeedbackBps",
+            "type": "uint16",
+            "internalType": "uint16"
+          }
+        ]
+      },
+      {
+        "name": "paths",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "seed",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "simId",
+        "type": "bytes32",
+        "internalType": "bytes32"
+      },
+      {
+        "name": "r",
+        "type": "tuple",
+        "internalType": "struct KaskadMC.MCResult",
+        "components": [
+          {
+            "name": "paths",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "positionsUsed",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "totalDebt",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "meanBadDebt",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "p95BadDebt",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "worstBadDebt",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "lossPaths",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "meanShockBps",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "worstShockBps",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "gasUsed",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "memoryBytes",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "badDebt",
+            "type": "uint256[]",
+            "internalType": "uint256[]"
+          },
+          {
+            "name": "shockBps",
+            "type": "uint256[]",
+            "internalType": "uint256[]"
+          }
+        ]
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "source",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "contract Kaskad"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "sourceBlock",
+    "inputs": [],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint64",
+        "internalType": "uint64"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "transferOwnership",
+    "inputs": [
+      {
+        "name": "newOwner",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "event",
+    "name": "AssetSet",
+    "inputs": [
+      {
+        "name": "assetId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "priceWad",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "depthUsdWad",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "BookReset",
+    "inputs": [
+      {
+        "name": "bookId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "DataInfoSet",
+    "inputs": [
+      {
+        "name": "sourceBlock",
+        "type": "uint64",
+        "indexed": false,
+        "internalType": "uint64"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "MonteCarloDone",
+    "inputs": [
+      {
+        "name": "simId",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "sender",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "assetId",
+        "type": "uint16",
+        "indexed": false,
+        "internalType": "uint16"
+      },
+      {
+        "name": "meanShockBps",
+        "type": "uint16",
+        "indexed": false,
+        "internalType": "uint16"
+      },
+      {
+        "name": "paths",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "meanBadDebt",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "p95BadDebt",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "worstBadDebt",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "gasUsed",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "memoryBytes",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "OwnershipTransferStarted",
+    "inputs": [
+      {
+        "name": "previousOwner",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "newOwner",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "OwnershipTransferred",
+    "inputs": [
+      {
+        "name": "previousOwner",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "newOwner",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "PositionsLoaded",
+    "inputs": [
+      {
+        "name": "bookId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "added",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "length",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "Round",
+    "inputs": [
+      {
+        "name": "simId",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "step",
+        "type": "uint16",
+        "indexed": false,
+        "internalType": "uint16"
+      },
+      {
+        "name": "round",
+        "type": "uint16",
+        "indexed": false,
+        "internalType": "uint16"
+      },
+      {
+        "name": "priceWad",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "liquidatedDebtUsd",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "seizedCollateral",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "badDebtUsd",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "SimulationDone",
+    "inputs": [
+      {
+        "name": "simId",
+        "type": "bytes32",
+        "indexed": true,
+        "internalType": "bytes32"
+      },
+      {
+        "name": "sender",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "assetId",
+        "type": "uint16",
+        "indexed": false,
+        "internalType": "uint16"
+      },
+      {
+        "name": "shockBps",
+        "type": "uint16",
+        "indexed": false,
+        "internalType": "uint16"
+      },
+      {
+        "name": "totalLiquidated",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "totalBadDebt",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "rounds",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "positionsUsed",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "gasUsed",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "memoryBytes",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "error",
+    "name": "InvalidAsset",
+    "inputs": [
+      {
+        "name": "assetId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "InvalidConfig",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidCurve",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidFeedback",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidPaths",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidPosition",
+    "inputs": [
+      {
+        "name": "index",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "InvalidPositions",
+    "inputs": [
+      {
+        "name": "requested",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "available",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "InvalidRounds",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidShock",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidSteps",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "OwnableInvalidOwner",
+    "inputs": [
+      {
+        "name": "owner",
+        "type": "address",
+        "internalType": "address"
+      }
+    ]
+  },
+  {
+    "type": "error",
+    "name": "OwnableUnauthorizedAccount",
+    "inputs": [
+      {
+        "name": "account",
+        "type": "address",
+        "internalType": "address"
+      }
+    ]
+  }
+] as const;
+
 export const guardAbi = [
   {
     "type": "constructor",

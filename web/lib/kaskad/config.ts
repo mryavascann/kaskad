@@ -22,7 +22,7 @@ export type AssetInfo = {
 
 export const DEPLOYMENT = deployment as unknown as {
   chainId: number;
-  contracts: { kaskad: Address; guard: Address; marketA: Address; marketB: Address };
+  contracts: { kaskad: Address; kaskadMC?: Address; guard: Address; marketA: Address; marketB: Address };
   deployBlock: number;
   source: { chainId: number; block: number; borrowersWithDebt: number };
   totals: { suppliedUsd: number; debtUsd: number; borrowerCollateralUsd: number; positions: number };

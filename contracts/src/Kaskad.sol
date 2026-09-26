@@ -184,45 +184,77 @@ contract Kaskad is PositionBook {
 
     // ------------------------------------------------------------------ engine
 
-    function _validate(Scenario memory s) internal view returns (AssetConfig memory cfg) {
-        cfg = assets[_assetOf(s.assetId)];
+    /// @dev Where a book lives: price/depth config, live length and total debt (1e6 USD).
+    /// KaskadMC overrides this to read another Kaskad's book.
+    function _bookInfo(uint256 bookId)
+        internal
+        view
+        virtual
+        returns (AssetConfig memory cfg, uint256 count, uint256 debt1e6)
+    {
+        cfg = assets[_assetOf(bookId)];
+        BookStats storage b = bookStats[bookId];
+        (count, debt1e6) = (b.count, b.debt1e6);
+    }
+
+    function _validate(Scenario memory s) internal view returns (AssetConfig memory cfg, uint256 bookDebt) {
+        uint256 available;
+        (cfg, available, bookDebt) = _bookInfo(s.assetId);
+        bookDebt *= SCALE_1E6;
         if (cfg.priceWad == 0) revert InvalidAsset(s.assetId);
         if (s.shockBps > BPS) revert InvalidShock();
         if (s.oracleFeedbackBps > BPS) revert InvalidFeedback();
         if (s.steps == 0 || s.steps > MAX_STEPS) revert InvalidSteps();
         if (s.maxRoundsPerStep == 0 || s.maxRoundsPerStep > MAX_ROUNDS) revert InvalidRounds();
-        uint256 available = bookStats[s.assetId].count;
         if (s.maxPositions == 0 || s.maxPositions > available) revert InvalidPositions(s.maxPositions, available);
     }
 
     function _run(Scenario memory s) internal view returns (Result memory r) {
         uint256 g0 = gasleft();
-        AssetConfig memory cfg = _validate(s);
-        uint256 n = s.maxPositions;
-        uint256 p0 = cfg.priceWad;
+        (AssetConfig memory cfg, uint256 bookDebt) = _validate(s);
+        State memory st = _load(s.assetId, s.maxPositions, r);
+        _initPool(st, cfg, r.totalDebt, bookDebt);
+        _cascade(st, s, cfg.priceWad, _linearPath(s), r);
+        r.memoryBytes = _msize();
+        r.gasUsed = g0 - gasleft();
+    }
 
-        State memory st = _load(s.assetId, n, r);
-        r.positionsUsed = uint32(n);
-        r.startPrice = p0;
-
-        // Virtual constant-product pool: x tokens against depth/2 USD. At partial resolution the
-        // depth is scaled by the simulated share of the book's debt, so sold/depth stays representative.
-        uint256 bookDebt = uint256(bookStats[s.assetId].debt1e6) * SCALE_1E6;
-        uint256 depth = Math.mulDiv(cfg.depthUsdWad, r.totalDebt, bookDebt);
-        uint256 x0 = Math.mulDiv(depth, WAD, 2 * p0);
+    /// @dev Virtual constant-product pool: x tokens against depth/2 USD. At partial resolution the
+    /// depth is scaled by the simulated share of the book's debt, so sold/depth stays representative.
+    function _initPool(State memory st, AssetConfig memory cfg, uint256 simDebt, uint256 bookDebt) internal pure {
+        uint256 depth = Math.mulDiv(cfg.depthUsdWad, simDebt, bookDebt);
+        uint256 x0 = Math.mulDiv(depth, WAD, 2 * cfg.priceWad);
         if (x0 == 0) x0 = 1;
         st.x0 = x0;
         st.x = x0;
+    }
 
+    /// @dev Straight-line depeg: drop[step-1] = shock * step / steps, as a WAD fraction of p0.
+    function _linearPath(Scenario memory s) internal pure returns (uint256[] memory drop) {
+        drop = new uint256[](s.steps);
+        for (uint256 i; i < s.steps; ++i) {
+            drop[i] = uint256(s.shockBps) * (i + 1) * WAD / (BPS * s.steps);
+        }
+    }
+
+    /// @dev Runs the cascade along an external price path (cumulative WAD drops, non-decreasing,
+    /// each <= 1e18) and fills the result fields.
+    function _cascade(State memory st, Scenario memory s, uint256 p0, uint256[] memory drop, Result memory r)
+        internal
+        pure
+    {
+        uint256 n = s.maxPositions;
+        r.positionsUsed = uint32(n);
+        r.startPrice = p0;
         RoundLog[] memory log = new RoundLog[](uint256(s.steps) * s.maxRoundsPerStep);
         uint256 nLog;
         uint256[] memory pending = new uint256[](n);
         uint256 deficit;
         uint256 price = p0;
-        uint256 denom = BPS * s.steps;
+        uint256 x0 = st.x0;
 
         for (uint256 step = 1; step <= s.steps; ++step) {
-            st.base = Math.mulDiv(p0, denom - uint256(s.shockBps) * step, denom);
+            st.base = Math.mulDiv(p0, WAD - drop[step - 1], WAD);
             for (uint256 round; round < s.maxRoundsPerStep; ++round) {
                 // oracle is read once per round (liquidation wave): the shock path, pulled toward
                 // the pool's spot price by the feedback share
@@ -248,7 +280,7 @@ contract Kaskad is PositionBook {
             if (price == 0) break;
         }
 
-        uint256 finalBase = Math.mulDiv(p0, BPS - s.shockBps, BPS);
+        uint256 finalBase = Math.mulDiv(p0, WAD - drop[s.steps - 1], WAD);
         r.finalPrice = finalBase - Math.mulDiv(finalBase - _impact(finalBase, x0, st.x), s.oracleFeedbackBps, BPS);
         (r.badDebt, r.stuckDebt) = _badDebt(st, n, r.finalPrice);
         r.rounds = uint32(nLog);
@@ -256,12 +288,10 @@ contract Kaskad is PositionBook {
             mstore(log, nLog)
         }
         r.log = log;
-        r.memoryBytes = _msize();
-        r.gasUsed = g0 - gasleft();
     }
 
     /// @dev Loads the first n positions of a book into memory and heapifies them by liquidation price.
-    function _load(uint256 assetId, uint256 n, Result memory r) internal view returns (State memory st) {
+    function _load(uint256 assetId, uint256 n, Result memory r) internal view virtual returns (State memory st) {
         st.coll = new uint256[](n);
         st.debt = new uint256[](n);
         st.meta = new uint256[](n);
