@@ -73,6 +73,40 @@ Sentetik varlık kimlikleri: 7 = WETH (Ethereum), 13 = USDC (Ethereum), 14 = USD
 - **`eth_sendRawTransactionSync`:** tüm tx'ler receipt'i tek çağrıda alıyor (Alchemy testnette doğrulandı). Desteklenmezse `sendRawTransaction` + receipt beklemeye düşülüyor. Burner cüzdanda yerel nonce, sabit fee (150/2 gwei) ve tek seferde tek tx var.
 - **Reserve balance:** burner'lar yalnızca gas harcıyor. Sponsor route'u sponsor bakiyesi 10 MON'un altına inecekse fonlamayı reddediyor.
 
+## Bellek ve sınırlar (ölçüm)
+
+Monad sütunları testnetteki `preview` / `previewMC` çağrılarından geliyor; motor kendi gas'ını `gasleft()` farkıyla, belleğini de serbest bellek işaretçisiyle (`mload(0x40)`) ölçüyor. `msize()` Yul optimizer'da yasak; motor memory-safe olduğu için ikisi aynı değeri veriyor.
+
+Ethereum sütunları **Ethereum'da çalıştırılmadı.** Aynı kontrat ve aynı defter, yerel bir anvil fork'unda (Monad testnet durumu + Ethereum/Prague gas tarifesi) çalıştırılarak ölçüldü. İki ortamın sonuçları birebir aynı; fark yalnızca gas. Ethereum tx tavanı: 16.777.216 (EIP-7825, Fusaka, mainnet'te 3 Aralık 2025).
+
+**Tek senaryo, çözünürlük (−%3, 20 blok × 3 dalga, oracle havuzu izler):**
+
+| Pozisyon | Monad gas | Bellek | Byte/pozisyon | Ethereum gas (ölçüm) | Yalnızca bellek, Ethereum | Ethereum / tavan |
+|---|---|---|---|---|---|---|
+| 57 (gerçek syrupUSDC) | 0,77M | 36 KB | 639 | 0,86M | 5,9k | 0,05 → sığar, 1,1× pahalı |
+| 500 | 1,68M | 106 KB | 217 | 2,66M | 33k | 0,16 → sığar, 1,6× |
+| 2.000 | 4,22M | 340 KB | 174 | 8,34M | 265k | 0,50 → sığar, 2,0× |
+| 5.000 | 9,41M | 809 KB | 166 | 20,5M | 1,39M | **1,22 → sığmaz** |
+| 10.000 | 17,7M | 1,59 MB | 163 | 42,3M | 5,2M | **2,52 → sığmaz** |
+
+- **Pozisyon başına ~160 byte bellek:** 5 word (teminat, borç, meta, heap, bekleyen kuyruk).
+- **Monad'da önce gas doluyor.** 10.000 pozisyonda gas %59, bellek %19. 30M gas'a ~17.000 pozisyonda ulaşılıyor (~2,7 MB); 8 MB için ~50.000 pozisyon gerekirdi.
+- **Ethereum'da sığmamanın sebebi bellek değil.** 10.000 pozisyonun belleği Ethereum'da yalnızca 5,2M gas tutuyor. Asıl fark pozisyon başına soğuk SLOAD (2.100'e karşı Monad'da ~160 gas) ve toplam hesap.
+- **Arayüz kuralı:** Ethereum tahmini fork ölçümüyle ±%1 örtüşüyor. Arayüz "Ethereum'da tek işleme sığmıyor" cümlesini yalnızca tahmin tavanı aştığında gösteriyor; aksi halde "Ethereum'da N kat pahalı" yazıyor.
+- **Gerçek defter küçük:** Monad Aave'de 255 borçlu pozisyon var. En büyük varlık defteri syrupUSDC'de 57 pozisyon ve 36 KB bellek.
+
+**Monte Carlo (`KaskadMC`): tek tx'te K rastgele senaryo × gerçek defter.** Her senaryonun son düşüşü `S × 3u²` (ortalaması S, en fazla 3S) ve yol rastgele; sonuç tohumla deterministik. Her senaryo defterin MCOPY kopyası üzerinde çalışıyor ve bitince bellek geri alınıyor. Bu yüzden bellek K ile büyümüyor; senaryo başına yalnızca 3 sonuç word'ü birikiyor ve sınırı gas belirliyor. Tek tx'e sığan en büyük K (ikili arama ile ölçüldü):
+
+| Defter, oracle | Monad K | Ethereum K | Monad: ortalama / %95 / en kötü karşılıksız |
+|---|---|---|---|
+| syrupUSDC Monad (57), havuzu izler | **57** (29,6M gas, 17 KB) | 34 | $84,9M / $119,4M / $119,4M |
+| syrupUSDC Monad (57), dış fiyat | **213** | 114 | $0 |
+| USDe Ethereum (63), havuzu izler | **82** | 43 | $201M / $433M / $441M |
+| WETH Ethereum (300), dış fiyat, ort. −%20 | **101** | 53 | $2,8M / $23,2M / $34,0M |
+| Kalibre syrupUSDC (2.000), havuzu izler | **15** | 3 | $17,6M / $22,6M / $22,6M |
+
+Küçük gerçek defterlerde Monad'ın avantajı ~1,8×; bu farkı esas olarak tx gas limiti yaratıyor (30M'e karşı 16,77M). Defter büyüdükçe fark açılıyor (2.000 pozisyonda 5×), çünkü Ethereum'da her pozisyonun soğuk okuması bütçeyi yiyor.
+
 ## Mimari
 
 ```
@@ -112,6 +146,7 @@ web/ (Next.js + viem) ── preview (eth_call) ──────────�
 | Kontrat | Adres |
 |---|---|
 | Kaskad | [`0xdC2D3A2F4cffBf6a0d7945f6505399e2e474b661`](https://testnet.monadscan.com/address/0xdC2D3A2F4cffBf6a0d7945f6505399e2e474b661) |
+| KaskadMC (Monte Carlo, Kaskad defterlerini okur) | [`0x1269A28f29a61FD88c03e652Edd56B7F87bA5a08`](https://testnet.monadscan.com/address/0x1269A28f29a61FD88c03e652Edd56B7F87bA5a08) |
 | Guard | [`0xc39996831d3759CD4E9fB25005B400CA6a22871e`](https://testnet.monadscan.com/address/0xc39996831d3759CD4E9fB25005B400CA6a22871e) |
 | Piyasa A (korumasız) | [`0xedDE26053c7Df1D9970C1aE201FEc6e3681275Bd`](https://testnet.monadscan.com/address/0xedDE26053c7Df1D9970C1aE201FEc6e3681275Bd) |
 | Piyasa B (Guard'lı) | [`0x0B545DfD67223Bb00A22701C38e53774dF0A51ed`](https://testnet.monadscan.com/address/0x0B545DfD67223Bb00A22701C38e53774dF0A51ed) |
