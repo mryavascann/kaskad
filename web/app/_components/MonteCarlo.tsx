@@ -4,11 +4,11 @@ import { useEffect, useState } from "react";
 import { decodeFunctionResult, encodeFunctionData } from "viem";
 import { CartesianGrid, ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis } from "recharts";
 import { kaskadMCAbi } from "@/lib/kaskad/abi";
-import { ensureFunded, publicClient, sendBurnerTx } from "@/lib/kaskad/burner";
+import { publicClient } from "@/lib/kaskad/burner";
+import { sendTx } from "@/lib/kaskad/signer";
 import { DEPLOYMENT, txUrl } from "@/lib/kaskad/config";
 import { fmtBytes, fmtGas, fmtNum, fmtPct, fmtUsd, wadToNum } from "@/lib/kaskad/format";
 import { MONAD_MEMORY_LIMIT, MONAD_TX_GAS_LIMIT } from "@/lib/kaskad/math";
-import { MAX_FEE_PER_GAS } from "@/lib/kaskad/tx";
 import { monteCarloGasLimit } from "@/lib/kaskad/math";
 import { confirmCost, CostTag } from "./CostTag";
 import type { Scenario } from "./useKaskad";
@@ -105,10 +105,8 @@ export function MonteCarlo({ base, symbol }: { base: Scenario; symbol: string })
     setSending(true);
     setTxHash(null);
     try {
-      await ensureFunded(gas * MAX_FEE_PER_GAS, setTxMsg);
-      setTxMsg("simulateMC gönderiliyor…");
       const data = encodeFunctionData({ abi: kaskadMCAbi, functionName: "simulateMC", args: [base, BigInt(paths), SEED] });
-      const { receipt, ms } = await sendBurnerTx(DEPLOYMENT.contracts.kaskadMC, data, gas);
+      const { receipt, ms } = await sendTx(DEPLOYMENT.contracts.kaskadMC, data, gas, setTxMsg);
       setTxHash(receipt.transactionHash);
       setTxMsg(receipt.status === "success" ? `Zincirde: ${paths} senaryo tek tx'te, ${Math.round(ms)} ms.` : "Tx revert etti.");
     } catch (e) {

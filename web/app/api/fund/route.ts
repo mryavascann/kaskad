@@ -29,6 +29,23 @@ function limited(key: string, max: number): boolean {
 
 const err = (status: number, error: string) => Response.json({ error }, { status });
 
+/** Public sponsor status (address + balance), so the UI can suggest a personal wallet when low. */
+export async function GET() {
+  const pk = process.env.SPONSOR_PRIVATE_KEY;
+  const rpc = process.env.MONAD_TESTNET_RPC;
+  if (!pk || !rpc) return err(503, "sponsor yapılandırılmamış");
+  const client = createPublicClient({ chain: monadTestnet, transport: http(rpc) }) as PublicClient;
+  const address = privateKeyToAccount(pk as Hex).address;
+  const balance = await client.getBalance({ address });
+  const spendable = balance > RESERVE ? balance - RESERVE : 0n;
+  return Response.json({
+    address,
+    balanceWei: balance.toString(),
+    spendableWei: spendable.toString(),
+    reserveWei: RESERVE.toString(),
+  });
+}
+
 export async function POST(req: Request) {
   const pk = process.env.SPONSOR_PRIVATE_KEY;
   const rpc = process.env.MONAD_TESTNET_RPC;

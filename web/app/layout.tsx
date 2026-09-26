@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { SignerBadge } from "./_components/SignerBadge";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin", "latin-ext"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
@@ -26,8 +27,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Link href="/cuzdan" className="text-sm text-muted hover:text-text">
               Param güvende mi?
             </Link>
-            <span className="ml-auto rounded-full border border-line px-3 py-1 text-xs text-muted">
-              Monad testnet · veri: Monad mainnet Aave
+            <Link href="/baglan" className="text-sm text-muted hover:text-text">
+              Cüzdan bağla
+            </Link>
+            <span className="ml-auto flex items-center gap-2">
+              <SignerBadge />
+              <span className="hidden rounded-full border border-line px-3 py-1 text-xs text-muted md:inline">
+                Monad testnet · veri: Monad mainnet Aave
+              </span>
             </span>
           </nav>
         </header>

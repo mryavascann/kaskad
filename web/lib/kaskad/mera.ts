@@ -5,7 +5,7 @@ import { toViemAccount } from "@category-labs/mera/viem";
 import { HDKey } from "@scure/bip32";
 import { entropyToMnemonic, mnemonicToSeedSync } from "@scure/bip39";
 import { wordlist } from "@scure/bip39/wordlists/english.js";
-import type { Address } from "viem";
+import type { LocalAccount } from "viem";
 
 // Mera (Category Labs) passkey wallet: the EVM key is derived from the passkey's WebAuthn PRF
 // output; nothing is stored server-side. We only need the address here (read-only screen).
@@ -18,15 +18,20 @@ function deriveEvmKey(prfOutput: Uint8Array, index = 0): Uint8Array {
   return node.privateKey;
 }
 
-export async function connectMera(): Promise<Address> {
+/**
+ * "login": use the passkey remembered on this device, or let the browser offer any discoverable
+ * Kaskad passkey. "create": make a new passkey (a new wallet). The key lives only in the returned
+ * signing session, in memory; nothing secret is stored.
+ */
+export async function connectMera(mode: "login" | "create" = "login"): Promise<LocalAccount> {
   const rpId = location.hostname;
   let prf: Uint8Array;
   let stored: string | null = null;
   try {
     stored = localStorage.getItem(KEY);
   } catch {}
-  if (stored) {
-    prf = (await getPasskeyPrfOutput({ rpId, credential: JSON.parse(stored) })).prfOutput;
+  if (mode === "login") {
+    prf = (await getPasskeyPrfOutput({ rpId, credential: stored ? JSON.parse(stored) : undefined })).prfOutput;
   } else {
     const created = await createPasskeyWithPrfOutput({
       rp: { id: rpId, name: "Kaskad" },
@@ -40,5 +45,13 @@ export async function connectMera(): Promise<Address> {
   const key = deriveEvmKey(prf);
   const session = createSecp256k1SigningSession({ privateKey: key });
   key.fill(0);
-  return toViemAccount(session).address;
+  return toViemAccount(session);
+}
+
+export function hasStoredMeraPasskey(): boolean {
+  try {
+    return !!localStorage.getItem(KEY);
+  } catch {
+    return false;
+  }
 }

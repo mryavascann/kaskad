@@ -3,10 +3,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { encodeFunctionData, type Address } from "viem";
 import { guardAbi, mockMarketAbi } from "@/lib/kaskad/abi";
-import { ensureFunded, publicClient, sendBurnerTx } from "@/lib/kaskad/burner";
+import { publicClient } from "@/lib/kaskad/burner";
+import { sendTx, signerStore } from "@/lib/kaskad/signer";
 import { DEPLOYMENT, txUrl } from "@/lib/kaskad/config";
 import { simulateGasLimit } from "@/lib/kaskad/math";
-import { MAX_FEE_PER_GAS } from "@/lib/kaskad/tx";
 import { fmtPct } from "@/lib/kaskad/format";
 import { previewScenario, type Scenario } from "./useKaskad";
 import { confirmCost, CostTag } from "./CostTag";
@@ -123,9 +123,7 @@ export function GuardPanel() {
       const p = await previewScenario(sc);
       const gas = simulateGasLimit(p.gasUsed, p.rounds) + 150_000n;
       if (!confirmCost(gas)) return;
-      await ensureFunded(gas * MAX_FEE_PER_GAS, setStatus);
-      setStatus("Guard.refresh() gönderiliyor…");
-      const { receipt, ms } = await sendBurnerTx(guard, encodeFunctionData({ abi: guardAbi, functionName: "refresh" }), gas);
+      const { receipt, ms } = await sendTx(guard, encodeFunctionData({ abi: guardAbi, functionName: "refresh" }), gas, setStatus);
       setTripTx(receipt.transactionHash);
       setStatus(receipt.status === "success" ? `Guard çalıştı (${Math.round(ms)} ms).` : "Guard tx'i revert etti.");
       await refresh();
@@ -139,19 +137,18 @@ export function GuardPanel() {
   async function borrow(market: Address, set: (m: string) => void) {
     setBusy(true);
     try {
-      const acct = (await import("@/lib/kaskad/burner")).getBurner();
       await publicClient.simulateContract({
-        account: acct.address,
+        account: signerStore.get().address ?? undefined,
         address: market,
         abi: mockMarketAbi,
         functionName: "borrow",
         args: [1_000n * 10n ** 18n],
       });
-      await ensureFunded(BORROW_GAS * MAX_FEE_PER_GAS, set);
-      const { receipt } = await sendBurnerTx(
+      const { receipt } = await sendTx(
         market,
         encodeFunctionData({ abi: mockMarketAbi, functionName: "borrow", args: [1_000n * 10n ** 18n] }),
         BORROW_GAS,
+        set,
       );
       set(receipt.status === "success" ? "✓ 1.000 birim borç verildi." : "Tx revert etti.");
       await refresh();

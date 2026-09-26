@@ -1,7 +1,9 @@
 "use client";
 
 import { fmtNum } from "@/lib/kaskad/format";
+import { useSyncExternalStore } from "react";
 import { monCost } from "@/lib/kaskad/math";
+import { signerStore } from "@/lib/kaskad/signer";
 
 export function fmtMon(gasLimit: bigint): string {
   const m = monCost(gasLimit);
@@ -10,12 +12,15 @@ export function fmtMon(gasLimit: bigint): string {
 
 /** Small cost line under a button: what the tx will charge (Monad charges the gas limit). */
 export function CostTag({ gasLimit, free }: { gasLimit?: bigint | null; free?: boolean }) {
+  const signer = useSyncExternalStore(signerStore.subscribe, signerStore.get, signerStore.server);
+  const payer = signer.kind === "burner" ? "sponsor öder" : "senin cüzdanından";
   if (free) return <div className="mt-1 text-center text-[11px] text-muted">ücretsiz (eth_call, zincire yazmaz)</div>;
   if (!gasLimit) return <div className="mt-1 text-center text-[11px] text-muted">maliyet hesaplanıyor…</div>;
   const heavy = monCost(gasLimit) >= 1;
   return (
     <div className={`mt-1 text-center text-[11px] ${heavy ? "text-warn" : "text-muted"}`}>
-      {fmtMon(gasLimit)} · testnet, sponsor öder{heavy && " · pahalı işlem"}
+      {fmtMon(gasLimit)} · testnet, {payer}
+      {heavy && " · pahalı işlem"}
     </div>
   );
 }
@@ -24,5 +29,6 @@ export function CostTag({ gasLimit, free }: { gasLimit?: bigint | null; free?: b
 export function confirmCost(gasLimit: bigint): boolean {
   const m = monCost(gasLimit);
   if (m < 1) return true;
-  return window.confirm(`Bu işlem ${fmtMon(gasLimit)} harcar (testnet MON, sponsor öder). Devam edilsin mi?`);
+  const payer = signerStore.get().kind === "burner" ? "sponsor öder" : "senin cüzdanından";
+  return window.confirm(`Bu işlem ${fmtMon(gasLimit)} harcar (testnet MON, ${payer}). Devam edilsin mi?`);
 }

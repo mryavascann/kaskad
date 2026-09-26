@@ -66,8 +66,8 @@ export function Wallet() {
   async function mera() {
     setMeraMsg("Passkey isteniyor…");
     try {
-      const { connectMera } = await import("@/lib/kaskad/mera");
-      const addr = await connectMera();
+      const { connectMera, hasStoredMeraPasskey } = await import("@/lib/kaskad/mera");
+      const addr = (await connectMera(hasStoredMeraPasskey() ? "login" : "create")).address;
       setMeraMsg(`Mera cüzdanı: ${shortAddr(addr)}`);
       lookup(addr);
     } catch (e) {

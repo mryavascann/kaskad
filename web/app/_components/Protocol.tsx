@@ -3,11 +3,10 @@
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { decodeEventLog, encodeFunctionData } from "viem";
 import { kaskadAbi } from "@/lib/kaskad/abi";
-import { ensureFunded, getBurner, sendBurnerTx } from "@/lib/kaskad/burner";
+import { sendTx, signerLabel, signerStore } from "@/lib/kaskad/signer";
 import { CALIBRATED, DEPLOYMENT, RESOLUTIONS, UI_ASSETS, addrUrl, txUrl, type AssetInfo } from "@/lib/kaskad/config";
 import { fmtNum, fmtPct, fmtUsd, shortAddr, wadToNum } from "@/lib/kaskad/format";
 import { simulateGasLimit } from "@/lib/kaskad/math";
-import { MAX_FEE_PER_GAS } from "@/lib/kaskad/tx";
 import { CascadeChart, CurveChart } from "./Charts";
 import { ComparePanel } from "./ComparePanel";
 import { confirmCost, CostTag } from "./CostTag";
@@ -183,11 +182,7 @@ export function Protocol() {
     market: readonly bigint[];
     rate: readonly bigint[];
   } | null>(null);
-  const burner = useSyncExternalStore(
-    () => () => {},
-    () => getBurner().address,
-    () => null,
-  );
+  const signer = useSyncExternalStore(signerStore.subscribe, signerStore.get, signerStore.server);
 
   const presets = PRESETS.filter((p) => DEPLOYMENT.assets[p.s.assetId]);
   const set = (patch: Partial<Settings>) => {
@@ -246,10 +241,8 @@ export function Protocol() {
     setSending(true);
     setTx(null);
     try {
-      await ensureFunded(gasLimit * MAX_FEE_PER_GAS, setTxStatus);
-      setTxStatus("Zincire gönderiliyor (eth_sendRawTransactionSync)…");
       const data = encodeFunctionData({ abi: kaskadAbi, functionName: "simulate", args: [scenario] });
-      const { receipt, ms, sync } = await sendBurnerTx(engineFor(scenario.assetId), data, gasLimit);
+      const { receipt, ms, sync } = await sendTx(engineFor(scenario.assetId), data, gasLimit, setTxStatus);
       setTx({ hash: receipt.transactionHash, ms, sync });
       const done = receipt.logs
         .map((l) => {
@@ -456,14 +449,14 @@ export function Protocol() {
           <div className="text-xs text-muted">
             Ekrandaki sonuç ücretsiz önizleme (eth_call). Bu buton aynı hesabı Monad'da bir tx olarak çalıştırır; herkes
             doğrulayabilir. Monad gas'ı kullanılan miktardan değil limitten keser, bu yüzden maliyet göndermeden önce bellidir.
-            {burner && (
+            {signer.address && (
               <>
                 {" "}
-                Geçici cüzdan:{" "}
-                <a className="underline" href={addrUrl(burner)} target="_blank" rel="noreferrer">
-                  {shortAddr(burner)}
-                </a>
-                .
+                İmzalayan: {signerLabel[signer.kind]}{" "}
+                <a className="underline" href={addrUrl(signer.address)} target="_blank" rel="noreferrer">
+                  {shortAddr(signer.address)}
+                </a>{" "}
+                (<a className="underline" href="/baglan">değiştir</a>).
               </>
             )}
           </div>
