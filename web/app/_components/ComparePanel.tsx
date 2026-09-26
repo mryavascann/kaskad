@@ -56,7 +56,7 @@ export function ComparePanel({ shockBps, feedback, steps, rounds }: {
       <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
         <h3 className="text-sm font-semibold uppercase tracking-wider text-muted">Monad ↔ Ethereum: aynı şok</h3>
         <span className="text-xs text-muted">
-          −%{fmtNum(shockBps / 100, 1)} · {feedback ? "borsa fiyatı oracle'ı" : "kur oracle'ı"} · veriler iki ağdan, hesap Monad'da
+          −%{fmtNum(shockBps / 100, 1)} · {feedback ? "oracle havuz fiyatını izler" : "oracle dış fiyatı izler"} · veriler iki ağdan, hesap Monad'da
         </span>
       </div>
       <div className="overflow-x-auto">

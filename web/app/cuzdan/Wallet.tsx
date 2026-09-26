@@ -180,7 +180,7 @@ export function Wallet() {
                 )}
                 {d && cascade && cascadeDrop !== null && threshold !== null && (
                   <div className="rounded-lg bg-panel-2 p-3 text-sm">
-                    Kaskad senaryosu ({d.symbol} −%3, borsa fiyatı oracle'ı, gerçek defter): likidasyon satışlarıyla fiyat{" "}
+                    Kaskad senaryosu ({d.symbol} −%3, oracle havuz fiyatını izler, gerçek defter): likidasyon satışlarıyla fiyat{" "}
                     <b className="text-bad">{fmtPct(cascadeDrop)}</b> düşüyor, protokolde karşılıksız kalan borç{" "}
                     <b className="text-bad">{fmtUsd(wadToNum(cascade.badDebt))}</b>.{" "}
                     {threshold < cascadeDrop ? (
@@ -256,7 +256,7 @@ export function Wallet() {
                 </table>
                 {lendUsd > 0 && headline && (
                   <div className="rounded-lg bg-panel-2 p-3 text-sm">
-                    syrupUSDC −%3 kaskadında (borsa fiyatı oracle'ı) protokolde karşılıksız kalan borç{" "}
+                    syrupUSDC −%3 kaskadında (oracle havuz fiyatını izler) protokolde karşılıksız kalan borç{" "}
                     <b className="text-bad">{fmtUsd(wadToNum(headline.badDebt))}</b>. Borç verilen varlıklardaki payına düşen
                     yaklaşık zarar: <b className="text-bad">{fmtUsd(badShare)}</b>
                     <div className="mt-1 text-xs text-muted">

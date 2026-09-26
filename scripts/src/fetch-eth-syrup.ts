@@ -496,6 +496,13 @@ async function fetchDepth(member: Member, exitNote: string) {
   } catch (e) {
     llamaNote = ` DefiLlama cross-check failed: ${(e as Error).message}.`;
   }
+  // Sanity: a single GeckoTerminal pool larger than DefiLlama's whole DEX TVL for the token is a data error.
+  const outliers = llamaDexTvl > 0 ? pools.filter((p) => p.reserveUsd > llamaDexTvl) : [];
+  if (outliers.length) {
+    console.warn(`[4] dropping ${outliers.length} GeckoTerminal outlier pool(s) > DefiLlama DEX TVL ${usd(llamaDexTvl)}: ${outliers.map((p) => `${p.name} @ ${p.dex} ${usd(p.reserveUsd)}`).join("; ")}`);
+    pools = pools.filter((p) => !outliers.includes(p));
+    llamaNote += ` Dropped as data error: ${outliers.map((p) => `${p.name} @ ${p.dex} (${p.address}) reported reserve_in_usd ${usd(p.reserveUsd)}`).join("; ")} (single pool larger than DefiLlama's entire Ethereum DEX TVL for the token, ${usd(llamaDexTvl)}).`;
+  }
   const total = pools.reduce((s, p) => s + p.reserveUsd, 0);
   if (pools.length === 0) {
     return {
@@ -512,7 +519,7 @@ async function fetchDepth(member: Member, exitNote: string) {
     source: gtUrl,
     isAssumption: false,
     note:
-      `Sum of GeckoTerminal reserve_in_usd over ${pools.length} Ethereum DEX pool(s) (page 1 = top pools by GeckoTerminal ranking); largest: ${pools[0].name} on ${pools[0].dex} (${usd(pools[0].reserveUsd)}). ` +
+      `Sum of GeckoTerminal reserve_in_usd over ${pools.length} Ethereum DEX pool(s) (GeckoTerminal top-pools page(s) 1..${pages}); largest: ${pools[0].name} on ${pools[0].dex} (${usd(pools[0].reserveUsd)}). ` +
       `TVL proxy (both sides of each pool), not a slippage curve.` +
       (ASSET.depthStableOnly
         ? ` Only pools with a USD stablecoin on the other side are counted (read ${pages} GeckoTerminal page(s)); skipped ${nonStableSkipped.length} non-stable pools worth ${usd(nonStableSkipped.reduce((s, p) => s + p.reserveUsd, 0))} (largest: ${nonStableSkipped.slice(0, 3).map((p) => `${p.name} @ ${p.dex} ${usd(p.reserveUsd)}`).join("; ") || "none"}).`

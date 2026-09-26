@@ -109,6 +109,24 @@
       "bonusBps": 700,
       "inUi": false
     },
+    "7": {
+      "id": 7,
+      "symbol": "WETH (Ethereum)",
+      "decimals": 18,
+      "priceUsd": 2684.61565257,
+      "suppliedUsd": 5571080469.74,
+      "depthUsd": 429960285,
+      "depthIsAssumption": false,
+      "depthSource": "https://api.geckoterminal.com/api/v2/networks/eth/tokens/0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2/pools?page=1..3",
+      "depthNote": "Sum of GeckoTerminal reserve_in_usd over 20 Ethereum DEX pool(s) (GeckoTerminal top-pools page(s) 1..3); largest: WETH / USDT 0.3% on uniswap_v3 ($110,109,884). TVL proxy (both sides of each pool), not a slippage curve. Only pools with a USD stablecoin on the other side are counted (read 3 GeckoTerminal page(s)); skipped 40 non-stable pools worth $2,717,135,058 (largest: NEAR / WETH 0.3% @ uniswap_v3 $1,903,760,928; AERO / WETH 0.01% @ uniswap_v3 $401,453,167; OETH / WETH @ curve $57,508,534). WETH unwraps 1:1 to ETH instantly; the liquidator must sell ETH for stablecoins, so the exit is the ETH/stable DEX market (plus CEXs, not counted). DefiLlama (yields.llama.fi) Ethereum DEX pools containing WETH: 1678 pools, $1,523,818,763 total; top: uniswap-v2 WISE-WETH $152,621,832; uniswap-v3 WETH-USDT $110,484,853 (0.3%); uniswap-v3 USDC-WETH $99,357,312 (0.05%); curve-dex CRVUSD-WETH $57,413,982; curve-dex OETH-WETH $57,302,229; uniswap-v3 WBTC-WETH $44,980,004 (0.3%); uniswap-v3 USDC-WETH $42,478,643 (0.3%); uniswap-v3 WBTC-WETH $41,476,716 (0.05%). Non-DEX venues using it (lending / Pendle / vaults; not spot exit liquidity): sky-lending $827,618,783; aave-v3 $762,865,221; sky-lending $723,629,112; sparklend $304,555,167; liquity-v1 $194,759,753; compound-v3 $154,744,271.",
+      "realPositions": 300,
+      "calibratedPositions": 0,
+      "collateralUsd": 1154112469.5200005,
+      "debtUsd": 513204124.3799997,
+      "ltBps": 8300,
+      "bonusBps": 500,
+      "inUi": false
+    },
     "8": {
       "id": 8,
       "symbol": "weETH",

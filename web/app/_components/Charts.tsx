@@ -72,8 +72,8 @@ export function CurveChart({
           formatter={(v) => fmtUsd(Number(v))}
         />
         <Legend wrapperStyle={{ fontSize: 12 }} />
-        <Line dataKey="market" name="Borsa fiyatı oracle'ı" stroke="#ff4d5e" strokeWidth={2} isAnimationActive={false} />
-        <Line dataKey="rate" name="Kur oracle'ı (Maple)" stroke="#3ddc97" strokeWidth={2} isAnimationActive={false} />
+        <Line dataKey="market" name="Oracle havuz fiyatını izlerse" stroke="#ff4d5e" strokeWidth={2} isAnimationActive={false} />
+        <Line dataKey="rate" name="Oracle dış fiyatı izlerse" stroke="#3ddc97" strokeWidth={2} isAnimationActive={false} />
       </LineChart>
     </ResponsiveContainer>
   );

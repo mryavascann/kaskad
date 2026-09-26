@@ -55,7 +55,7 @@ const PRESETS: Preset[] = [
     id: "sali",
     emoji: "🌪️",
     title: "Salı Depegi",
-    story: "syrupUSDC 20 blokta %3 düşüyor, oracle borsa fiyatını izliyor.",
+    story: "syrupUSDC 20 blokta %3 düşüyor, oracle zincir üstü havuz fiyatını izliyor.",
     s: { ...BASE },
   },
   {
@@ -83,8 +83,8 @@ const PRESETS: Preset[] = [
     id: "eth",
     emoji: "📉",
     title: "ETH %20 çakılırsa",
-    story: "Klasik pozisyon: ETH yatır, USDC borç al. ETH 20 blokta %20 düşüyor.",
-    s: { ...BASE, assetId: 5, shockPct: 20 },
+    story: "Klasik pozisyon: ETH yatır, USDC borç al. Ethereum Aave'de $513M borç, ETH 20 blokta %20 düşüyor.",
+    s: { ...BASE, assetId: 7, shockPct: 20 },
   },
   {
     id: "derin",
@@ -116,8 +116,8 @@ function narrate(r: Result, a: AssetInfo, s: Settings, scale: number): string {
   let t = `${name} ${s.steps} blokta %${fmtNum(s.shockPct, 1)} düşünce ${fmtNum(r.liquidations)} likidasyon başlıyor: likidatörler borcu ödeyip el koydukları teminatı ${fmtUsd(a.depthUsd)} derinliğindeki havuzda satıyor. `;
   t +=
     s.feedback > 0
-      ? `Oracle borsa fiyatını izlediği için her satış fiyatı daha da düşürüyor ve yeni likidasyonlar tetikliyor: fiyat $${p0.toFixed(3)} → $${pf.toFixed(3)} (−${fmtPct(drop, 0)}). `
-      : `Oracle kuru izlediği için satışlar fiyatı düşürmüyor, sarmal kırılıyor. Ama havuz sığ: likidatör bir noktadan sonra zarar edeceği için satmayı bırakıyor. `;
+      ? `Oracle zincir üstü havuz fiyatını izlediği için her satış fiyatı daha da düşürüyor ve yeni likidasyonlar tetikliyor: fiyat $${p0.toFixed(3)} → $${pf.toFixed(3)} (−${fmtPct(drop, 0)}). `
+      : `Oracle dış fiyatı (kur / Chainlink) izlediği için satışlar fiyatı düşürmüyor, sarmal kırılıyor. Ama havuz sığ: likidatör bir noktadan sonra zarar edeceği için satmayı bırakıyor. `;
   const bad = wadToNum(r.badDebt) * scale;
   const stuck = wadToNum(r.stuckDebt) * scale;
   t +=
@@ -354,8 +354,8 @@ export function Protocol() {
               value={st.feedback}
               onChange={(v) => set({ feedback: v })}
               options={[
-                { v: 10_000, label: "Borsa fiyatı", hint: "likidasyon satışları fiyatı düşürür" },
-                { v: 0, label: "Kur (Maple)", hint: "satışlar fiyatı etkilemez" },
+                { v: 10_000, label: "Zincir üstü havuz fiyatı", hint: "likidasyon satışları fiyatı düşürür" },
+                { v: 0, label: "Dış fiyat (kur / Chainlink)", hint: "satışlar fiyatı etkilemez" },
               ]}
             />
           </div>
@@ -551,7 +551,7 @@ export function Protocol() {
             <div className="py-16 text-center text-muted">hesaplanıyor…</div>
           )}
           <p className="mt-2 text-xs text-muted">
-            Kırmızı: oracle borsa fiyatını izlerse likidasyon satışları fiyatı düşürür, düşen fiyat yeni likidasyon tetikler
+            Kırmızı: oracle zincir üstü havuz fiyatını izlerse likidasyon satışları fiyatı düşürür, düşen fiyat yeni likidasyon tetikler
             (sarmal). Yeşil: oracle kuru izlerse sarmal kırılır; zarar ancak şok teminatı borcun altına itince başlar.
           </p>
         </div>
