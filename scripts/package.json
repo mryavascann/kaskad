@@ -1,0 +1,20 @@
+{
+  "name": "kaskad-scripts",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "fetch": "tsx src/fetch-positions.ts",
+    "depth": "tsx src/fetch-depth.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@envio-dev/hypersync-client": "^1.4.1",
+    "dotenv": "^18.0.4",
+    "viem": "^2.56.9"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.3",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  }
+}

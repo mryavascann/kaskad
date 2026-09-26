@@ -1,0 +1,123 @@
+{
+ "2": {
+  "symbol": "USDe",
+  "depthUsd": 4838,
+  "source": "https://api.geckoterminal.com/api/v2/networks/monad/tokens/0x5d3a1Ff2b6BAb83b63cd9AD0787074081a52ef34/pools?page=1",
+  "isAssumption": false,
+  "note": "Sum of GeckoTerminal reserve_in_usd over 4 Monad DEX pool(s); largest: USDe / USDT0 0.01% on uniswap-v4-monad ($2,335). TVL proxy, not a slippage curve. DefiLlama lists no non-lending (DEX) pool for it on Monad.",
+  "pools": [
+   {
+    "name": "USDe / USDT0 0.01%",
+    "dex": "uniswap-v4-monad",
+    "reserveUsd": 2335,
+    "volume24hUsd": 0,
+    "address": "0x4f0455fb873a1889e4c05d80f6a044d5e39f1049a1985d08270e64a7bd101226"
+   },
+   {
+    "name": "USDe / USDT0 83%",
+    "dex": "uniswap-v4-monad",
+    "reserveUsd": 1514,
+    "volume24hUsd": 0,
+    "address": "0x4c328f6e1979c213aae8d60ba04f5af6a1ac2210b6e2b8bf2713f60c62afb670"
+   },
+   {
+    "name": "USDe / USDC 85%",
+    "dex": "uniswap-v4-monad",
+    "reserveUsd": 988,
+    "volume24hUsd": 0,
+    "address": "0x32ddae144e3cde86a4761c372557e506a5f9f7f9c13650e121e0acd97066f0ca"
+   },
+   {
+    "name": "USDe / USDT0 88%",
+    "dex": "uniswap-v4-monad",
+    "reserveUsd": 1,
+    "volume24hUsd": 0,
+    "address": "0x8a8f830c144598b4176228152ba7dc47e7a91af41fd784a4923d6b4ac9c22016"
+   }
+  ]
+ },
+ "8": {
+  "symbol": "weETH",
+  "depthUsd": 4820,
+  "source": "https://api.geckoterminal.com/api/v2/networks/monad/tokens/0xA3D68b74bF0528fdD07263c60d6488749044914b/pools?page=1",
+  "isAssumption": false,
+  "note": "Sum of GeckoTerminal reserve_in_usd over 4 Monad DEX pool(s); largest: WETH / wstETH / weETH on curve-monad ($585). TVL proxy, not a slippage curve. DefiLlama lists no non-lending (DEX) pool for it on Monad.",
+  "pools": [
+   {
+    "name": "WETH / wstETH / weETH",
+    "dex": "curve-monad",
+    "reserveUsd": 585,
+    "volume24hUsd": 1,
+    "address": "0x2fd13b49f970e8c6d89283056c1c6281214b7eb6"
+   },
+   {
+    "name": "weETH / WETH 0.01%",
+    "dex": "uniswap-v4-monad",
+    "reserveUsd": 3642,
+    "volume24hUsd": 0,
+    "address": "0x2884b37c4a144e7047a1377ba7201d4b8ea318f0240369e01dc400f04e6cac40"
+   },
+   {
+    "name": "weETH / USDC 9%",
+    "dex": "uniswap-v4-monad",
+    "reserveUsd": 514,
+    "volume24hUsd": 0,
+    "address": "0x75462429836f9c430af6f368b35c5f8fb037ea436e0cf8fb471a32b7a942b1d8"
+   },
+   {
+    "name": "weETH / WETH 0.001%",
+    "dex": "uniswap-v4-monad",
+    "reserveUsd": 79,
+    "volume24hUsd": 0,
+    "address": "0x38d7bafc83af251e7ee03cc6e456e4ec3448861b170243708b73815067fe569f"
+   }
+  ]
+ },
+ "9": {
+  "symbol": "syrupUSDC",
+  "depthUsd": 7036204,
+  "source": "https://api.geckoterminal.com/api/v2/networks/monad/tokens/0xaB6e5a0C3799d020c790D34F7B2C02639e238AF7/pools?page=1",
+  "isAssumption": false,
+  "note": "Sum of GeckoTerminal reserve_in_usd over 2 Monad DEX pool(s); largest: syrupUSDC / USDC 0.05% on uniswap-v4-monad ($7,036,161). TVL proxy, not a slippage curve. DefiLlama lists no non-lending (DEX) pool for it on Monad.",
+  "pools": [
+   {
+    "name": "syrupUSDC / USDC 0.05%",
+    "dex": "uniswap-v4-monad",
+    "reserveUsd": 7036161,
+    "volume24hUsd": 100609,
+    "address": "0xe24635d96638b80e53d182b1b96809e189b64e5e28002c01381148493cf9fa01"
+   },
+   {
+    "name": "syrupUSDC / USDC",
+    "dex": "uniswap-v4-monad",
+    "reserveUsd": 43,
+    "volume24hUsd": 0,
+    "address": "0x384db9c138550522f2a3606c9285de6a5968fc089e9e500a154dc763c150a70f"
+   }
+  ]
+ },
+ "10": {
+  "symbol": "sUSDe",
+  "depthUsd": 3578,
+  "source": "https://api.geckoterminal.com/api/v2/networks/monad/tokens/0x211Cc4DD073734dA055fbF44a2b4667d5E5fE5d2/pools?page=1",
+  "isAssumption": false,
+  "note": "Sum of GeckoTerminal reserve_in_usd over 1 Monad DEX pool(s); largest: sUSDe / USDT0 0.05% on uniswap-v4-monad ($3,578). TVL proxy, not a slippage curve. DefiLlama non-lending pools containing it: pendle-v2 SUSDE $20,825,089 (For buying PT-sUSDe-22OCT2026).",
+  "pools": [
+   {
+    "name": "sUSDe / USDT0 0.05%",
+    "dex": "uniswap-v4-monad",
+    "reserveUsd": 3578,
+    "volume24hUsd": 3,
+    "address": "0x121cc02938da1e7b609d2b0096ddd93d2687576495b1f312c0a780fd6a7acb63"
+   }
+  ]
+ },
+ "12": {
+  "symbol": "PT-AUSD-8OCT2026",
+  "depthUsd": 2135230,
+  "source": "https://api-v2.pendle.finance/core/v1/143/markets/active",
+  "isAssumption": false,
+  "note": "Pendle AMM liquidity (PT<->SY-underlying) for market(s) 0x6f99cf00ee7290ae78a072bb6910ef72d1129fe7 exp 2026-10-08 = $2,135,230; GeckoTerminal DEX pools: $0. PT redeems 1:1 for underlying only at expiry. DefiLlama non-lending pools containing it: pendle-v2 AUSD $2,135,254 (For LP | Maturity 08OCT2026).",
+  "pools": []
+ }
+}

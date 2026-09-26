@@ -1,0 +1,23 @@
+# secrets
+.env
+.env.*
+!.env.example
+web/.env*
+!web/.env.example
+
+# node
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts
+.vercel
+
+# foundry
+contracts/cache/
+contracts/out/
+contracts/broadcast/*/31337/
+contracts/broadcast/**/dry-run/
+
+# data dumps
+scripts/data/*.raw.json
