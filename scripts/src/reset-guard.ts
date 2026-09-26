@@ -32,7 +32,7 @@ async function main() {
       maxFeePerGas: MAX_FEE_PER_GAS,
       maxPriorityFeePerGas: MAX_PRIORITY_FEE_PER_GAS,
     });
-    const { receipt } = await sendRawSync(client, raw);
+    const { receipt } = await sendRawSync(client as never, raw);
     console.log(`${receipt.status} ${receipt.transactionHash}`);
   }
   const paused = await client.readContract({ address: dep.marketB, abi: mockMarketAbi, functionName: "borrowPaused" });

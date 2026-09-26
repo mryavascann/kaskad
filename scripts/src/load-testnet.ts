@@ -100,7 +100,7 @@ async function send(data: Hex, to: Address, gasOverride?: bigint, label = "") {
     maxFeePerGas: MAX_FEE_PER_GAS,
     maxPriorityFeePerGas: MAX_PRIORITY_FEE_PER_GAS,
   });
-  const { receipt, sync, ms } = await sendRawSync(client, raw, 60_000);
+  const { receipt, sync, ms } = await sendRawSync(client as never, raw, 60_000);
   if (receipt.status !== "success") throw new Error(`${label} reverted: ${receipt.transactionHash}`);
   spentWei += gas * receipt.effectiveGasPrice; // Monad charges the gas limit
   console.log(

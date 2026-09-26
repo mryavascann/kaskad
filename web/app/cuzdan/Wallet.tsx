@@ -180,8 +180,8 @@ export function Wallet() {
                 )}
                 {d && cascade && cascadeDrop !== null && threshold !== null && (
                   <div className="rounded-lg bg-panel-2 p-3 text-sm">
-                    Kaskad senaryosu ({d.symbol} −%3, piyasa oracle'ı, gerçek defter): likidasyon satışlarıyla fiyat{" "}
-                    <b className="text-bad">{fmtPct(cascadeDrop)}</b> düşüyor, havuzun kötü borcu{" "}
+                    Kaskad senaryosu ({d.symbol} −%3, borsa fiyatı oracle'ı, gerçek defter): likidasyon satışlarıyla fiyat{" "}
+                    <b className="text-bad">{fmtPct(cascadeDrop)}</b> düşüyor, protokolde karşılıksız kalan borç{" "}
                     <b className="text-bad">{fmtUsd(wadToNum(cascade.badDebt))}</b>.{" "}
                     {threshold < cascadeDrop ? (
                       <b className="text-bad">Bu senaryoda pozisyonun likide olur.</b>
@@ -256,11 +256,11 @@ export function Wallet() {
                 </table>
                 {lendUsd > 0 && headline && (
                   <div className="rounded-lg bg-panel-2 p-3 text-sm">
-                    syrupUSDC −%3 kaskadında (piyasa oracle'ı) protokolün kötü borcu{" "}
+                    syrupUSDC −%3 kaskadında (borsa fiyatı oracle'ı) protokolde karşılıksız kalan borç{" "}
                     <b className="text-bad">{fmtUsd(wadToNum(headline.badDebt))}</b>. Borç verilen varlıklardaki payına düşen
                     yaklaşık zarar: <b className="text-bad">{fmtUsd(badShare)}</b>
                     <div className="mt-1 text-xs text-muted">
-                      Yaklaşım: kötü borç, borç verilen havuzlara mevduat payıyla dağıtılır (Aave'de önce Umbrella/rezervler
+                      Yaklaşım: karşılıksız borç, borç verilen havuzlara mevduat payıyla dağıtılır (Aave'de önce Umbrella/rezervler
                       karşılar).
                     </div>
                   </div>

@@ -147,7 +147,7 @@ export function GuardPanel() {
       <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
         <h3 className="text-sm font-semibold uppercase tracking-wider text-muted">Guard: zincir üstü devre kesici</h3>
         <span className="text-xs text-muted">
-          Standart senaryo: syrupUSDC −%3, gerçek defter · eşik: kötü borç / borç &gt; %0,5
+          Senaryo: syrupUSDC −%3 (Salı Depegi) · eşik: karşılıksız borç, toplam borcun %0,5'ini aşarsa
         </span>
       </div>
       <div className="grid gap-3 md:grid-cols-2">
@@ -186,8 +186,8 @@ export function GuardPanel() {
         </div>
       )}
       <p className="mt-3 text-xs text-muted">
-        Herkes Guard.refresh() çağırabilir: Guard, Kaskad motorunda ({kaskad.slice(0, 8)}…) senaryoyu çalıştırır; kötü borç
-        oranı eşiği aşarsa Piyasa B'de borcu durdurur ve maks. LTV'yi %70'e düşürür.
+        Herkes Guard.refresh() çağırabilir: Guard, Kaskad motorunda ({kaskad.slice(0, 8)}…) senaryoyu çalıştırır; karşılıksız
+        borç eşiği aşarsa Piyasa B'de borcu durdurur ve maks. LTV'yi %70'e düşürür.
       </p>
     </div>
   );

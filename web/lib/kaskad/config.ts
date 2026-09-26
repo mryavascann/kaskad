@@ -30,7 +30,7 @@ export const DEPLOYMENT = deployment as unknown as {
 };
 
 export const CALIBRATED = 256;
-export const UI_ASSET_ORDER = [9, 12, 2, 10, 8];
+export const UI_ASSET_ORDER = [9, 15, 12, 2, 10, 8]; // 15: syrupUSDC positions from Aave Ethereum
 export const UI_ASSETS: AssetInfo[] = UI_ASSET_ORDER.map((id) => DEPLOYMENT.assets[id]).filter(Boolean);
 
 export const TESTNET_RPC = process.env.NEXT_PUBLIC_MONAD_TESTNET_RPC ?? "https://testnet-rpc.monad.xyz";

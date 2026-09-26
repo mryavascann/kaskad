@@ -61,7 +61,7 @@ async function sendTx(to: Address, data: Hex, gas: bigint) {
     maxFeePerGas: MAX_FEE_PER_GAS,
     maxPriorityFeePerGas: MAX_PRIORITY_FEE_PER_GAS,
   });
-  return sendRawSync(client, raw, 30_000);
+  return sendRawSync(client as never, raw, 30_000);
 }
 
 async function main() {

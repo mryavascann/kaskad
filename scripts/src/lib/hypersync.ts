@@ -22,6 +22,10 @@ export interface LogQuery {
   address: string[];
   topic0: string;
   fromBlock: number;
+  /** Optional extra topic filters (topic1, topic2, ...); each entry is an OR-list, empty = any. */
+  moreTopics?: string[][];
+  /** HyperSync endpoint for another chain (default: Monad). */
+  url?: string;
 }
 
 export interface FetchResult {
@@ -61,7 +65,7 @@ function tryLoadNative(): NativeModule | null {
 }
 
 async function fetchNative(mod: NativeModule, q: LogQuery, onProgress?: Progress): Promise<FetchResult> {
-  const client = new mod.HypersyncClient({ url: HYPERSYNC_URL, apiToken: requireEnv("ENVIO_API_TOKEN") });
+  const client = new mod.HypersyncClient({ url: q.url ?? HYPERSYNC_URL, apiToken: requireEnv("ENVIO_API_TOKEN") });
   const logs: LogRow[] = [];
   let from = q.fromBlock;
   let pages = 0;
@@ -69,7 +73,7 @@ async function fetchNative(mod: NativeModule, q: LogQuery, onProgress?: Progress
   for (;;) {
     const res = await client.get({
       fromBlock: from,
-      logs: [{ address: q.address, topics: [[q.topic0]] }],
+      logs: [{ address: q.address, topics: [[q.topic0], ...(q.moreTopics ?? [])] }],
       fieldSelection: { log: ["BlockNumber", "Topic0", "Topic1", "Topic2", "Topic3"] },
     });
     pages++;
@@ -97,8 +101,8 @@ interface HttpResponse {
   next_block: number;
 }
 
-async function postQuery(body: unknown, attempt = 0): Promise<HttpResponse> {
-  const res = await fetch(`${HYPERSYNC_URL}/query`, {
+async function postQuery(url: string, body: unknown, attempt = 0): Promise<HttpResponse> {
+  const res = await fetch(`${url}/query`, {
     method: "POST",
     headers: { "Content-Type": "application/json", Authorization: `Bearer ${requireEnv("ENVIO_API_TOKEN")}` },
     body: JSON.stringify(body),
@@ -106,7 +110,7 @@ async function postQuery(body: unknown, attempt = 0): Promise<HttpResponse> {
   if (res.status === 429 || res.status >= 500) {
     if (attempt >= 8) throw new Error(`HyperSync HTTP ${res.status} after retries`);
     await sleep(Math.min(8000, 500 * 2 ** attempt));
-    return postQuery(body, attempt + 1);
+    return postQuery(url, body, attempt + 1);
   }
   if (!res.ok) throw new Error(`HyperSync HTTP ${res.status}: ${(await res.text()).slice(0, 300)}`);
   return (await res.json()) as HttpResponse;
@@ -118,9 +122,9 @@ async function fetchHttp(q: LogQuery, onProgress?: Progress): Promise<FetchResul
   let pages = 0;
   let archiveHeight = 0;
   for (;;) {
-    const res = await postQuery({
+    const res = await postQuery(q.url ?? HYPERSYNC_URL, {
       from_block: from,
-      logs: [{ address: q.address, topics: [[q.topic0]] }],
+      logs: [{ address: q.address, topics: [[q.topic0], ...(q.moreTopics ?? [])] }],
       field_selection: { log: ["block_number", "topic0", "topic1", "topic2", "topic3"] },
     });
     pages++;

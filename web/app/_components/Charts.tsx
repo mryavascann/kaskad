@@ -37,7 +37,7 @@ export function CascadeChart({ r }: { r: Result }) {
         <Tooltip
           contentStyle={{ background: "#10131b", border: "1px solid #242a3a", borderRadius: 8 }}
           formatter={(v, k) => (k === "Fiyat" ? `$${Number(v).toFixed(4)}` : `$${Number(v).toFixed(2)}M`)}
-          labelFormatter={(l) => `blok.tur ${l}`}
+          labelFormatter={(l) => `blok.dalga ${l}`}
         />
         <Legend wrapperStyle={{ fontSize: 12 }} />
         <Bar yAxisId="l" dataKey="liq" name="Likide edilen borç" fill="#836ef9" isAnimationActive={false} />
@@ -57,7 +57,7 @@ export function CurveChart({
   rate: readonly bigint[];
 }) {
   const data = shocks.map((s, i) => ({
-    name: `−%${s / 100}`,
+    name: `−%${(s / 100).toLocaleString("tr-TR")}`,
     market: wadToNum(market[i]),
     rate: wadToNum(rate[i]),
   }));
@@ -72,8 +72,8 @@ export function CurveChart({
           formatter={(v) => fmtUsd(Number(v))}
         />
         <Legend wrapperStyle={{ fontSize: 12 }} />
-        <Line dataKey="market" name="Piyasa oracle'ı" stroke="#ff4d5e" strokeWidth={2} isAnimationActive={false} />
-        <Line dataKey="rate" name="Kur oracle'ı" stroke="#3ddc97" strokeWidth={2} isAnimationActive={false} />
+        <Line dataKey="market" name="Borsa fiyatı oracle'ı" stroke="#ff4d5e" strokeWidth={2} isAnimationActive={false} />
+        <Line dataKey="rate" name="Kur oracle'ı (Maple)" stroke="#3ddc97" strokeWidth={2} isAnimationActive={false} />
       </LineChart>
     </ResponsiveContainer>
   );
