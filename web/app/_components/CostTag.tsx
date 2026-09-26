@@ -1,7 +1,8 @@
 "use client";
+import { useSigner } from "@/components/ui/use-signer";
 
 import { fmtNum } from "@/lib/kaskad/format";
-import { useSyncExternalStore } from "react";
+
 import { monCost } from "@/lib/kaskad/math";
 import { signerStore } from "@/lib/kaskad/signer";
 
@@ -12,7 +13,7 @@ export function fmtMon(gasLimit: bigint): string {
 
 /** Small cost line under a button: what the tx will charge (Monad charges the gas limit). */
 export function CostTag({ gasLimit, free }: { gasLimit?: bigint | null; free?: boolean }) {
-  const signer = useSyncExternalStore(signerStore.subscribe, signerStore.get, signerStore.server);
+  const signer = useSigner();
   const payer = signer.kind === "burner" ? "sponsor öder" : "senin cüzdanından";
   if (free) return <div className="mt-1 text-center text-[11px] text-muted">ücretsiz (eth_call, zincire yazmaz)</div>;
   if (!gasLimit) return <div className="mt-1 text-center text-[11px] text-muted">maliyet hesaplanıyor…</div>;

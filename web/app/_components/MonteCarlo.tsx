@@ -12,6 +12,8 @@ import { MONAD_MEMORY_LIMIT, MONAD_TX_GAS_LIMIT } from "@/lib/kaskad/math";
 import { monteCarloGasLimit } from "@/lib/kaskad/math";
 import { confirmCost, CostTag } from "./CostTag";
 import type { Scenario } from "./useKaskad";
+import { Details, Help } from "@/components/ui/disclosure";
+import { TransactionFeedback } from "@/components/ui/feedback";
 
 type MC = {
   paths: bigint;
@@ -126,11 +128,11 @@ export function MonteCarlo({ base, symbol }: { base: Scenario; symbol: string })
     <div className="card p-5">
       <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
         <h3 className="text-sm font-semibold uppercase tracking-wider text-muted">
-          Monte Carlo: {fmtNum(paths)} rastgele senaryo × {symbol} gerçek defteri, tek tx
+          {fmtNum(paths)} senaryo · {symbol}
         </h3>
-        <span className="text-xs text-muted">
+        <Help label="Monte Carlo modeli">
           her senaryo: son düşüş = ortalama %{fmtNum(base.shockBps / 100, 1)} × 3u² (en fazla 3 katı), rastgele yol
-        </span>
+        </Help>
       </div>
 
       <div className="mb-4">
@@ -138,14 +140,14 @@ export function MonteCarlo({ base, symbol }: { base: Scenario; symbol: string })
           <span>Senaryo sayısı (K)</span>
           <span className="num font-mono font-bold text-accent">{fmtNum(paths)}</span>
         </div>
-        <input type="range" min={1} max={lim?.k || 100} step={1} value={paths} onChange={(e) => setPaths(+e.target.value)} />
+        <input aria-label="Senaryo sayısı (K)" type="range" min={1} max={lim?.k || 100} step={1} value={paths} onChange={(e) => setPaths(+e.target.value)} />
       </div>
 
       {r ? (
         <>
           <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
             <Stat label="ortalama karşılıksız borç" value={fmtUsd(wadToNum(r.meanBadDebt))} tone="bad" />
-            <Stat label="%95'lik dilim (20 senaryodan 1'i daha kötü)" value={fmtUsd(wadToNum(r.p95BadDebt))} tone="bad" />
+            <Stat label="%95'lik dilim" value={fmtUsd(wadToNum(r.p95BadDebt))} tone="bad" />
             <Stat
               label={`en kötü senaryo (−%${fmtNum(Number(r.worstShockBps) / 100, 1)})`}
               value={fmtUsd(wadToNum(r.worstBadDebt))}
@@ -160,7 +162,7 @@ export function MonteCarlo({ base, symbol }: { base: Scenario; symbol: string })
           <div className="mt-4">
             <ResponsiveContainer width="100%" height={180}>
               <ScatterChart margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
-                <CartesianGrid stroke="#242a3a" />
+                <CartesianGrid stroke="#ffffff09" vertical={false} />
                 <XAxis type="number" dataKey="shock" name="düşüş" unit="%" tick={{ fill: "#8b92a8", fontSize: 11 }} />
                 <YAxis type="number" dataKey="bad" name="karşılıksız" unit="M" tick={{ fill: "#8b92a8", fontSize: 11 }} width={48} />
                 <Tooltip
@@ -195,20 +197,21 @@ export function MonteCarlo({ base, symbol }: { base: Scenario; symbol: string })
               </div>
             </div>
           </div>
-          <p className="mt-2 text-xs text-muted">
+          <Details>
             Bellek K ile büyümüyor: her senaryo defterin bir kopyası üzerinde çalışıyor, bitince bellek geri alınıyor; yalnızca
             senaryo başına 3 sonuç word'ü (96 byte) birikiyor. Sınırı bu yüzden bellek değil <b className="text-text">gas</b>{" "}
             belirliyor. Defter borcu: {fmtUsd(debt)}.
-          </p>
+          </Details>
         </>
       ) : (
         <div className="py-10 text-center text-muted">{state ? "Bu K 30M gas'a sığmıyor; K'yı azalt." : "hesaplanıyor…"}</div>
       )}
 
+      <TransactionFeedback message={txMsg} />
       <div className="mt-4 rounded-xl border border-accent/40 bg-accent/5 p-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="text-sm">
-            <b>Monad'ın bir işleme sığdırabildiği en büyük stres testi</b>
+            <b>Tek işlemin sınırını bul</b>
             {lim ? (
               <div className="mt-1 text-muted">
                 <span className="num text-2xl font-black text-accent">{fmtNum(lim.k)}</span> senaryo ×{" "}
@@ -222,10 +225,10 @@ export function MonteCarlo({ base, symbol }: { base: Scenario; symbol: string })
                 )}
               </div>
             ) : (
-              <div className="mt-1 text-xs text-muted">Bu senaryo ayarlarıyla 30M gas'a sığan en büyük K'yı canlı ölçer (ikili arama, ~11 eth_call).</div>
+              <div className="mt-1 text-xs text-muted">30M gas için en büyük K · ikili arama</div>
             )}
           </div>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
             <div>
               <button
                 onClick={findLimit}

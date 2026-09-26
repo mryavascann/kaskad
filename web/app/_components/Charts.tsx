@@ -30,7 +30,7 @@ export function CascadeChart({ r }: { r: Result }) {
   return (
     <ResponsiveContainer width="100%" height={240}>
       <ComposedChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
-        <CartesianGrid stroke="#242a3a" vertical={false} />
+        <CartesianGrid stroke="#ffffff09" vertical={false} />
         <XAxis dataKey="name" tick={axis} interval="preserveStartEnd" />
         <YAxis yAxisId="p" tick={axis} width={52} domain={["auto", "auto"]} tickFormatter={(v) => `$${Number(v).toFixed(2)}`} />
         <YAxis yAxisId="l" orientation="right" tick={axis} width={44} tickFormatter={(v) => `${v}M`} />
@@ -64,7 +64,7 @@ export function CurveChart({
   return (
     <ResponsiveContainer width="100%" height={200}>
       <LineChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
-        <CartesianGrid stroke="#242a3a" vertical={false} />
+        <CartesianGrid stroke="#ffffff09" vertical={false} />
         <XAxis dataKey="name" tick={axis} />
         <YAxis tick={axis} width={60} tickFormatter={(v) => fmtUsd(Number(v))} />
         <Tooltip
@@ -72,8 +72,8 @@ export function CurveChart({
           formatter={(v) => fmtUsd(Number(v))}
         />
         <Legend wrapperStyle={{ fontSize: 12 }} />
-        <Line dataKey="market" name="En kötü durum (oracle havuzu izler)" stroke="#ff4d5e" strokeWidth={2} isAnimationActive={false} />
-        <Line dataKey="rate" name="Gerçekçi (oracle dış fiyatı izler)" stroke="#3ddc97" strokeWidth={2} isAnimationActive={false} />
+        <Line dataKey="market" name="Anlık havuz · en kötü durum" stroke="#ff4d5e" strokeWidth={2} isAnimationActive={false} />
+        <Line dataKey="rate" name="Dış fiyat · gerçekçi" stroke="#3ddc97" strokeWidth={2} isAnimationActive={false} />
       </LineChart>
     </ResponsiveContainer>
   );

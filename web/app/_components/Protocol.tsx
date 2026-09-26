@@ -1,13 +1,21 @@
 "use client";
+import { useSigner } from "@/components/ui/use-signer";
 
-import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { decodeEventLog, encodeFunctionData } from "viem";
 import { kaskadAbi } from "@/lib/kaskad/abi";
-import { sendTx, signerLabel, signerStore } from "@/lib/kaskad/signer";
+import { sendTx, signerLabel } from "@/lib/kaskad/signer";
 import { CALIBRATED, DEPLOYMENT, RESOLUTIONS, UI_ASSETS, addrUrl, txUrl, type AssetInfo } from "@/lib/kaskad/config";
 import { fmtNum, fmtPct, fmtUsd, shortAddr, wadToNum } from "@/lib/kaskad/format";
 import { simulateGasLimit } from "@/lib/kaskad/math";
 import { CascadeChart, CurveChart } from "./Charts";
+import { RevealSections } from "@/components/visual/Reveal";
+import { Hero } from "@/components/sections/Hero";
+import { AnimatedNumber } from "@/components/visual/AnimatedNumber";
+import { DominoCascade } from "@/components/visual/DominoCascade";
+import { Details, Help } from "@/components/ui/disclosure";
+import { TransactionFeedback } from "@/components/ui/feedback";
+import { Activity, Waves, Flame, Droplets, TrendingDown, Timer, Layers3, Zap, Check, SlidersHorizontal, ArrowUpRight } from "lucide-react";
 import { ComparePanel } from "./ComparePanel";
 import { confirmCost, CostTag } from "./CostTag";
 import { GuardPanel } from "./GuardPanel";
@@ -157,7 +165,7 @@ function Seg<T extends string | number>({
     <div className="flex flex-wrap gap-2">
       {options.map((o) => (
         <button
-          key={String(o.v)}
+          key={String(o.v)} aria-pressed={o.v === value}
           onClick={() => onChange(o.v)}
           className={`rounded-lg border px-3 py-2 text-left text-sm ${
             o.v === value ? "border-accent bg-accent/15" : "border-line hover:border-muted"
@@ -182,7 +190,7 @@ export function Protocol() {
     market: readonly bigint[];
     rate: readonly bigint[];
   } | null>(null);
-  const signer = useSyncExternalStore(signerStore.subscribe, signerStore.get, signerStore.server);
+  const signer = useSigner();
 
   const presets = PRESETS.filter((p) => DEPLOYMENT.assets[p.s.assetId]);
   const set = (patch: Partial<Settings>) => {
@@ -269,324 +277,93 @@ export function Protocol() {
   const syrup = DEPLOYMENT.assets[9];
   const isEth = ETH_BOOKS.includes(st.assetId);
 
+  const icons = [Activity, Waves, Flame, Timer, Layers3, TrendingDown, Droplets, Zap];
+  const shortTitles = ["Ufak sarsıntı", "Salı depegi", "En kötü durum", "PT vade telaşı", "Ethereum döngüsü", "ETH %20 düşerse", "Derin havuz", "10.000 pozisyon"];
+  const shortStories = ["syrupUSDC · %0,3", "syrupUSDC · %3 depeg", "Havuz oracle", "PT-AUSD · %1", "syrupUSDT · Aave", "WETH · %20", "USDC · %10", "Kalibre veri"];
+
   return (
-    <div className="space-y-6">
-      {/* headline */}
-      <section className="card p-6">
-        <div className="text-sm text-muted">Monad'daki Aave</div>
-        <div className="mt-1 flex flex-wrap items-baseline gap-x-8 gap-y-2">
-          <div>
-            <span className="num text-4xl font-bold">{fmtUsd(t.suppliedUsd)}</span> <span className="text-muted">teminat</span>
+    <>
+      <RevealSections />
+      <Hero result={r} loading={loading} ms={ms} tx={tx} />
+      <div className="protocol-stack">
+        <section aria-label="Aave piyasa özeti">
+          <div className="stat-strip">
+            <div className="strip-stat"><span>Toplam teminat</span><strong className="num">{fmtUsd(t.suppliedUsd)}</strong></div>
+            <div className="strip-stat"><span>Toplam borç</span><strong className="num">{fmtUsd(t.debtUsd)}</strong></div>
+            <div className="strip-stat"><span>Borçlu pozisyon</span><strong className="num">{fmtNum(t.positions)}</strong></div>
+            <div className="strip-stat"><span>syrupUSDC · risk odağı</span><strong className="num">{fmtUsd(syrup.collateralUsd)}</strong> <small>· %{syrup.ltBps / 100} eşik</small></div>
           </div>
-          <div>
-            <span className="num text-4xl font-bold">{fmtUsd(t.debtUsd)}</span> <span className="text-muted">borç</span>
-          </div>
-          <div>
-            <span className="num text-4xl font-bold">{t.positions}</span> <span className="text-muted">borçlu pozisyon</span>
-          </div>
-        </div>
-        <div className="mt-3 text-sm">
-          En büyük risk: <b>syrupUSDC {fmtUsd(syrup.collateralUsd)}</b> teminat. Borçlular %{syrup.ltBps / 100} eşikle
-          (E-Mode) {fmtUsd(syrup.debtUsd)} borç almış: fiyat birkaç yüzde düşerse likide olurlar.
-        </div>
-        <div className="mt-2 flex flex-wrap gap-2 text-xs">
-          <span className="rounded-full bg-good/15 px-2 py-1 text-good">
-            Gerçek veri · Monad mainnet blok #{fmtNum(DEPLOYMENT.source.block)}
-          </span>
-          <span className="rounded-full bg-panel-2 px-2 py-1 text-muted">Envio HyperSync + multicall</span>
-        </div>
-      </section>
+          <div className="source-row"><span><span className="status-dot" /> Gerçek veri · Monad mainnet Aave</span><span>Blok #{fmtNum(DEPLOYMENT.source.block)} · Envio HyperSync + multicall</span></div>
+        </section>
 
-      {/* presets */}
-      <section>
-        <div className="mb-2 text-sm font-semibold uppercase tracking-wider text-muted">1 · Bir senaryo seç</div>
-        <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
-          {presets.map((p) => (
-            <button
-              key={p.id}
-              onClick={() => {
-                setSt(p.s);
-                setPresetId(p.id);
-              }}
-              className={`card p-3 text-left transition hover:border-accent ${presetId === p.id ? "border-accent! bg-accent/10" : ""}`}
-            >
-              <div className="text-2xl">{p.emoji}</div>
-              <div className="mt-1 font-semibold leading-tight">{p.title}</div>
-              <div className="mt-1 text-xs text-muted">{p.story}</div>
-            </button>
-          ))}
-        </div>
-      </section>
+        <section id="senaryolar">
+          <div className="section-heading"><h2><span className="index">01 /</span>Senaryonu seç</h2><span>Bir şok. Zincirleme etki.</span></div>
+          <div className="presets-grid" role="region" aria-label="Senaryo şeridi" tabIndex={0}>
+            {presets.map((p) => {
+              const i = PRESETS.indexOf(p); const Icon = icons[i];
+              return <button key={p.id} aria-pressed={presetId === p.id} onClick={() => { setSt(p.s); setPresetId(p.id); }} className="card preset-card">
+                <span className="preset-icon"><Icon size={17} /></span>
+                {presetId === p.id && <Check className="preset-check" size={14} />}
+                <div className="preset-copy"><h3>{shortTitles[i]}</h3><p>{shortStories[i]}</p></div>
+              </button>;
+            })}
+          </div>
+        </section>
 
-      <div className="grid gap-6 lg:grid-cols-[360px_1fr]">
-        {/* settings */}
-        <section className="card space-y-5 p-5">
-          <div className="text-sm font-semibold uppercase tracking-wider text-muted">2 · İstersen ayarla</div>
-          <div>
-            <div className="mb-1 flex justify-between text-sm">
-              <span>Fiyat ne kadar düşsün?</span>
-              <span className="num font-mono font-bold text-bad">−%{fmtNum(st.shockPct, 1)}</span>
-            </div>
-            <input
-              type="range"
-              min={0}
-              max={50}
-              step={0.1}
-              value={st.shockPct}
-              onChange={(e) => set({ shockPct: +e.target.value })}
-            />
-            <div className="mt-2 flex flex-wrap gap-1">
-              {[0.1, 0.5, 1, 3, 5, 10, 20, 30].map((v) => (
-                <button
-                  key={v}
-                  onClick={() => set({ shockPct: v })}
-                  className={`rounded border px-2 py-0.5 text-xs ${st.shockPct === v ? "border-accent" : "border-line"}`}
-                >
-                  %{fmtNum(v, 1)}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div>
-            <div className="mb-2 text-sm">Fiyatı kim söylüyor? (oracle)</div>
-            <Seg
-              value={st.feedback}
-              onChange={(v) => set({ feedback: v })}
-              options={[
-                { v: 0, label: "Dış fiyat (Chainlink / kur)", hint: "gerçekçi · Aave böyle çalışır" },
-                { v: 10_000, label: "Anlık havuz fiyatı", hint: "en kötü durum · manipülasyona açık" },
-              ]}
-            />
-          </div>
-          <details className="rounded-lg border border-line p-3">
-            <summary className="cursor-pointer text-sm text-muted">Gelişmiş ayarlar</summary>
-            <div className="mt-4 space-y-5">
+        <section id="sonuc">
+          <div className="section-heading"><h2><span className="index">02 /</span>Şokun ardından</h2><span className="badge badge-violet">{useCal ? "Kalibre veri" : "Gerçek Aave pozisyonları"}</span></div>
+          <div className="simulation-grid">
+            <aside className="card settings-panel space-y-5" aria-label="Senaryo ayarları">
+              <div className="settings-title"><SlidersHorizontal size={16} className="text-accent" /> Senaryo ayarları</div>
+              <div className="asset-picker">
+                <div className="mb-2 text-xs text-muted">Teminat varlığı</div>
+                {[9,5].map(id => DEPLOYMENT.assets[id]).filter(Boolean).map(a => <button key={a.id} onClick={()=>set({assetId:a.id})} aria-pressed={st.assetId === a.id} className="asset-choice"><span className="asset-symbol">{a.id === 9 ? "$" : "Ξ"}</span><span>{sym(a)}<small>Monad Aave</small></span><span className="ml-auto text-[10px] text-muted">{fmtUsd(a.collateralUsd)}</span>{st.assetId === a.id && <Check size={13} className="text-accent" />}</button>)}
+                <label htmlFor="other-asset" className="sr-only">Diğer tokenlar</label>
+                <select id="other-asset" value={[9,5].includes(st.assetId) ? "" : st.assetId} onChange={e=>{if(e.target.value) set({assetId:+e.target.value});}} className="other-assets"><option value="" disabled>Diğer tokenlar</option>{UI_ASSETS.filter(a=>![9,5].includes(a.id)).map(a=><option key={a.id} value={a.id}>{sym(a)} · {ETH_BOOKS.includes(a.id) ? "Ethereum" : "Monad"}</option>)}</select>
+              </div>
               <div>
-                <div className="mb-2 text-sm">Teminat varlığı</div>
-                <Seg
-                  value={st.assetId}
-                  onChange={(v) => set({ assetId: v })}
-                  options={UI_ASSETS.map((a) => ({
-                    v: a.id,
-                    label: sym(a),
-                    hint: `${fmtUsd(a.collateralUsd)} · LT %${a.ltBps / 100}`,
-                  }))}
-                />
+                <label htmlFor="shock" className="flex justify-between text-xs"><span>Fiyat düşüşü</span><span className="num text-bad">−%{fmtNum(st.shockPct, 1)}</span></label>
+                <input id="shock" type="range" min={0} max={50} step={0.1} value={st.shockPct} onChange={(e) => set({ shockPct: +e.target.value })} />
+                <div className="grid grid-cols-4 gap-1">{[0.1,0.5,1,3,5,10,20,30].map(v => <button key={v} aria-pressed={st.shockPct === v} onClick={() => set({shockPct:v})} className={`rounded-lg border text-xs ${st.shockPct === v ? "border-accent/60 bg-accent/10 text-text" : "border-line text-muted"}`}>%{fmtNum(v,1)}</button>)}</div>
               </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <div className="mb-1 flex justify-between text-sm">
-                    <span>Süre</span>
-                    <span className="num font-mono">{st.steps} blok</span>
-                  </div>
-                  <input type="range" min={1} max={100} value={st.steps} onChange={(e) => set({ steps: +e.target.value })} />
+              <div><div className="mb-2 text-xs text-muted">Oracle kaynağı</div><Seg value={st.feedback} onChange={v => set({feedback:v})} options={[{v:0,label:"Dış fiyat (Chainlink / kur)",hint:"Aave'nin kullandığı model"},{v:10_000,label:"Anlık havuz fiyatı",hint:"en kötü durum"}]} /></div>
+              <Details title="Gelişmiş ayarlar">
+                <div className="space-y-5">
+                  <div><label htmlFor="blocks" className="flex justify-between"><span>Süre</span><span>{st.steps} blok</span></label><input id="blocks" type="range" min={1} max={100} value={st.steps} onChange={e=>set({steps:+e.target.value})} /></div>
+                  <div><label htmlFor="rounds" className="flex justify-between"><span>Dalga / blok</span><span>{st.rounds}</span></label><input id="rounds" type="range" min={1} max={20} value={st.rounds} onChange={e=>set({rounds:+e.target.value})} /></div>
+                  {canCalibrate && <div><div className="mb-2">Defter</div><Seg value={useCal ? "cal" : "real"} onChange={v=>set({calibrated:v==="cal"})} options={[{v:"real",label:`Gerçek (${fmtNum(asset.realPositions)})`},{v:"cal",label:`Kalibre (${fmtNum(asset.calibratedPositions)})`}]} />{useCal && <div className="mt-3"><label htmlFor="resolution">Çözünürlük · {fmtNum(maxRes)} pozisyon</label><input id="resolution" type="range" min={0} max={resOptions.length-1} value={Math.max(0,resOptions.indexOf(maxRes))} onChange={e=>set({resolution:resOptions[+e.target.value]})} /></div>}</div>}
                 </div>
-                <div>
-                  <div className="mb-1 flex justify-between text-sm">
-                    <span title="Her blokta likidatörlerin kaç tur satış yaptığı">Dalga/blok</span>
-                    <span className="num font-mono">{st.rounds}</span>
-                  </div>
-                  <input type="range" min={1} max={20} value={st.rounds} onChange={(e) => set({ rounds: +e.target.value })} />
-                </div>
+              </Details>
+              <div className="text-xs text-muted"><div className="flex items-center justify-between">Havuz derinliği <span className="num text-text">{fmtUsd(asset.depthUsd)}</span></div><span className={`text-[10px] ${asset.depthIsAssumption ? "text-warn" : "text-good"}`}>{asset.depthIsAssumption ? "varsayım" : "ölçüldü"}</span><Help label="Havuz derinliği">{asset.depthNote}</Help></div>
+              {!useCal && <div className="flex items-center justify-between text-xs text-muted"><span>Arbitraj toparlanması<br /><small className="text-warn">varsayım</small></span><span>%{fmtNum((RECOVERY_BPS[st.assetId]?.bps ?? 0)/100)}</span><Help label="Arbitraj varsayımı">{RECOVERY_BPS[st.assetId]?.why ?? "Toparlanma yok."}</Help></div>}
+              {isEth && <div className="text-[10px] text-muted">Ethereum verisi · Monad simülasyonu</div>}
+              {st.assetId === 12 && <div className="text-[10px] text-muted">PT-AUSD vadesi · 8 Ekim 2026</div>}
+            </aside>
+
+            <div className="card result-card" aria-busy={loading}>
+              <div className="result-header"><span className="flex items-center gap-2"><span className="status-dot" /> {loading ? "Hesaplanıyor…" : r ? "Simülasyon tamamlandı" : "Önizleme bekleniyor"}</span><span>{sym(asset)} · −%{fmtNum(st.shockPct,1)}{st.feedback > 0 ? " · en kötü durum" : " · dış fiyat"}</span></div>
+              <div className="result-counters">
+                <div><div className="counter-label">Karşılıksız kalan borç<Help label="Karşılıksız kalan borç">Tüm teminat satılsa bile kapanmayan borç açığı.</Help></div><div className="counter-value num text-bad">{r ? <AnimatedNumber value={wadToNum(r.badDebt)*scale} /> : "—"}</div><div className="counter-note">{r ? `${fmtPct(wadToNum(r.badDebt)/Math.max(1,wadToNum(r.totalDebt)))} toplam borcun` : "Sonuç bekleniyor"}</div></div>
+                <div><div className="counter-label">Anında likide edilemeyen borç<Help label="Likide edilemeyen borç">Havuz likiditesi yetersiz olduğu için kapatılamayan riskli borç.</Help></div><div className="counter-value num text-warn">{r ? <AnimatedNumber value={wadToNum(r.stuckDebt)*scale} /> : "—"}</div><div className="counter-note">{r ? `${fmtPct(wadToNum(r.stuckDebt)/Math.max(1,wadToNum(r.totalDebt)))} toplam borcun` : "Sonuç bekleniyor"}{useCal && " · ölçeklendi"}</div></div>
               </div>
-              {canCalibrate && (
-                <div>
-                  <div className="mb-2 text-sm">Defter</div>
-                  <Seg
-                    value={useCal ? "cal" : "real"}
-                    onChange={(v) => set({ calibrated: v === "cal" })}
-                    options={[
-                      { v: "real", label: `Gerçek (${asset.realPositions})`, hint: "Aave'deki pozisyonlar" },
-                      { v: "cal", label: `Kalibre (${fmtNum(asset.calibratedPositions)})`, hint: "gerçek dağılımdan örnek" },
-                    ]}
-                  />
-                  {useCal && (
-                    <div className="mt-3">
-                      <div className="mb-1 flex justify-between text-sm">
-                        <span>Çözünürlük</span>
-                        <span className="num font-mono font-bold text-accent">{fmtNum(maxRes)} pozisyon</span>
-                      </div>
-                      <input
-                        type="range"
-                        min={0}
-                        max={resOptions.length - 1}
-                        value={Math.max(0, resOptions.indexOf(maxRes))}
-                        onChange={(e) => set({ resolution: resOptions[+e.target.value] })}
-                      />
-                    </div>
-                  )}
-                </div>
-              )}
+              {error && <div role="alert" className="mt-5 rounded-xl border border-bad/30 bg-bad/5 p-3 text-xs text-bad">{error}</div>}
+              {r ? <>
+                <Details title="Ne oldu?">{narrate(r,asset,st,scale)}</Details>
+                <div className="mt-4 grid grid-cols-2 gap-3 xl:grid-cols-4"><Stat label="likide edilen" value={usd(r.totalLiquidated,scale)} /><Stat label="toplam borç" value={usd(r.totalDebt,scale)} /><Stat label={`${fmtNum(r.liquidations)} likidasyon`} value={`${fmtNum(r.rounds)} dalga`} /><Stat label="son fiyat" value={`$${fmtNum(wadToNum(r.finalPrice),3)}`} tone={r.finalPrice < r.startPrice/2n ? "bad" : undefined} /></div>
+                {r.log.length ? <><DominoCascade key={`${scenario.assetId}-${scenario.shockBps}-${scenario.steps}-${scenario.maxRoundsPerStep}-${scenario.oracleFeedbackBps}-${scenario.maxPositions}-${r.finalPrice}`} result={r} /><div className="mt-3"><CascadeChart r={r} /></div></> : <div className="my-6 rounded-xl border border-good/15 bg-good/5 p-8 text-center text-sm text-good">Bu şokta likidasyon yok.</div>}
+              </> : <div className="skeleton mt-6 h-56" aria-label="Simülasyon sonucu yükleniyor" />}
+              <div className="result-proof"><div className="proof-meta"><span className="badge badge-violet">tek işlem · {r ? `${fmtNum(tx?.ms ?? ms)} ms · ${fmtNum(r.positionsUsed)} pozisyon` : "sonuç bekleniyor"}</span><div className="mt-2">{tx ? "Zincirdeki işlem süresi" : "Ücretsiz önizleme · eth_call"}</div>{signer.address && <a href={addrUrl(signer.address)} target="_blank" rel="noreferrer">{signerLabel[signer.kind]} · {shortAddr(signer.address)} ↗</a>}</div><div><button onClick={simulate} disabled={!r || sending || !!error || loading} className="button-primary disabled:opacity-40">{sending ? "Gönderiliyor…" : "Zincirde kanıtla"}<ArrowUpRight size={16} /></button><CostTag gasLimit={r ? gasLimit : null} /></div></div>
+              {(txStatus || tx) && <div role="status" className="mt-4 rounded-xl border border-line p-3 text-xs text-muted">{txStatus}{tx && <div className="mt-2 flex flex-wrap gap-3"><span>{fmtNum(tx.ms)} ms</span><span>{tx.sync ? "sendRawTransactionSync" : "async"}</span><a href={txUrl(tx.hash)} target="_blank" rel="noreferrer" className="text-accent">MonadScan ↗</a></div>}</div>}
+              <TransactionFeedback message={txStatus} />
             </div>
-          </details>
-          <div className="rounded-lg bg-panel-2 p-3 text-xs text-muted">
-            Satışların gittiği havuz: <b className="text-text">{fmtUsd(asset.depthUsd)}</b>{" "}
-            {asset.depthIsAssumption ? (
-              <span className="rounded bg-warn/20 px-1 text-warn">varsayım</span>
-            ) : (
-              <span className="rounded bg-good/20 px-1 text-good">ölçüldü</span>
-            )}
-            <div className="mt-1">{asset.depthNote}</div>
-            {!useCal && (
-              <div className="mt-1">
-                Bloklar arası arbitraj toparlanması:{" "}
-                <b className="text-text">%{fmtNum((RECOVERY_BPS[st.assetId]?.bps ?? 0) / 100)}</b>{" "}
-                <span className="rounded bg-warn/20 px-1 text-warn">varsayım</span> ·{" "}
-                {RECOVERY_BPS[st.assetId]?.why ?? "toparlanma yok"}
-              </div>
-            )}
-            {st.assetId === 12 && <div className="mt-1">PT-AUSD 8 Ekim 2026'da vadesine eriyor; fiyatı 1'e yakınsıyor.</div>}
-            {isEth && <div className="mt-1">Pozisyonlar Ethereum Aave'den okundu; simülasyon Monad'da çalışır.</div>}
-          </div>
-          <button
-            onClick={simulate}
-            disabled={!r || sending || !!error}
-            className="w-full rounded-lg bg-accent px-4 py-3 text-lg font-semibold text-white hover:brightness-110 disabled:opacity-50"
-          >
-            {sending ? "Gönderiliyor…" : "Zincirde kanıtla"}
-          </button>
-          <CostTag gasLimit={r ? gasLimit : null} />
-          <div className="text-xs text-muted">
-            Ekrandaki sonuç ücretsiz önizleme (eth_call). Bu buton aynı hesabı Monad'da bir tx olarak çalıştırır; herkes
-            doğrulayabilir. Monad gas'ı kullanılan miktardan değil limitten keser, bu yüzden maliyet göndermeden önce bellidir.
-            {signer.address && (
-              <>
-                {" "}
-                İmzalayan: {signerLabel[signer.kind]}{" "}
-                <a className="underline" href={addrUrl(signer.address)} target="_blank" rel="noreferrer">
-                  {shortAddr(signer.address)}
-                </a>{" "}
-                (<a className="underline" href="/baglan">değiştir</a>).
-              </>
-            )}
           </div>
         </section>
 
-        {/* results */}
-        <section className="space-y-6">
-          <div className="card p-6">
-            <div className="flex items-start justify-between gap-4">
-              <div className="grid gap-6 sm:grid-cols-2">
-                <div>
-                  <div className="text-sm uppercase tracking-wider text-muted">Karşılıksız kalan borç</div>
-                  <div className="num text-6xl font-black leading-none text-bad md:text-7xl">
-                    {r ? usd(r.badDebt, scale) : "…"}
-                  </div>
-                  {r && (
-                    <div className="mt-2 text-sm text-muted">
-                      borcun {fmtPct(wadToNum(r.badDebt) / Math.max(1, wadToNum(r.totalDebt)))}'i · kimse ödemeyecek
-                    </div>
-                  )}
-                </div>
-                <div>
-                  <div className="text-sm uppercase tracking-wider text-muted">Likide edilemeyen borç</div>
-                  <div className="num text-6xl font-black leading-none text-warn md:text-7xl">
-                    {r ? usd(r.stuckDebt, scale) : "…"}
-                  </div>
-                  {r && (
-                    <div className="mt-2 text-sm text-muted">
-                      borcun {fmtPct(wadToNum(r.stuckDebt) / Math.max(1, wadToNum(r.totalDebt)))}'i · bekleyen bomba
-                      {useCal && " · tam deftere ölçeklendi"}
-                    </div>
-                  )}
-                </div>
-              </div>
-              <div className="text-right text-xs text-muted">
-                {loading ? "hesaplanıyor…" : r ? `önizleme ${Math.round(ms)} ms` : ""}
-                <div>
-                  {useCal ? "Kalibre veri (gerçek toplamlar)" : isEth ? "Ethereum Aave pozisyonları" : "Gerçek Aave pozisyonları"}
-                </div>
-              </div>
-            </div>
-            <p className="mt-3 text-xs text-muted">
-              <b className="text-bad">Karşılıksız:</b> teminatı borcunun altına düşmüş, hepsi satılsa bile kapanmayan açık;
-              sonunda mevduat sahipleri öder. <b className="text-warn">Likide edilemeyen:</b> pozisyon eşiğin altında ama
-              havuz o kadar sığ ki likidatör satarsa zarar eder; kimse dokunmuyor, fiyat biraz daha düşerse karşılıksız
-              kalır.
-            </p>
-            {error && <div className="mt-3 rounded-lg border border-bad/50 bg-bad/10 p-3 text-sm">{error}</div>}
-            {r && (
-              <>
-                <div className="mt-4 rounded-lg border border-line bg-panel-2 p-4 text-sm leading-relaxed">
-                  <div className="mb-1 text-xs font-semibold uppercase tracking-wider text-muted">Ne oldu?</div>
-                  {narrate(r, asset, st, scale)}
-                </div>
-                <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
-                  <Stat
-                    label="likide edilen borç"
-                    hint="Likidatörlerin ödeyip kapattığı borç"
-                    value={usd(r.totalLiquidated, scale)}
-                  />
-                  <Stat label="toplam borç" value={usd(r.totalDebt, scale)} />
-                  <Stat label={`satış dalgası · ${fmtNum(r.liquidations)} likidasyon`} value={fmtNum(r.rounds)} />
-                  <Stat
-                    label={`son fiyat (başta $${wadToNum(r.startPrice).toFixed(3)})`}
-                    value={`$${wadToNum(r.finalPrice).toFixed(3)}`}
-                    tone={r.finalPrice < r.startPrice / 2n ? "bad" : undefined}
-                  />
-                </div>
-                <div className="mt-5">
-                  {r.log.length ? (
-                    <CascadeChart r={r} />
-                  ) : (
-                    <div className="py-10 text-center text-muted">Bu şokta likidasyon yok.</div>
-                  )}
-                </div>
-              </>
-            )}
-            {(txStatus || tx) && (
-              <div className="mt-4 rounded-lg border border-line p-3 text-sm">
-                {txStatus}{" "}
-                {tx && (
-                  <>
-                    <span className="num font-mono">{Math.round(tx.ms)} ms</span>{" "}
-                    <span className="rounded bg-panel-2 px-1 text-xs">{tx.sync ? "sendRawTransactionSync" : "async"}</span>{" "}
-                    <a className="text-accent underline" href={txUrl(tx.hash)} target="_blank" rel="noreferrer">
-                      MonadScan'de gör ↗
-                    </a>
-                  </>
-                )}
-              </div>
-            )}
-          </div>
-
-          {r && <LimitGauge r={r} />}
-        </section>
+        <section><div className="section-heading"><h2><span className="index">03 /</span>Neden Monad</h2><span>Aynı hesap. Farklı sınırlar.</span></div>{r ? <LimitGauge r={r} /> : <div className="card skeleton h-72" aria-label="Ağ karşılaştırması yükleniyor" />}</section>
+        <section><div className="section-heading"><h2><span className="index">04 /</span>Olasılıkları keşfet</h2><span>Monte Carlo</span></div><MonteCarlo base={{assetId:st.assetId,shockBps:scenario.shockBps,steps:st.steps,maxRoundsPerStep:st.rounds,maxPositions:asset.realPositions,oracleFeedbackBps:st.feedback}} symbol={sym(asset)} /></section>
+        <section><div className="section-heading"><h2><span className="index">05 /</span>İki ağ, aynı şok</h2><span>Monad ↔ Ethereum</span></div><ComparePanel shockBps={scenario.shockBps} feedback={st.feedback} steps={st.steps} rounds={st.rounds} /><div className="card mt-5 p-6"><div className="mb-5 flex items-center justify-between"><h3 className="text-sm">Stres eğrisi · {sym(asset)}</h3><Help label="Stres eğrisi">Yeşil: dış fiyat oracle. Kırmızı: anlık havuz oracle, en kötü durum.</Help></div>{curve ? <CurveChart shocks={CURVE_SHOCKS} market={curve.market} rate={curve.rate} /> : <div className="skeleton h-52" aria-label="Stres eğrisi yükleniyor" />}<div className="mt-3 text-[10px] text-muted">Ücretsiz · tek eth_call / oracle</div></div></section>
+        <section><div className="section-heading"><h2><span className="index">06 /</span>Riski gör. Borcu durdur.</h2><span>Kaskad Guard</span></div><GuardPanel /></section>
       </div>
-
-      <MonteCarlo
-        base={{
-          assetId: st.assetId,
-          shockBps: scenario.shockBps,
-          steps: st.steps,
-          maxRoundsPerStep: st.rounds,
-          maxPositions: asset.realPositions,
-          oracleFeedbackBps: st.feedback,
-        }}
-        symbol={sym(asset)}
-      />
-
-      <ComparePanel shockBps={scenario.shockBps} feedback={st.feedback} steps={st.steps} rounds={st.rounds} />
-
-      <div className="grid gap-6 lg:grid-cols-2">
-        <GuardPanel />
-        <div className="card p-5">
-          <div className="mb-3 flex items-baseline justify-between">
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-muted">Stres eğrisi: {sym(asset)}</h3>
-            <span className="text-xs text-muted">her düşüş için karşılıksız borç · tek eth_call</span>
-          </div>
-          {curve ? (
-            <CurveChart shocks={CURVE_SHOCKS} market={curve.market} rate={curve.rate} />
-          ) : (
-            <div className="py-16 text-center text-muted">hesaplanıyor…</div>
-          )}
-          <p className="mt-2 text-xs text-muted">
-            Yeşil: gerçekçi durum, oracle dış fiyatı (Chainlink / kur) izler; zarar ancak şok teminatı borcun altına itince
-            başlar. Kırmızı: en kötü durum, oracle anlık havuz fiyatını izler; satışlar fiyatı düşürür, düşen fiyat yeni
-            likidasyon tetikler (sarmal).
-          </p>
-        </div>
-      </div>
-    </div>
+    </>
   );
 }

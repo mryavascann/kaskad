@@ -1,11 +1,15 @@
 "use client";
+import { useSigner } from "@/components/ui/use-signer";
 
-import { useCallback, useEffect, useState, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { Address } from "viem";
 import { getBurner, publicClient } from "@/lib/kaskad/burner";
 import { addrUrl } from "@/lib/kaskad/config";
 import { fmtNum, shortAddr } from "@/lib/kaskad/format";
-import { connectInjected, connectMeraSigner, selectBurner, signerLabel, signerStore, type SignerKind } from "@/lib/kaskad/signer";
+import { connectInjected, connectMeraSigner, selectBurner, signerLabel, type SignerKind } from "@/lib/kaskad/signer";
+
+import { Details, Help } from "@/components/ui/disclosure";
+import { Zap, Wallet, Fingerprint, ArrowUpRight, ShieldCheck } from "lucide-react";
 
 const FAUCET = "https://faucet.monad.xyz";
 const mon = (w: bigint | null) => (w === null ? "…" : `${fmtNum(Number(w) / 1e18, 3)} MON`);
@@ -30,7 +34,8 @@ function Card({
   children: React.ReactNode;
 }) {
   return (
-    <div className={`card flex flex-col gap-3 p-5 ${active ? "border-accent! bg-accent/5" : ""}`} data-kind={kind}>
+    <div className={`card connect-card flex flex-col gap-3 p-6 ${active ? "border-accent! bg-accent/5" : ""}`} data-kind={kind}>
+      <div className="wallet-icon">{kind === "burner" ? <Zap size={23} /> : kind === "mera" ? <Fingerprint size={23} /> : <Wallet size={23} />}</div>
       <div className="flex items-start justify-between gap-2">
         <div>
           <div className="font-semibold">{title}</div>
@@ -52,7 +57,7 @@ function Card({
 }
 
 export function Connect() {
-  const signer = useSyncExternalStore(signerStore.subscribe, signerStore.get, signerStore.server);
+  const signer = useSigner();
   const [burner, setBurner] = useState<Address | null>(null);
   const [injected, setInjected] = useState<Address | null>(null);
   const [mera, setMera] = useState<Address | null>(null);
@@ -100,25 +105,22 @@ export function Connect() {
 
   return (
     <div className="space-y-6">
-      <section className="card p-6">
-        <h1 className="text-2xl font-bold">Cüzdan bağla</h1>
-        <p className="mt-1 text-sm text-muted">
-          Zincire giden her işlemi (simülasyon kanıtı, Monte Carlo, Guard, borç denemesi) hangi cüzdanın imzalayacağını
-          seç. Ücretsiz önizlemeler cüzdan gerektirmez. Aktif: <b className="text-text">{signerLabel[signer.kind]}</b>
-          {signer.address && <> ({shortAddr(signer.address)})</>}.
-        </p>
-        <div className={`mt-3 rounded-lg p-3 text-sm ${sponsorLow ? "bg-warn/15 text-warn" : "bg-panel-2 text-muted"}`}>
-          Sponsor bütçesi (harcanabilir, 10 MON rezerv hariç): <b className="num">{mon(spendable)}</b>
-          {sponsorLow && " · azaldı: kendi cüzdanınla devam etmen önerilir."}
-        </div>
+      <section className="page-intro">
+        <div className="eyebrow"><ShieldCheck size={13} /> SENİN İŞLEMİN. SENİN SEÇİMİN.</div>
+        <h1>Cüzdanını bağla.</h1>
+        <p>Zincirdeki işlemlerini imzalayacak cüzdanı seç.</p>
+        <div className="mt-5 flex flex-wrap items-center gap-3"><span className="badge badge-violet">Aktif · {signerLabel[signer.kind]}</span>{signer.address && <span className="font-mono text-xs text-muted">{shortAddr(signer.address)}</span>}<span className="badge"><span className="status-dot" /> Monad testnet</span></div>
       </section>
-
+      <div className={`card flex flex-wrap items-center justify-between gap-4 p-5 ${sponsorLow ? "border-warn/30!" : ""}`}>
+        <div className="flex items-center gap-3"><Zap size={18} className="text-accent" /><div><div className="text-sm">Sponsor bütçesi</div><div className="mt-1 text-xs text-muted">Geçici cüzdanın işlem ücretlerini karşılar.</div></div></div>
+        <div className="flex items-center"><span className={`num text-2xl ${sponsorLow ? "text-warn" : "text-text"}`}>{mon(spendable)}</span><Help label="Harcanabilir sponsor bütçesi">10 MON rezerv hariçtir. Bütçe azalırsa kendi cüzdanınla devam edebilirsin.</Help></div>
+      </div>
       <div className="grid gap-4 md:grid-cols-3">
         <Card
           kind="burner"
           active={signer.kind === "burner"}
           title="Geçici cüzdan (sponsorlu)"
-          desc="Tarayıcıda üretilen testnet anahtarı; gas'ı proje sponsoru öder. Kurulum yok."
+          desc="Kurulum gerektirmez; işlem ücretini sponsor öder."
           address={burner}
           balance={bal(burner)}
         >
@@ -131,7 +133,7 @@ export function Connect() {
           kind="injected"
           active={signer.kind === "injected"}
           title="Tarayıcı cüzdanı"
-          desc="MetaMask, Rabby, Phantom… Monad testnet yoksa eklemeyi önerir. Gas senin MON'undan."
+          desc="MetaMask, Rabby veya Phantom ile kendi MON bakiyeni kullan."
           address={injected}
           balance={bal(injected)}
         >
@@ -148,7 +150,7 @@ export function Connect() {
           kind="mera"
           active={signer.kind === "mera"}
           title="Mera passkey"
-          desc="Category Labs'in passkey cüzdanı: tohum cümlesi yok, anahtar passkey'den türetilir ve yalnızca bellekte durur."
+          desc="Passkey ile giriş yap; tohum cümlesi gerekmez."
           address={mera}
           balance={bal(mera)}
         >
@@ -171,14 +173,9 @@ export function Connect() {
 
       {msg && <div className="rounded-lg border border-bad/50 bg-bad/10 p-3 text-sm">{msg}</div>}
 
-      <section className="card p-5 text-sm text-muted">
-        <b className="text-text">Kendi cüzdanınla:</b> testnet MON gerekir (
-        <a className="text-accent underline" href={FAUCET} target="_blank" rel="noreferrer">
-          faucet.monad.xyz
-        </a>
-        ). Her düğmenin altındaki maliyet etiketi, o işlemin cüzdanından ne kadar alacağını gösterir. Monad gas'ı limitten
-        kestiği için tutar göndermeden önce bellidir. Tarayıcı cüzdanında işlemi kendin onaylarsın; Mera ve geçici cüzdan
-        işlemi doğrudan imzalar ve <code>eth_sendRawTransactionSync</code> ile tek çağrıda receipt alır.
+      <section className="card p-6">
+        <div className="flex flex-wrap items-center justify-between gap-3"><div className="flex items-center gap-2 text-sm"><ShieldCheck size={17} className="text-good" /> Önizlemeler ücretsiz; cüzdan gerektirmez.</div><a className="button-secondary" href={FAUCET} target="_blank" rel="noreferrer">Testnet MON al <ArrowUpRight size={15} /></a></div>
+        <Details title="İmzalama ve ücretler">İşlem maliyeti her düğmenin altında gösterilir. Monad gas ücretini limitten keser. Tarayıcı cüzdanında işlemi kendin onaylarsın. Mera ve geçici cüzdan doğrudan imzalar; eth_sendRawTransactionSync ile receipt alır. Mera anahtarı passkey'den türetilir ve yalnızca bellekte durur. Harcamalar testnet MON cinsindendir.</Details>
       </section>
     </div>
   );

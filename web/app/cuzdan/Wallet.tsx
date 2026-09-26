@@ -9,6 +9,9 @@ import { fmtNum, fmtPct, fmtUsd, shortAddr, wadToNum } from "@/lib/kaskad/format
 import { collateralToSurvive, depegToLiquidation, repayToSurvive } from "@/lib/kaskad/math";
 import { previewScenario, type Result } from "../_components/useKaskad";
 
+import { Details, Help } from "@/components/ui/disclosure";
+import { ShieldCheck, ScanLine, Activity, Layers3 } from "lucide-react";
+
 const SAMPLES = [
   { label: "En büyük syrupUSDC borçlusu", address: "0x815f5BB257e88b67216a344C7C83a3eA4EE74748" },
   { label: "En büyük PT-AUSD borçlusu", address: "0x278AA16c5C8E1D68938A302e809F126863D81dAA" },
@@ -94,19 +97,22 @@ export function Wallet() {
 
   return (
     <div className="space-y-6">
+      <section className="page-intro">
+        <div className="eyebrow"><ShieldCheck size={13} /> CÜZDAN RİSK ANALİZİ</div>
+        <h1>Param güvende mi?</h1>
+        <p>Aave pozisyonunun bir sonraki şoka dayanıklılığını gör.</p>
+      </section>
       <section className="card p-6">
-        <h1 className="text-2xl font-bold">Param güvende mi?</h1>
-        <p className="mt-1 text-sm text-muted">
-          Monad mainnet'teki Aave pozisyonunu salt okunur olarak okuruz: hangi depeg'de likide olursun, kaskad seni nasıl
-          etkiler, ne yapmalısın.
-        </p>
-        <div className="mt-4 flex flex-wrap gap-2">
+        <div className="flex items-center gap-2 text-sm"><ScanLine size={17} className="text-accent" /> Cüzdanını kontrol et <span className="ml-auto badge">Salt okunur</span></div>
+
+        <div className="wallet-search mt-5 flex flex-wrap gap-2">
           <input
+            aria-label="Monad mainnet cüzdan adresi"
             value={input}
             onChange={(e) => setInput(e.target.value.trim())}
             onKeyDown={(e) => e.key === "Enter" && lookup(input)}
             placeholder="0x… mainnet cüzdan adresi"
-            className="min-w-0 flex-1 rounded-lg border border-line bg-panel-2 px-3 py-2 font-mono text-sm outline-none focus:border-accent"
+            className="min-w-0 basis-full md:basis-auto flex-1 rounded-lg border border-line bg-panel-2 px-3 py-2 font-mono text-sm outline-none focus:border-accent"
           />
           <button onClick={() => lookup(input)} className="rounded-lg bg-accent px-4 py-2 font-semibold text-white">
             {loading ? "Okunuyor…" : "Kontrol et"}
@@ -126,13 +132,15 @@ export function Wallet() {
           ))}
           {meraMsg && <span className="px-2 py-1 text-muted">{meraMsg}</span>}
         </div>
-        {err && <div className="mt-3 text-sm text-bad">{err}</div>}
+        {err && <div role="alert" className="mt-3 text-sm text-bad">{err}</div>}
       </section>
 
+      {!pos && !loading && <div className="wallet-empty"><div className="card"><ShieldCheck size={22} /><h2>Likidasyon eşiğin</h2><p>Pozisyonun hangi fiyat düşüşünde risk altında?</p></div><div className="card"><Activity size={22} /><h2>Kaskad etkisi</h2><p>Zincirleme satışlar borcunu nasıl etkiler?</p></div><div className="card"><Layers3 size={22} /><h2>Mevduat durumu</h2><p>Havuzun çekilebilir likiditesini ve kullanımını gör.</p></div></div>}
+      {loading && <div className="grid gap-5 md:grid-cols-2" aria-label="Cüzdan analizi yükleniyor"><div className="skeleton h-72" /><div className="skeleton h-72" /></div>}
       {pos && (
         <div className="grid gap-6 lg:grid-cols-2">
           <section className="card space-y-4 p-6">
-            <div className="flex items-baseline justify-between">
+            <div className="flex flex-wrap items-baseline justify-between gap-2">
               <h2 className="font-semibold">Borç tarafı</h2>
               <span className="text-xs text-muted">
                 {shortAddr(pos.address)} · blok #{fmtNum(pos.block)} · E-Mode {pos.eMode || "yok"}
@@ -172,14 +180,14 @@ export function Wallet() {
                         likide olursun.
                       </>
                     )}
-                    <div className="mt-1 text-xs text-muted">
+                    <Help label="Likidasyon eşiği varsayımı">
                       Baskın teminat {d.symbol} ({fmtUsd(d.suppliedUsd)}, LT %{d.ltBps / 100}); diğer teminatlar sabit fiyatlı
                       sayılır.
-                    </div>
+                    </Help>
                   </div>
                 )}
                 {d && cascade && cascadeDrop !== null && threshold !== null && (
-                  <div className="rounded-lg bg-panel-2 p-3 text-sm">
+                  <Details title="Kaskad pozisyonumu nasıl etkiler?">
                     Kaskad senaryosu ({d.symbol} −%3, gerçek defter): fiyat {fmtPct(cascadeDrop)} düşüyor; protokolde{" "}
                     <b className="text-warn">{fmtUsd(wadToNum(cascade.stuckDebt))}</b> borç likide edilemiyor,{" "}
                     <b className="text-bad">{fmtUsd(wadToNum(cascade.badDebt))}</b> karşılıksız kalıyor.{" "}
@@ -191,15 +199,15 @@ export function Wallet() {
                     <Link href="/" className="text-accent underline">
                       Senaryoyu aç
                     </Link>
-                  </div>
+                  </Details>
                 )}
                 {d && (
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span>Koruma hedefi: {d.symbol} şu kadar düşse bile HF ≥ 1,05</span>
+                      <span>Koruma hedefi · {d.symbol} · HF ≥ 1,05</span>
                       <span className="num font-mono font-bold">−%{shockPct}</span>
                     </div>
-                    <input type="range" min={1} max={30} value={shockPct} onChange={(e) => setShockPct(+e.target.value)} />
+                    <input aria-label="Koruma hedefi fiyat düşüşü" type="range" min={1} max={30} value={shockPct} onChange={(e) => setShockPct(+e.target.value)} />
                     <div className="grid grid-cols-2 gap-3 text-sm">
                       <div className="rounded-lg border border-line p-3">
                         <div className="num text-xl font-bold text-good">
@@ -255,7 +263,7 @@ export function Wallet() {
                   </tbody>
                 </table>
                 {lendUsd > 0 && headline && (
-                  <div className="rounded-lg bg-panel-2 p-3 text-sm">
+                  <Details title="Mevduatıma düşen yaklaşık zarar">
                     syrupUSDC −%20 kaskadında protokolde karşılıksız kalan borç{" "}
                     <b className="text-bad">{fmtUsd(wadToNum(headline.badDebt))}</b>. Borç verilen varlıklardaki payına düşen
                     yaklaşık zarar: <b className="text-bad">{fmtUsd(badShare)}</b>
@@ -263,12 +271,12 @@ export function Wallet() {
                       Yaklaşım: karşılıksız borç, borç verilen havuzlara mevduat payıyla dağıtılır (Aave'de önce Umbrella/rezervler
                       karşılar).
                     </div>
-                  </div>
+                  </Details>
                 )}
-                <p className="text-xs text-muted">
+                <Details title="Çekim riski nasıl hesaplandı?">
                   Kullanım oranı %100'e yaklaşırsa havuzda çekilecek nakit kalmaz; kaskad sırasında borçlular geri ödemediği için
                   mevduat sahipleri sıraya girer.
-                </p>
+                </Details>
               </>
             )}
           </section>
