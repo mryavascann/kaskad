@@ -10,6 +10,7 @@ import { simulateGasLimit } from "@/lib/kaskad/math";
 import { MAX_FEE_PER_GAS } from "@/lib/kaskad/tx";
 import { CascadeChart, CurveChart } from "./Charts";
 import { ComparePanel } from "./ComparePanel";
+import { confirmCost, CostTag } from "./CostTag";
 import { GuardPanel } from "./GuardPanel";
 import { LimitGauge } from "./LimitGauge";
 import { MonteCarlo } from "./MonteCarlo";
@@ -17,7 +18,6 @@ import { RECOVERY_BPS } from "@/lib/kaskad/recovery";
 import { engineFor, previewCurve, usePreview, type Result, type Scenario } from "./useKaskad";
 
 const CURVE_SHOCKS = [10, 50, 100, 300, 500, 1000, 2000, 3000];
-const BASE_FEE_GWEI = 102n; // what the chain actually charges today (min base fee 100 gwei + tip)
 const ETH_SYRUP = 15; // syrupUSDT positions from Aave on Ethereum, simulated on Monad
 const ETH_BOOKS = [7, 13, 14, 15]; // books read from Aave on Ethereum
 
@@ -240,10 +240,9 @@ export function Protocol() {
   // amounts on a partial calibrated book are scaled to the full book's debt
   const scale = r && useCal ? asset.debtUsd / Math.max(1, wadToNum(r.totalDebt)) : 1;
   const gasLimit = r ? simulateGasLimit(r.gasUsed, r.rounds) : 0n;
-  const costMon = Number(gasLimit * BASE_FEE_GWEI) / 1e9;
 
   async function simulate() {
-    if (!r) return;
+    if (!r || !confirmCost(gasLimit)) return;
     setSending(true);
     setTx(null);
     try {
@@ -453,9 +452,10 @@ export function Protocol() {
           >
             {sending ? "Gönderiliyor…" : "Zincirde kanıtla"}
           </button>
+          <CostTag gasLimit={r ? gasLimit : null} />
           <div className="text-xs text-muted">
             Ekrandaki sonuç ücretsiz önizleme (eth_call). Bu buton aynı hesabı Monad'da bir tx olarak çalıştırır; herkes
-            doğrulayabilir. Maliyet ≈ <b className="text-text">{costMon.toFixed(3)} MON</b> (testnet, sponsor öder).
+            doğrulayabilir. Monad gas'ı kullanılan miktardan değil limitten keser, bu yüzden maliyet göndermeden önce bellidir.
             {burner && (
               <>
                 {" "}

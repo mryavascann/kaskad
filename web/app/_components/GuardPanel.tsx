@@ -9,6 +9,7 @@ import { simulateGasLimit } from "@/lib/kaskad/math";
 import { MAX_FEE_PER_GAS } from "@/lib/kaskad/tx";
 import { fmtPct } from "@/lib/kaskad/format";
 import { previewScenario, type Scenario } from "./useKaskad";
+import { confirmCost, CostTag } from "./CostTag";
 
 type MarketState = { paused: boolean; maxLtvBps: number; borrowed: bigint };
 const BORROW_GAS = 80_000n;
@@ -30,7 +31,9 @@ function Market({
   onBorrow,
   busy,
   msg,
+  borrowGas,
 }: {
+  borrowGas: bigint;
   title: string;
   subtitle: string;
   s: MarketState | null;
@@ -62,6 +65,7 @@ function Market({
       >
         Borç almayı dene
       </button>
+      <CostTag gasLimit={borrowGas} />
       {msg && <div className="mt-2 text-xs">{msg}</div>}
     </div>
   );
@@ -76,6 +80,22 @@ export function GuardPanel() {
   const [tripTx, setTripTx] = useState<string | null>(null);
   const [msgA, setMsgA] = useState<string | null>(null);
   const [msgB, setMsgB] = useState<string | null>(null);
+  const [guardGas, setGuardGas] = useState<bigint | null>(null);
+
+  // the Guard's own scenario decides what refresh() costs: preview it once (free)
+  useEffect(() => {
+    let live = true;
+    (async () => {
+      try {
+        const sc = (await publicClient.readContract({ address: guard, abi: guardAbi, functionName: "scenario" })) as Scenario;
+        const p = await previewScenario(sc);
+        if (live) setGuardGas(simulateGasLimit(p.gasUsed, p.rounds) + 150_000n);
+      } catch {}
+    })();
+    return () => {
+      live = false;
+    };
+  }, [guard]);
 
   const refresh = useCallback(async () => {
     try {
@@ -102,6 +122,7 @@ export function GuardPanel() {
       const sc = (await publicClient.readContract({ address: guard, abi: guardAbi, functionName: "scenario" })) as Scenario;
       const p = await previewScenario(sc);
       const gas = simulateGasLimit(p.gasUsed, p.rounds) + 150_000n;
+      if (!confirmCost(gas)) return;
       await ensureFunded(gas * MAX_FEE_PER_GAS, setStatus);
       setStatus("Guard.refresh() gönderiliyor…");
       const { receipt, ms } = await sendBurnerTx(guard, encodeFunctionData({ abi: guardAbi, functionName: "refresh" }), gas);
@@ -158,6 +179,7 @@ export function GuardPanel() {
           busy={busy}
           msg={msgA}
           onBorrow={() => borrow(marketA, setMsgA)}
+          borrowGas={BORROW_GAS}
         />
         <Market
           title="Piyasa B"
@@ -166,6 +188,7 @@ export function GuardPanel() {
           busy={busy}
           msg={msgB}
           onBorrow={() => borrow(marketB, setMsgB)}
+          borrowGas={BORROW_GAS}
         />
       </div>
       <button
@@ -175,6 +198,7 @@ export function GuardPanel() {
       >
         Guard'ı çalıştır
       </button>
+      <CostTag gasLimit={guardGas} />
       {status && (
         <div className="mt-2 text-sm text-muted">
           {status}{" "}

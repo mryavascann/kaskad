@@ -8,6 +8,8 @@ import {
   monadMemoryGas,
   repayToSurvive,
   simulateGasLimit,
+  monteCarloGasLimit,
+  monCost,
 } from "./math";
 import { calibrateBook, realToPacked, type RealPosition } from "./calibrate";
 
@@ -98,8 +100,16 @@ describe("risk math", () => {
     expect(collateralToSurvive(10_000_000, 0, lt, d, shock)).toBe(0);
   });
 
-  it("gas limit is above the measured engine gas", () => {
+  it("gas limit is above the measured engine gas and capped at 30M", () => {
     expect(simulateGasLimit(1_000_000n, 10)).toBe(1_150_000n + 40_000n + 250_000n);
+    expect(simulateGasLimit(29_000_000n, 48)).toBe(30_000_000n);
+    expect(monteCarloGasLimit(29_368_722n)).toBe(30_000_000n);
+    expect(monteCarloGasLimit(1_000_000n)).toBe(1_400_000n);
+  });
+
+  it("MON cost = gas limit x 102 gwei (Monad charges the limit)", () => {
+    expect(monCost(30_000_000n)).toBeCloseTo(3.06, 10);
+    expect(monCost(80_000n)).toBeCloseTo(0.00816, 10);
   });
 });
 

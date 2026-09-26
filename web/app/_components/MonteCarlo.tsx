@@ -9,6 +9,8 @@ import { DEPLOYMENT, txUrl } from "@/lib/kaskad/config";
 import { fmtBytes, fmtGas, fmtNum, fmtPct, fmtUsd, wadToNum } from "@/lib/kaskad/format";
 import { MONAD_MEMORY_LIMIT, MONAD_TX_GAS_LIMIT } from "@/lib/kaskad/math";
 import { MAX_FEE_PER_GAS } from "@/lib/kaskad/tx";
+import { monteCarloGasLimit } from "@/lib/kaskad/math";
+import { confirmCost, CostTag } from "./CostTag";
 import type { Scenario } from "./useKaskad";
 
 type MC = {
@@ -98,10 +100,11 @@ export function MonteCarlo({ base, symbol }: { base: Scenario; symbol: string })
 
   async function prove() {
     if (!r || !DEPLOYMENT.contracts.kaskadMC) return;
+    const gas = monteCarloGasLimit(r.gasUsed);
+    if (!confirmCost(gas)) return;
     setSending(true);
     setTxHash(null);
     try {
-      const gas = (r.gasUsed * 115n) / 100n + 250_000n;
       await ensureFunded(gas * MAX_FEE_PER_GAS, setTxMsg);
       setTxMsg("simulateMC gönderiliyor…");
       const data = encodeFunctionData({ abi: kaskadMCAbi, functionName: "simulateMC", args: [base, BigInt(paths), SEED] });
@@ -225,20 +228,26 @@ export function MonteCarlo({ base, symbol }: { base: Scenario; symbol: string })
             )}
           </div>
           <div className="flex gap-2">
-            <button
-              onClick={findLimit}
-              disabled={searching}
-              className="rounded-lg border border-accent px-3 py-2 text-sm hover:bg-accent/20 disabled:opacity-50"
-            >
-              {searching ? "Ölçülüyor…" : "Sınırı bul"}
-            </button>
-            <button
-              onClick={prove}
-              disabled={!r || sending}
-              className="rounded-lg bg-accent px-3 py-2 text-sm font-semibold text-white disabled:opacity-50"
-            >
-              {sending ? "Gönderiliyor…" : "Zincirde kanıtla"}
-            </button>
+            <div>
+              <button
+                onClick={findLimit}
+                disabled={searching}
+                className="w-full rounded-lg border border-accent px-3 py-2 text-sm hover:bg-accent/20 disabled:opacity-50"
+              >
+                {searching ? "Ölçülüyor…" : "Sınırı bul"}
+              </button>
+              <CostTag free />
+            </div>
+            <div>
+              <button
+                onClick={prove}
+                disabled={!r || sending}
+                className="w-full rounded-lg bg-accent px-3 py-2 text-sm font-semibold text-white disabled:opacity-50"
+              >
+                {sending ? "Gönderiliyor…" : "Zincirde kanıtla"}
+              </button>
+              <CostTag gasLimit={r ? monteCarloGasLimit(r.gasUsed) : null} />
+            </div>
           </div>
         </div>
         {txMsg && (

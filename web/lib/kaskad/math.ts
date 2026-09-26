@@ -64,8 +64,24 @@ export function repayToSurvive(
   return Math.max(0, debtUsd - maxDebt);
 }
 
-/** Gas limit for a real simulate() tx from the free preview's measured engine gas. */
+const TX_CAP = BigInt(MONAD_TX_GAS_LIMIT);
+const min = (a: bigint, b: bigint) => (a < b ? a : b);
+
+/** Gas limit for a real simulate() tx from the free preview's measured engine gas (<= 30M). */
 export function simulateGasLimit(previewGas: bigint, rounds: number): bigint {
   // engine x1.15 + events (~4k each) + summary storage, calldata and intrinsic
-  return (previewGas * 115n) / 100n + BigInt(rounds) * 4_000n + 250_000n;
+  return min((previewGas * 115n) / 100n + BigInt(rounds) * 4_000n + 250_000n, TX_CAP);
+}
+
+/** Gas limit for simulateMC from the preview's engine gas (<= 30M). */
+export function monteCarloGasLimit(previewGas: bigint): bigint {
+  return min((previewGas * 115n) / 100n + 250_000n, TX_CAP);
+}
+
+/** Effective price Monad testnet charges today: min base fee 100 gwei + 2 gwei tip. */
+export const CHARGED_GWEI = 102n;
+
+/** Monad charges gas_limit x price, so the cost of a tx is known before sending it. */
+export function monCost(gasLimit: bigint): number {
+  return Number(gasLimit * CHARGED_GWEI) / 1e9;
 }
