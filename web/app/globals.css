@@ -1,0 +1,53 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #07080c;
+  --panel: #10131b;
+  --panel-2: #161a25;
+  --line: #242a3a;
+  --text: #e8eaf2;
+  --muted: #8b92a8;
+  --accent: #836ef9; /* Monad purple */
+  --bad: #ff4d5e;
+  --good: #3ddc97;
+  --warn: #ffb547;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-panel: var(--panel);
+  --color-panel-2: var(--panel-2);
+  --color-line: var(--line);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-bad: var(--bad);
+  --color-good: var(--good);
+  --color-warn: var(--warn);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+.card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+input[type="range"] {
+  accent-color: var(--accent);
+  width: 100%;
+}
