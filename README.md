@@ -124,7 +124,7 @@ npm run smoke        # önizlemeler (kanıt tx'i için: -- --send --guard)
 npm run reset-guard  # demo sonrası Piyasa B'yi yeniden aç
 
 # web
-cd web && npm i && npm run dev   # web/.env.local: MONAD_TESTNET_RPC, MONAD_MAINNET_RPC, SPONSOR_PRIVATE_KEY, NEXT_PUBLIC_MONAD_TESTNET_RPC
+cd web && npm i && npm run dev   # web/.env.local: MONAD_TESTNET_RPC, MONAD_MAINNET_RPC, SPONSOR_PRIVATE_KEY (hepsi sunucuda)
 npm test                         # vitest: paketleme, HF, likidasyon eşiği, bellek maliyeti, kalibrasyon
 ```
 
@@ -139,7 +139,7 @@ npm test                         # vitest: paketleme, HF, likidasyon eşiği, be
   - `d / 2` sonrası çarpma: %50 close factor'ün kendisi; kayıp ≤ 1 wei.
   - `setGuard` sıfır adres kontrolü: sıfır adres "Guard'ı kaldır" anlamına geliyor, yalnızca owner çağırabilir.
   - `Guard.refresh` çağrı sonrası event: çağrılan motor `immutable` ve güvenilir, geri çağrı yapmıyor.
-- Özel anahtarlar yalnızca sunucuda (`SPONSOR_PRIVATE_KEY`). `/api/fund` adres doğruluyor, adres ve IP başına hız limiti uyguluyor, hibe tavanı koyuyor ve 10 MON rezervi koruyor. Burner anahtarı yalnızca testnette ve yalnızca bu uygulama için kullanılıyor.
+- Özel anahtarlar ve RPC anahtarları yalnızca sunucuda. Tarayıcı `/api/rpc` proxy'si üzerinden konuşur: yalnızca izinli metodlar geçer, IP başına hız limiti var; Alchemy anahtarı tarayıcıya hiç çıkmaz. `/api/fund` adres doğruluyor, adres ve IP başına hız limiti uyguluyor, hibe tavanı koyuyor ve 10 MON rezervi koruyor. Burner anahtarı yalnızca testnette ve yalnızca bu uygulama için kullanılıyor.
 
 ## Sınırlamalar
 

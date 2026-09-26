@@ -33,7 +33,11 @@ export const CALIBRATED = 256;
 export const UI_ASSET_ORDER = [9, 15, 12, 2, 10, 8]; // 15: syrupUSDC positions from Aave Ethereum
 export const UI_ASSETS: AssetInfo[] = UI_ASSET_ORDER.map((id) => DEPLOYMENT.assets[id]).filter(Boolean);
 
-export const TESTNET_RPC = process.env.NEXT_PUBLIC_MONAD_TESTNET_RPC ?? "https://testnet-rpc.monad.xyz";
+// The browser talks to our own /api/rpc proxy so the Alchemy key stays on the server.
+// NEXT_PUBLIC_MONAD_TESTNET_RPC can override it (e.g. a local anvil in development).
+export const TESTNET_RPC =
+  process.env.NEXT_PUBLIC_MONAD_TESTNET_RPC ??
+  (typeof window !== "undefined" ? `${window.location.origin}/api/rpc` : "https://testnet-rpc.monad.xyz");
 export const EXPLORER = "https://testnet.monadscan.com";
 export const txUrl = (h: string) => `${EXPLORER}/tx/${h}`;
 export const addrUrl = (a: string) => `${EXPLORER}/address/${a}`;
