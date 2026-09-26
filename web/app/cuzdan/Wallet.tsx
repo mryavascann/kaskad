@@ -15,16 +15,16 @@ const SAMPLES = [
 ];
 
 /** Headline cascade for an asset: real book, -3%, market oracle (as on the protocol screen). */
-async function cascadeFor(assetId: number): Promise<Result | null> {
+async function cascadeFor(assetId: number, shockBps = 300): Promise<Result | null> {
   const a = DEPLOYMENT.assets[assetId];
   if (!a) return null;
   return previewScenario({
     assetId,
-    shockBps: 300,
+    shockBps,
     steps: 20,
     maxRoundsPerStep: 3,
     maxPositions: a.realPositions,
-    oracleFeedbackBps: 10_000,
+    oracleFeedbackBps: 0,
   }).catch(() => null);
 }
 
@@ -39,7 +39,7 @@ export function Wallet() {
   const [meraMsg, setMeraMsg] = useState<string | null>(null);
 
   useEffect(() => {
-    cascadeFor(9).then(setHeadline);
+    cascadeFor(9, 2000).then(setHeadline);
   }, []);
 
   async function lookup(addr: string) {
@@ -180,9 +180,9 @@ export function Wallet() {
                 )}
                 {d && cascade && cascadeDrop !== null && threshold !== null && (
                   <div className="rounded-lg bg-panel-2 p-3 text-sm">
-                    Kaskad senaryosu ({d.symbol} −%3, oracle havuz fiyatını izler, gerçek defter): likidasyon satışlarıyla fiyat{" "}
-                    <b className="text-bad">{fmtPct(cascadeDrop)}</b> düşüyor, protokolde karşılıksız kalan borç{" "}
-                    <b className="text-bad">{fmtUsd(wadToNum(cascade.badDebt))}</b>.{" "}
+                    Kaskad senaryosu ({d.symbol} −%3, gerçek defter): fiyat {fmtPct(cascadeDrop)} düşüyor; protokolde{" "}
+                    <b className="text-warn">{fmtUsd(wadToNum(cascade.stuckDebt))}</b> borç likide edilemiyor,{" "}
+                    <b className="text-bad">{fmtUsd(wadToNum(cascade.badDebt))}</b> karşılıksız kalıyor.{" "}
                     {threshold < cascadeDrop ? (
                       <b className="text-bad">Bu senaryoda pozisyonun likide olur.</b>
                     ) : (
@@ -256,7 +256,7 @@ export function Wallet() {
                 </table>
                 {lendUsd > 0 && headline && (
                   <div className="rounded-lg bg-panel-2 p-3 text-sm">
-                    syrupUSDC −%3 kaskadında (oracle havuz fiyatını izler) protokolde karşılıksız kalan borç{" "}
+                    syrupUSDC −%20 kaskadında protokolde karşılıksız kalan borç{" "}
                     <b className="text-bad">{fmtUsd(wadToNum(headline.badDebt))}</b>. Borç verilen varlıklardaki payına düşen
                     yaklaşık zarar: <b className="text-bad">{fmtUsd(badShare)}</b>
                     <div className="mt-1 text-xs text-muted">

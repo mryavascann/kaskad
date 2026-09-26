@@ -30,7 +30,7 @@ export const DEPLOYMENT = deployment as unknown as {
 };
 
 export const CALIBRATED = 256;
-export const UI_ASSET_ORDER = [9, 12, 2, 5, 10, 8, 15, 14, 13, 7]; // 7, 13-15: books read from Aave on Ethereum
+export const UI_ASSET_ORDER = [9, 12, 2, 5, 8, 15, 14, 13, 7]; // 7, 13-15: books read from Aave on Ethereum
 export const UI_ASSETS: AssetInfo[] = UI_ASSET_ORDER.map((id) => DEPLOYMENT.assets[id]).filter(Boolean);
 
 // The browser talks to our own /api/rpc proxy so the Alchemy key stays on the server.

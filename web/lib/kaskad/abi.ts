@@ -1925,6 +1925,25 @@ export const kaskadMCAbi = [
   },
   {
     "type": "function",
+    "name": "recoveryBps",
+    "inputs": [
+      {
+        "name": "assetId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint16",
+        "internalType": "uint16"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "renounceOwnership",
     "inputs": [],
     "outputs": [],
@@ -1974,6 +1993,24 @@ export const kaskadMCAbi = [
         "name": "sourceBlock_",
         "type": "uint64",
         "internalType": "uint64"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "setRecovery",
+    "inputs": [
+      {
+        "name": "assetId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "bps",
+        "type": "uint16",
+        "internalType": "uint16"
       }
     ],
     "outputs": [],
@@ -2499,6 +2536,25 @@ export const kaskadMCAbi = [
   },
   {
     "type": "event",
+    "name": "RecoverySet",
+    "inputs": [
+      {
+        "name": "assetId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "bps",
+        "type": "uint16",
+        "indexed": false,
+        "internalType": "uint16"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
     "name": "Round",
     "inputs": [
       {
@@ -2670,6 +2726,11 @@ export const kaskadMCAbi = [
         "internalType": "uint256"
       }
     ]
+  },
+  {
+    "type": "error",
+    "name": "InvalidRecovery",
+    "inputs": []
   },
   {
     "type": "error",

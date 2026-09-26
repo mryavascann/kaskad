@@ -13,7 +13,8 @@ import { ComparePanel } from "./ComparePanel";
 import { GuardPanel } from "./GuardPanel";
 import { LimitGauge } from "./LimitGauge";
 import { MonteCarlo } from "./MonteCarlo";
-import { previewCurve, usePreview, type Result, type Scenario } from "./useKaskad";
+import { RECOVERY_BPS } from "@/lib/kaskad/recovery";
+import { engineFor, previewCurve, usePreview, type Result, type Scenario } from "./useKaskad";
 
 const CURVE_SHOCKS = [10, 50, 100, 300, 500, 1000, 2000, 3000];
 const BASE_FEE_GWEI = 102n; // what the chain actually charges today (min base fee 100 gwei + tip)
@@ -39,7 +40,7 @@ const BASE: Settings = {
   shockPct: 3,
   steps: 20,
   rounds: 3,
-  feedback: 10_000,
+  feedback: 0, // realistic default: the oracle follows the external price (Chainlink / exchange rate)
   calibrated: false,
   resolution: 10_000,
 };
@@ -56,15 +57,15 @@ const PRESETS: Preset[] = [
     id: "sali",
     emoji: "🌪️",
     title: "Salı Depegi",
-    story: "syrupUSDC 20 blokta %3 düşüyor, oracle zincir üstü havuz fiyatını izliyor.",
+    story: "syrupUSDC %3 düşüyor. Havuz o kadar sığ ki likidatörler borcu temizleyemiyor.",
     s: { ...BASE },
   },
   {
-    id: "maple",
-    emoji: "🧊",
-    title: "Kur oracle'ı kalkanı",
-    story: "Aynı %3, ama Aave'nin gerçek oracle'ı gibi fiyatı Maple kuru belirliyor.",
-    s: { ...BASE, feedback: 0 },
+    id: "worst",
+    emoji: "💥",
+    title: "En kötü durum: oracle havuza bağlı",
+    story: "Aynı %3, ama oracle anlık DEX fiyatını izlese (manipülasyona açık tasarım): sarmal.",
+    s: { ...BASE, feedback: 10_000 },
   },
   {
     id: "pt",
@@ -84,7 +85,7 @@ const PRESETS: Preset[] = [
     id: "eth",
     emoji: "📉",
     title: "ETH %20 çakılırsa",
-    story: "Klasik pozisyon: ETH yatır, USDC borç al. Ethereum Aave'de $513M borç, ETH 20 blokta %20 düşüyor.",
+    story: "Klasik pozisyon: ETH yatır, USDC borç al. Ethereum Aave'de $513M borç, ETH %20 düşüyor.",
     s: { ...BASE, assetId: 7, shockPct: 20 },
   },
   {
@@ -108,6 +109,7 @@ const usd = (w: bigint, scale = 1) => fmtUsd(wadToNum(w) * scale);
 
 /** Plain-Turkish story of what the cascade did. */
 function narrate(r: Result, a: AssetInfo, s: Settings, scale: number): string {
+  const rec = RECOVERY_BPS[a.id]?.bps ?? 0;
   const name = sym(a);
   const p0 = wadToNum(r.startPrice);
   const pf = wadToNum(r.finalPrice);
@@ -118,7 +120,11 @@ function narrate(r: Result, a: AssetInfo, s: Settings, scale: number): string {
   t +=
     s.feedback > 0
       ? `Oracle zincir üstü havuz fiyatını izlediği için her satış fiyatı daha da düşürüyor ve yeni likidasyonlar tetikliyor: fiyat $${p0.toFixed(3)} → $${pf.toFixed(3)} (−${fmtPct(drop, 0)}). `
-      : `Oracle dış fiyatı (kur / Chainlink) izlediği için satışlar fiyatı düşürmüyor, sarmal kırılıyor. Ama havuz sığ: likidatör bir noktadan sonra zarar edeceği için satmayı bırakıyor. `;
+      : `Oracle dış fiyatı (Chainlink / kur) izlediği için satışlar oracle'ı düşürmüyor, sarmal oluşmuyor. ${
+          rec >= 5_000
+            ? "Arbitrajcılar havuzu her blokta dış fiyata geri çektiği için likidatörler satmaya devam edebiliyor. "
+            : "Ama havuzu dışarıdan dolduran arbitraj yok denecek kadar az: likidatör bir noktadan sonra zarar edeceği için satmayı bırakıyor. "
+        }`;
   const bad = wadToNum(r.badDebt) * scale;
   const stuck = wadToNum(r.stuckDebt) * scale;
   t +=
@@ -244,7 +250,7 @@ export function Protocol() {
       await ensureFunded(gasLimit * MAX_FEE_PER_GAS, setTxStatus);
       setTxStatus("Zincire gönderiliyor (eth_sendRawTransactionSync)…");
       const data = encodeFunctionData({ abi: kaskadAbi, functionName: "simulate", args: [scenario] });
-      const { receipt, ms, sync } = await sendBurnerTx(DEPLOYMENT.contracts.kaskad, data, gasLimit);
+      const { receipt, ms, sync } = await sendBurnerTx(engineFor(scenario.assetId), data, gasLimit);
       setTx({ hash: receipt.transactionHash, ms, sync });
       const done = receipt.logs
         .map((l) => {
@@ -355,8 +361,8 @@ export function Protocol() {
               value={st.feedback}
               onChange={(v) => set({ feedback: v })}
               options={[
-                { v: 10_000, label: "Zincir üstü havuz fiyatı", hint: "likidasyon satışları fiyatı düşürür" },
-                { v: 0, label: "Dış fiyat (kur / Chainlink)", hint: "satışlar fiyatı etkilemez" },
+                { v: 0, label: "Dış fiyat (Chainlink / kur)", hint: "gerçekçi · Aave böyle çalışır" },
+                { v: 10_000, label: "Anlık havuz fiyatı", hint: "en kötü durum · manipülasyona açık" },
               ]}
             />
           </div>
@@ -429,6 +435,14 @@ export function Protocol() {
               <span className="rounded bg-good/20 px-1 text-good">ölçüldü</span>
             )}
             <div className="mt-1">{asset.depthNote}</div>
+            {!useCal && (
+              <div className="mt-1">
+                Bloklar arası arbitraj toparlanması:{" "}
+                <b className="text-text">%{fmtNum((RECOVERY_BPS[st.assetId]?.bps ?? 0) / 100)}</b>{" "}
+                <span className="rounded bg-warn/20 px-1 text-warn">varsayım</span> ·{" "}
+                {RECOVERY_BPS[st.assetId]?.why ?? "toparlanma yok"}
+              </div>
+            )}
             {st.assetId === 12 && <div className="mt-1">PT-AUSD 8 Ekim 2026'da vadesine eriyor; fiyatı 1'e yakınsıyor.</div>}
             {isEth && <div className="mt-1">Pozisyonlar Ethereum Aave'den okundu; simülasyon Monad'da çalışır.</div>}
           </div>
@@ -459,17 +473,30 @@ export function Protocol() {
         <section className="space-y-6">
           <div className="card p-6">
             <div className="flex items-start justify-between gap-4">
-              <div>
-                <div className="text-sm uppercase tracking-wider text-muted">Karşılıksız kalan borç</div>
-                <div className="num text-7xl font-black leading-none text-bad md:text-8xl">
-                  {r ? usd(r.badDebt, scale) : "…"}
-                </div>
-                {r && (
-                  <div className="mt-2 text-sm text-muted">
-                    toplam borcun {fmtPct(wadToNum(r.badDebt) / Math.max(1, wadToNum(r.totalDebt)))}'i
-                    {useCal && " · tam deftere ölçeklendi"}
+              <div className="grid gap-6 sm:grid-cols-2">
+                <div>
+                  <div className="text-sm uppercase tracking-wider text-muted">Karşılıksız kalan borç</div>
+                  <div className="num text-6xl font-black leading-none text-bad md:text-7xl">
+                    {r ? usd(r.badDebt, scale) : "…"}
                   </div>
-                )}
+                  {r && (
+                    <div className="mt-2 text-sm text-muted">
+                      borcun {fmtPct(wadToNum(r.badDebt) / Math.max(1, wadToNum(r.totalDebt)))}'i · kimse ödemeyecek
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <div className="text-sm uppercase tracking-wider text-muted">Likide edilemeyen borç</div>
+                  <div className="num text-6xl font-black leading-none text-warn md:text-7xl">
+                    {r ? usd(r.stuckDebt, scale) : "…"}
+                  </div>
+                  {r && (
+                    <div className="mt-2 text-sm text-muted">
+                      borcun {fmtPct(wadToNum(r.stuckDebt) / Math.max(1, wadToNum(r.totalDebt)))}'i · bekleyen bomba
+                      {useCal && " · tam deftere ölçeklendi"}
+                    </div>
+                  )}
+                </div>
               </div>
               <div className="text-right text-xs text-muted">
                 {loading ? "hesaplanıyor…" : r ? `önizleme ${Math.round(ms)} ms` : ""}
@@ -479,8 +506,10 @@ export function Protocol() {
               </div>
             </div>
             <p className="mt-3 text-xs text-muted">
-              Teminatı borcunun altına düşen pozisyonlarda kimsenin geri ödemeyeceği para. Teminatın hepsi satılsa bile
-              kapanmayan bu açığı sonunda protokol, yani paraya faiz için yatıran mevduat sahipleri öder.
+              <b className="text-bad">Karşılıksız:</b> teminatı borcunun altına düşmüş, hepsi satılsa bile kapanmayan açık;
+              sonunda mevduat sahipleri öder. <b className="text-warn">Likide edilemeyen:</b> pozisyon eşiğin altında ama
+              havuz o kadar sığ ki likidatör satarsa zarar eder; kimse dokunmuyor, fiyat biraz daha düşerse karşılıksız
+              kalır.
             </p>
             {error && <div className="mt-3 rounded-lg border border-bad/50 bg-bad/10 p-3 text-sm">{error}</div>}
             {r && (
@@ -495,12 +524,7 @@ export function Protocol() {
                     hint="Likidatörlerin ödeyip kapattığı borç"
                     value={usd(r.totalLiquidated, scale)}
                   />
-                  <Stat
-                    label="likide edilemeyen riskli borç"
-                    hint="Eşiğin altında ama havuz sığ olduğu için likidatörün zarar edeceği borç"
-                    value={usd(r.stuckDebt, scale)}
-                    tone="warn"
-                  />
+                  <Stat label="toplam borç" value={usd(r.totalDebt, scale)} />
                   <Stat label={`satış dalgası · ${fmtNum(r.liquidations)} likidasyon`} value={fmtNum(r.rounds)} />
                   <Stat
                     label={`son fiyat (başta $${wadToNum(r.startPrice).toFixed(3)})`}
@@ -564,8 +588,9 @@ export function Protocol() {
             <div className="py-16 text-center text-muted">hesaplanıyor…</div>
           )}
           <p className="mt-2 text-xs text-muted">
-            Kırmızı: oracle zincir üstü havuz fiyatını izlerse likidasyon satışları fiyatı düşürür, düşen fiyat yeni likidasyon tetikler
-            (sarmal). Yeşil: oracle kuru izlerse sarmal kırılır; zarar ancak şok teminatı borcun altına itince başlar.
+            Yeşil: gerçekçi durum, oracle dış fiyatı (Chainlink / kur) izler; zarar ancak şok teminatı borcun altına itince
+            başlar. Kırmızı: en kötü durum, oracle anlık havuz fiyatını izler; satışlar fiyatı düşürür, düşen fiyat yeni
+            likidasyon tetikler (sarmal).
           </p>
         </div>
       </div>

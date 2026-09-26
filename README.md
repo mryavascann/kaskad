@@ -30,31 +30,30 @@ Bir pozisyonun teminatı borcunun altına düşerse, teminatın tamamı satılsa
 
 ## Öne çıkan sonuç (gerçek Aave Monad defteri, syrupUSDC −%3)
 
-| Fiyatı kim söylüyor? | Likide edilen | **Karşılıksız kalan borç** | Likide edilemeyen | Son fiyat |
+| Senaryo | Likide edilen | **Karşılıksız kalan** | **Likide edilemeyen** | Son fiyat |
 |---|---|---|---|---|
-| Borsa fiyatı (oracle DEX'i izler) | $2,7M | **$115,9M** | $0 | $1,18 → $0,05 |
-| Kur oracle'ı (Aave'deki gerçek durum) | $0,13M | **$0** | $111M | $1,18 → $1,15 |
-| Kur oracle'ı, −%12 | $0,13M | **$2,3M** | $6,9M | → $1,04 |
+| Gerçekçi: oracle dış fiyatı (Maple kuru) izler, −%3 | $0,13M | $0 | **$111M** | $1,18 → $1,15 |
+| Gerçekçi, −%20 | $0,13M | **$13,3M** | $0,1M | → $0,95 |
+| En kötü durum: oracle anlık DEX fiyatını izler, −%3 | $2,7M | **$115,9M** | $0 | $1,18 → $0,05 |
 
-**Oracle tasarımı $116M'lık fark yaratıyor.** Borsa fiyatını izleyen bir oracle ile $7M derinlikteki havuz ölüm sarmalına giriyor. Kur oracle'ı sarmalı kırıyor, ama likidatörler sığ havuzda kâr edemediği için $111M borç likide edilemeden bekliyor.
+**Gerçekçi durumda asıl risk "likide edilemeyen borç".** $7M'lık havuz, likidatörlerin $124M'lık defteri temizlemesine yetmiyor ve havuzu dışarıdan dolduracak arbitraj yok (Maple itfası günler sürüyor). %3'lük depeg $111M borcu likide edilemez hale getiriyor; şok %20'ye çıkınca bunun $13M'ı karşılıksız kalıyor. Oracle anlık havuz fiyatına bağlı olsaydı (manipülasyona açık tasarım) aynı %3 ölüm sarmalına dönerdi. Uygulama bunu ayrı ve etiketli bir **en kötü durum** senaryosu olarak gösteriyor.
 
 ## Monad ↔ Ethereum: aynı şok, iki ağın verisi
 
-Karşılaştırma defterleri Ethereum Aave V3'ten okundu (Envio HyperSync + public RPC). Simülasyonun tamamı yine Monad'da çalışıyor. −%3, oracle zincir üstü havuz fiyatını izliyor:
+Karşılaştırma defterleri Ethereum Aave V3'ten okundu (Envio HyperSync + public RPC); Ethereum'a hiçbir tx gönderilmedi. Simülasyonun tamamı Monad'da çalışıyor. Gerçekçi modda, yani oracle dış fiyatı izlerken ve arbitraj toparlanması açıkken:
 
-| Defter | Borç | DEX derinliği | Derinlik / borç | Karşılıksız kalan |
-|---|---|---|---|---|
-| syrupUSDC (Monad) | $123,7M | $7,0M | %5,7 | $115,9M |
-| syrupUSDT (Ethereum, aynı Maple döngüsü) | $98,8M | $5,1M | %5,2 | $71,8M |
-| USDe (Monad) | $46,7M | $1M (varsayım) | %2,1 | $44,0M |
-| USDe (Ethereum) | $515,6M | $47,8M | %9,3 | $276,8M |
-| USDC (Ethereum, USDC borçlu döngüler hariç) | $26,9M | $631,6M | %2.352 | $0 |
+| Defter | Borç | DEX derinliği | Arbitraj/blok (varsayım) | −%3: karşılıksız / likide edilemeyen | −%20: karşılıksız / likide edilemeyen |
+|---|---|---|---|---|---|
+| syrupUSDC (Monad) | $123,7M | $7,0M | %0 | $0 / **$111M** | **$13,3M** / $0,1M |
+| syrupUSDT (Ethereum, aynı Maple döngüsü) | $98,8M | $5,1M | %0 | $0 / **$93,8M** | **$10,4M** / $4,4M |
+| USDe (Monad) | $46,7M | $1M (varsayım) | %10 | $0 / **$45,6M** | **$5,1M** / $0,6M |
+| USDe (Ethereum) | $515,6M | $47,8M | %50 | $0 / **$279M** | **$54,1M** / $11,2M |
+| USDC (Ethereum, USDC borçlu döngüler hariç) | $26,9M | $631,6M | %90 | $0 / $0 | $0 / $0 |
+| WETH (Monad), ETH yatır, stablecoin borç al | $2,1M | $25M (varsayım) | %50 | $0 / $0 | $0 / $0 |
+| WETH (Ethereum), aynı klasik pozisyon | $513,2M | $430M | %90 | $0 / $0 | $0 / $0,2M |
 
-**Derinlik tek başına değil, riskteki borca oranla önemli.** Ethereum USDe havuzu 48 kat daha derin, ama üstündeki borç da 11 kat büyük.
-
-**Klasik pozisyon: ETH yatır, stablecoin borç al.** ETH −%20 düşerse:
-- Monad WETH ($2,1M borç): kayıpsız atlatıyor.
-- Ethereum WETH ($513M borç, $430M stablecoin-DEX derinliği): $64M karşılıksız borç çıkıyor. ETH'nin gerçek oracle'ı CEX'leri de izlediği için bu, üst sınır bir stres senaryosu.
+- **Derinlik tek başına değil, riskteki borca oranla ve arbitraj kaynağıyla birlikte önemli.** Ethereum USDe havuzu 48 kat daha derin, ama üstündeki borç 11 kat büyük.
+- **Derin ve arbitrajlı piyasalar (ETH, USDC) %20'lik düşüşü kayıpsız atlatıyor.** Maple ve Ethena döngüleri ise iki ağda da aynı zayıflığı taşıyor.
 
 Sentetik varlık kimlikleri: 7 = WETH (Ethereum), 13 = USDC (Ethereum), 14 = USDe (Ethereum), 15 = syrupUSDT (Ethereum). syrupUSDC, Ethereum Aave'de listelenmediği için en yakın muadil olarak syrupUSDT kullanıldı.
 
@@ -105,6 +104,8 @@ Ethereum sütunları **Ethereum'da çalıştırılmadı.** Aynı kontrat ve ayn�
 | WETH Ethereum (300), dış fiyat, ort. −%20 | **101** | 53 | $2,8M / $23,2M / $34,0M |
 | Kalibre syrupUSDC (2.000), havuzu izler | **15** | 3 | $17,6M / $22,6M / $22,6M |
 
+Not: bu K ölçümleri toparlanması olmayan ilk KaskadMC ile yapıldı; syrupUSDC satırları v2 ile aynı, diğerlerinde güncel K arayüzdeki "Sınırı bul" ile ölçülür.
+
 Küçük gerçek defterlerde Monad'ın avantajı ~1,8×; bu farkı esas olarak tx gas limiti yaratıyor (30M'e karşı 16,77M). Defter büyüdükçe fark açılıyor (2.000 pozisyonda 5×), çünkü Ethereum'da her pozisyonun soğuk okuması bütçeyi yiyor.
 
 ## Mimari
@@ -128,11 +129,14 @@ web/ (Next.js + viem) ── preview (eth_call) ──────────�
 ## Model
 
 1. Şoklanan varlığın dış fiyatı `steps` blokta `p0 → p0·(1−şok)` iniyor.
-2. Her blokta en fazla `maxRoundsPerStep` likidasyon **dalgası** oluyor. Oracle dalga başında okunuyor: `oracleFeedbackBps = 10000` ise havuz fiyatını, `0` ise yalnızca dış yolu (kur oracle'ı) görüyor.
-3. HF < 1 olan pozisyonlar Aave v3.3 kurallarıyla likide ediliyor: close factor %50; HF < 0,95 ya da borç/teminat < $2.000 ise %100. E-Mode pozisyonlarında LT ve bonus E-Mode kategorisinden geliyor.
-4. Ele geçirilen teminat sanal bir x·y=k havuzunda anında satılıyor. **Likidatör kârlılık sınırı:** satış getirisi ödenen borcu karşılamıyorsa likidatör durur (`x + dx ≤ y·(1+bonus)/p`) ve dalga biter.
-5. Karşılıksız borç = son fiyatta `max(0, borç − teminat değeri)`. Likide edilemeyen borç = HF < 1 ama henüz karşılıksız olmayan borç.
-6. Kısmi çözünürlükte havuz derinliği, simüle edilen borç payıyla ölçekleniyor; böylece satış/derinlik oranı temsili kalıyor.
+2. Her blokta en fazla `maxRoundsPerStep` likidasyon **dalgası** oluyor. Oracle dalga başında okunuyor.
+   - `oracleFeedbackBps = 0` (varsayılan, gerçekçi): oracle yalnızca dış fiyatı görüyor (Chainlink / kur).
+   - `10000` (en kötü durum): oracle anlık havuz fiyatını izliyor.
+3. **Bloklar arası arbitraj toparlanması:** her yeni blokta havuzun dış fiyattan sapması, varlığa özgü bir oranda kapanıyor. Bu oran bir varsayım ve `KaskadMC.recoveryBps` içinde tutuluyor. Örnekler: ETH ve USDC için %90 (CEX arbitrajı), USDe (Ethereum) için %50, Maple ve Pendle varlıkları için %0. Toparlanma olmasaydı ETH gibi derin bir piyasa bile tek blokta boşalan havuz yüzünden gerçekçi olmayan bir çöküş gösterirdi. Gerçek defterler bu motorla çalışıyor; kalibre syrupUSDC defteri Kaskad v1'de kalıyor (syrupUSDC'nin toparlanması zaten %0).
+4. HF < 1 olan pozisyonlar Aave v3.3 kurallarıyla likide ediliyor: close factor %50; HF < 0,95 ya da borç/teminat < $2.000 ise %100. E-Mode pozisyonlarında LT ve bonus E-Mode kategorisinden geliyor.
+5. Ele geçirilen teminat sanal bir x·y=k havuzunda anında satılıyor. **Likidatör kârlılık sınırı:** satış getirisi ödenen borcu karşılamıyorsa likidatör durur (`x + dx ≤ y·(1+bonus)/p`) ve dalga biter.
+6. Karşılıksız borç = son fiyatta `max(0, borç − teminat değeri)`. Likide edilemeyen borç = HF < 1 ama henüz karşılıksız olmayan borç.
+7. Kısmi çözünürlükte havuz derinliği, simüle edilen borç payıyla ölçekleniyor; böylece satış/derinlik oranı temsili kalıyor.
 
 ## Veri
 
@@ -146,7 +150,7 @@ web/ (Next.js + viem) ── preview (eth_call) ──────────�
 | Kontrat | Adres |
 |---|---|
 | Kaskad | [`0xdC2D3A2F4cffBf6a0d7945f6505399e2e474b661`](https://testnet.monadscan.com/address/0xdC2D3A2F4cffBf6a0d7945f6505399e2e474b661) |
-| KaskadMC (Monte Carlo, Kaskad defterlerini okur) | [`0x1269A28f29a61FD88c03e652Edd56B7F87bA5a08`](https://testnet.monadscan.com/address/0x1269A28f29a61FD88c03e652Edd56B7F87bA5a08) |
+| KaskadMC v2 (gerçek defterler için motor: arbitraj toparlanması + Monte Carlo; Kaskad defterlerini okur) | [`0x94f27456bBAfe2a8A69ADE8D4C98eB958abB1E6d`](https://testnet.monadscan.com/address/0x94f27456bBAfe2a8A69ADE8D4C98eB958abB1E6d) |
 | Guard | [`0xc39996831d3759CD4E9fB25005B400CA6a22871e`](https://testnet.monadscan.com/address/0xc39996831d3759CD4E9fB25005B400CA6a22871e) |
 | Piyasa A (korumasız) | [`0xedDE26053c7Df1D9970C1aE201FEc6e3681275Bd`](https://testnet.monadscan.com/address/0xedDE26053c7Df1D9970C1aE201FEc6e3681275Bd) |
 | Piyasa B (Guard'lı) | [`0x0B545DfD67223Bb00A22701C38e53774dF0A51ed`](https://testnet.monadscan.com/address/0x0B545DfD67223Bb00A22701C38e53774dF0A51ed) |

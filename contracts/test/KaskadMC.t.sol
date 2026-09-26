@@ -81,6 +81,29 @@ contract KaskadMCTest is Base {
         assertGt(b.gasUsed, a.gasUsed * 5); // the work itself scales with K
     }
 
+    /// Arbitrage between blocks refills the pool: liquidators keep clearing debt instead of the
+    /// pool staying displaced, so less debt is stranded and more gets liquidated.
+    function test_recoveryRefillsThePool() public {
+        Kaskad.Scenario memory s = _scf(SYRUP, 800, 20, 3, 40, 0);
+        Kaskad.Result memory none = mc.preview(s);
+        vm.prank(owner);
+        mc.setRecovery(SYRUP, 9_000);
+        Kaskad.Result memory arb = mc.preview(s);
+        assertGt(arb.totalLiquidated, none.totalLiquidated);
+        assertLe(arb.stuckDebt, none.stuckDebt);
+        // v1 engine (no recovery) is unchanged and equals MC with recovery 0
+        assertEq(kaskad.preview(s).totalLiquidated, none.totalLiquidated);
+    }
+
+    function test_recoveryAccessAndBounds() public {
+        vm.prank(alice);
+        vm.expectRevert();
+        mc.setRecovery(SYRUP, 1);
+        vm.prank(owner);
+        vm.expectRevert(KaskadMC.InvalidRecovery.selector);
+        mc.setRecovery(SYRUP, 10_001);
+    }
+
     function test_simulateEmits() public {
         vm.prank(alice);
         (bytes32 simId, KaskadMC.MCResult memory r) = mc.simulateMC(_sc(SYRUP, 500, 10, 3, 40), 8, 1);

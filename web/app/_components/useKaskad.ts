@@ -42,20 +42,29 @@ export type Result = {
   log: readonly RoundLog[];
 };
 
+/**
+ * Real books run on the v2 engine (KaskadMC: same cascade + inter-block arbitrage recovery,
+ * reading Kaskad's books). Calibrated books (id >= 256) run on Kaskad itself; their asset
+ * (syrupUSDC) has no recovery, so both engines give the same result there.
+ */
+export function engineFor(assetId: number) {
+  return assetId >= 256 || !DEPLOYMENT.contracts.kaskadMC ? DEPLOYMENT.contracts.kaskad : DEPLOYMENT.contracts.kaskadMC;
+}
+
 /** eth_call with the Monad per-tx gas limit, so "preview works" means "fits in one tx". */
-async function call30M(functionName: "preview" | "previewCurve", args: readonly unknown[]) {
+async function call30M(functionName: "preview" | "previewCurve", args: readonly unknown[], assetId: number) {
   const data = encodeFunctionData({ abi: kaskadAbi, functionName, args: args as never });
-  const res = await publicClient.call({ to: DEPLOYMENT.contracts.kaskad, data, gas: 30_000_000n });
+  const res = await publicClient.call({ to: engineFor(assetId), data, gas: 30_000_000n });
   if (!res.data) throw new Error("empty eth_call result");
   return decodeFunctionResult({ abi: kaskadAbi, functionName, data: res.data });
 }
 
 export async function previewScenario(s: Scenario): Promise<Result> {
-  return (await call30M("preview", [s])) as unknown as Result;
+  return (await call30M("preview", [s], s.assetId)) as unknown as Result;
 }
 
 export async function previewCurve(s: Scenario, shocks: number[]) {
-  const [bad, liq] = (await call30M("previewCurve", [s, shocks])) as unknown as [
+  const [bad, liq] = (await call30M("previewCurve", [s, shocks], s.assetId)) as unknown as [
     readonly bigint[],
     readonly bigint[],
     bigint,

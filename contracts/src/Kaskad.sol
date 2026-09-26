@@ -214,9 +214,15 @@ contract Kaskad is PositionBook {
         (AssetConfig memory cfg, uint256 bookDebt) = _validate(s);
         State memory st = _load(s.assetId, s.maxPositions, r);
         _initPool(st, cfg, r.totalDebt, bookDebt);
-        _cascade(st, s, cfg.priceWad, _linearPath(s), r);
+        _cascade(st, s, cfg.priceWad, _linearPath(s), r, _recoveryBps(s.assetId));
         r.memoryBytes = _msize();
         r.gasUsed = g0 - gasleft();
+    }
+
+    /// @dev Share of the pool's displacement that arbitrage closes between blocks (bps). 0 here:
+    /// the pool never recovers within the scenario. KaskadMC sets it per asset.
+    function _recoveryBps(uint256) internal view virtual returns (uint256) {
+        return 0;
     }
 
     /// @dev Virtual constant-product pool: x tokens against depth/2 USD. At partial resolution the
@@ -238,11 +244,16 @@ contract Kaskad is PositionBook {
     }
 
     /// @dev Runs the cascade along an external price path (cumulative WAD drops, non-decreasing,
-    /// each <= 1e18) and fills the result fields.
-    function _cascade(State memory st, Scenario memory s, uint256 p0, uint256[] memory drop, Result memory r)
-        internal
-        pure
-    {
+    /// each <= 1e18) and fills the result fields. Between blocks, arbitrage pulls the pool back
+    /// toward the external price by `recovery` bps of its displacement.
+    function _cascade(
+        State memory st,
+        Scenario memory s,
+        uint256 p0,
+        uint256[] memory drop,
+        Result memory r,
+        uint256 recovery
+    ) internal pure {
         uint256 n = s.maxPositions;
         r.positionsUsed = uint32(n);
         r.startPrice = p0;
@@ -254,6 +265,7 @@ contract Kaskad is PositionBook {
         uint256 x0 = st.x0;
 
         for (uint256 step = 1; step <= s.steps; ++step) {
+            if (recovery > 0 && st.x > x0) st.x = x0 + Math.mulDiv(st.x - x0, BPS - recovery, BPS);
             st.base = Math.mulDiv(p0, WAD - drop[step - 1], WAD);
             for (uint256 round; round < s.maxRoundsPerStep; ++round) {
                 // oracle is read once per round (liquidation wave): the shock path, pulled toward

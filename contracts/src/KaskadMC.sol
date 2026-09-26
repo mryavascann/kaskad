@@ -15,6 +15,12 @@ contract KaskadMC is Kaskad {
 
     Kaskad public immutable source;
 
+    /// @notice Per-asset arbitrage recovery between blocks (bps of the pool's displacement).
+    /// An assumption about external liquidity (CEX / mint-redeem), set by the owner.
+    mapping(uint256 assetId => uint16) public recoveryBps;
+
+    event RecoverySet(uint256 indexed assetId, uint16 bps);
+
     struct MCResult {
         uint256 paths;
         uint256 positionsUsed;
@@ -45,6 +51,14 @@ contract KaskadMC is Kaskad {
     );
 
     error InvalidPaths();
+    error InvalidRecovery();
+
+    function setRecovery(uint256 assetId, uint16 bps) external onlyOwner {
+        if (assetId >= MAX_ASSETS) revert InvalidAsset(assetId);
+        if (bps > BPS) revert InvalidRecovery();
+        recoveryBps[assetId] = bps;
+        emit RecoverySet(assetId, bps);
+    }
 
     constructor(address owner_, Kaskad source_) Kaskad(owner_) {
         source = source_;
@@ -95,6 +109,7 @@ contract KaskadMC is Kaskad {
         mc.badDebt = new uint256[](paths);
         mc.shockBps = new uint256[](paths);
 
+        uint256 recovery = _recoveryBps(s.assetId);
         uint256 sumBad;
         uint256 sumShock;
         for (uint256 k; k < paths; ++k) {
@@ -105,7 +120,7 @@ contract KaskadMC is Kaskad {
             (uint256[] memory drop, uint256 shock) = _randomPath(s, seed, k);
             State memory st = _clone(tmpl, n);
             Result memory r;
-            _cascade(st, s, cfg.priceWad, drop, r);
+            _cascade(st, s, cfg.priceWad, drop, r, recovery);
             mc.badDebt[k] = r.badDebt;
             mc.shockBps[k] = shock;
             sumBad += r.badDebt;
@@ -184,6 +199,10 @@ contract KaskadMC is Kaskad {
     }
 
     // ------------------------------------------------------------------ book source
+
+    function _recoveryBps(uint256 bookId) internal view override returns (uint256) {
+        return recoveryBps[bookId & 0xff];
+    }
 
     function _bookInfo(uint256 bookId)
         internal

@@ -147,7 +147,7 @@ export function GuardPanel() {
       <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
         <h3 className="text-sm font-semibold uppercase tracking-wider text-muted">Guard: zincir üstü devre kesici</h3>
         <span className="text-xs text-muted">
-          Senaryo: syrupUSDC −%3 (Salı Depegi) · eşik: karşılıksız borç, toplam borcun %0,5'ini aşarsa
+          Senaryo: syrupUSDC −%3, en kötü durum (oracle havuzu izler) · eşik: karşılıksız borç, toplam borcun %0,5'ini aşarsa
         </span>
       </div>
       <div className="grid gap-3 md:grid-cols-2">
