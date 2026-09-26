@@ -165,6 +165,10 @@ web/ (Next.js + viem) ── preview (eth_call) ──────────�
 | PT-AUSD gerçek, −%2 → $45,3M karşılıksız | 605k | [0xca27…ec00](https://testnet.monadscan.com/tx/0xca2745d0d979e9e751147c1bb218e57583f844e7e15c52af00d7e8247c80ec00) |
 | Kalibre 5.000 pozisyon, −%3 | 9,4M | [0xfa38…99b6](https://testnet.monadscan.com/tx/0xfa387f8df7c090104db92161c70badd10d1f68206905d7bfe6d45a8d842b99b6) |
 | **Kalibre 10.000 pozisyon, −%3 (tek tx, 1,63 MB bellek)** | **17,7M** | [0x661f…185c](https://testnet.monadscan.com/tx/0x661facb56395f553be94399d004f0ca75834cc2f5037f54d37adff832d6d185c) |
+| **v2, syrupUSDC gerçek −%3, dış fiyat oracle'ı** → $0 karşılıksız, $111M likide edilemeyen · 309 ms | 0,39M | [0xc80d…3a99](https://testnet.monadscan.com/tx/0xc80dfd34835edcba1028b76945f4793598cf3b27bee470e79cffdd75b8a53a99) |
+| v2, syrupUSDC gerçek −%3, en kötü durum → $115,9M karşılıksız · 232 ms | 0,90M | [0xb0a5…288b](https://testnet.monadscan.com/tx/0xb0a5d7d76f17c728f6b33f0a58cd049ab3d5a6149e9288a83086d4a60a8a288b) |
+| **Monte Carlo, 208 senaryo × 57 pozisyon, dış fiyat** → ortalama/%95/en kötü $0 · 435 ms | 29,4M | [0x1dba…42ce](https://testnet.monadscan.com/tx/0x1dbadcecf6248281f71c63b41552092f03d1eb2a75dd793e4cd1985f272c42ce) |
+| Monte Carlo, 56 senaryo × 57 pozisyon, en kötü durum → ortalama $84,3M, %95 $119,4M · 366 ms | 28,8M | [0x124f…635f](https://testnet.monadscan.com/tx/0x124fedb1e345dbc68ac800c9bf6bccd108d2a16c9188d8c618cb3d87ada7635f) |
 | Guard.refresh → Piyasa B borcu durdurdu (`GuardTripped`) | 1,3M | [0xf779…3aa3](https://testnet.monadscan.com/tx/0xf779c8a68fcee03c9f4c7d10c297006efdbe85b24450826c496d5eb022693aa3) |
 
 ## Çalıştırma
