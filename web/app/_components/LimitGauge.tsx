@@ -11,6 +11,8 @@ import {
 } from "@/lib/kaskad/math";
 import { fmtBytes, fmtGas, fmtNum } from "@/lib/kaskad/format";
 import type { Result } from "./useKaskad";
+import { Details } from "@/components/ui/disclosure";
+import { CheckCircle2, XCircle } from "lucide-react";
 
 function Bar({ value, max, color }: { value: number; max: number; color: string }) {
   const pct = Math.min(100, (value / max) * 100);
@@ -35,67 +37,13 @@ export function LimitGauge({ r }: { r: Result }) {
   const eth = ethEstimate(r);
   const fitsEth = eth <= ETH_TX_GAS_CAP;
   return (
-    <div className="card p-5">
-      <div className="mb-4 flex items-baseline justify-between">
-        <h3 className="text-sm font-semibold uppercase tracking-wider text-muted">Sınır Göstergesi</h3>
-        <span className="text-xs text-muted">motor içinden ölçülür: gasleft() farkı, bellek tavanı</span>
+    <div className="card p-6">
+      <div className="why-grid">
+        <div className="chain-card monad"><div className="chain-title"><span>Monad</span><span className={`badge ${gas <= MONAD_TX_GAS_LIMIT ? "text-good" : "text-bad"}`}>{gas <= MONAD_TX_GAS_LIMIT ? <CheckCircle2 size={12} /> : <XCircle size={12} />}{gas <= MONAD_TX_GAS_LIMIT ? "Tek işleme sığar" : "Sınır aşıldı"}</span></div><div className="chain-gas num">{fmtGas(gas)} <small>/ 30M gas</small></div><Bar value={gas} max={MONAD_TX_GAS_LIMIT} color="var(--accent)" /><div className="chain-detail"><span>İşlem kapasitesi</span><span>%{fmtNum(gas/MONAD_TX_GAS_LIMIT*100,1)}</span></div><div className="chain-detail"><span>Bellek</span><span>{fmtBytes(mem)} / 8 MB</span></div><div className="mt-3"><Bar value={mem} max={MONAD_MEMORY_LIMIT} color="var(--good)" /></div></div>
+        <div className="chain-card"><div className="chain-title"><span>Ethereum</span><span className={`badge ${fitsEth ? "text-good" : "text-bad"}`}>{fitsEth ? <CheckCircle2 size={12} /> : <XCircle size={12} />}{fitsEth ? "Tek işleme sığar" : "Tek işleme sığmaz"}</span></div><div className="chain-gas num">{fmtGas(eth)} <small>/ 16,78M gas</small></div><Bar value={eth} max={ETH_TX_GAS_CAP} color={fitsEth ? "var(--warn)" : "var(--bad)"} /><div className="chain-detail"><span>Monad'a göre gas</span><span className="text-warn">{fmtNum(eth/Math.max(1,gas),1)} kat</span></div><div className="chain-detail"><span>EIP-7825 işlem tavanı</span><span>{fmtNum(ETH_TX_GAS_CAP)}</span></div><div className="chain-detail"><span>Tahmini hesap</span><span className="text-muted">ethEstimate</span></div></div>
       </div>
-      <div className="space-y-4">
-        <div>
-          <div className="mb-1 flex justify-between text-sm">
-            <span>Gas (Monad tx limiti 30M)</span>
-            <span className="num font-mono">
-              {fmtGas(gas)} / 30M · %{fmtNum((gas / MONAD_TX_GAS_LIMIT) * 100, 1)}
-            </span>
-          </div>
-          <Bar value={gas} max={MONAD_TX_GAS_LIMIT} color="var(--accent)" />
-        </div>
-        <div>
-          <div className="mb-1 flex justify-between text-sm">
-            <span>Bellek (tx başına 8 MB)</span>
-            <span className="num font-mono">
-              {fmtBytes(mem)} / 8 MB · %{fmtNum((mem / MONAD_MEMORY_LIMIT) * 100, 1)}
-            </span>
-          </div>
-          <Bar value={mem} max={MONAD_MEMORY_LIMIT} color="var(--good)" />
-        </div>
-        <div className="grid grid-cols-3 gap-3 text-center">
-          <div className="rounded-lg bg-panel-2 p-3">
-            <div className="num text-2xl font-bold">{fmtNum(r.positionsUsed)}</div>
-            <div className="text-xs text-muted">pozisyon bellekte</div>
-          </div>
-          <div className="rounded-lg bg-panel-2 p-3">
-            <div className="num text-2xl font-bold">{fmtGas(monadMemoryGas(mem))}</div>
-            <div className="text-xs text-muted">Monad bellek gas'ı (w/2)</div>
-          </div>
-          <div className="rounded-lg bg-panel-2 p-3">
-            <div className="num text-2xl font-bold">{fmtGas(ethMemoryGas(mem))}</div>
-            <div className="text-xs text-muted">Ethereum'da aynı bellek (3w + w²/512)</div>
-          </div>
-        </div>
-        <div className={`rounded-lg border p-3 text-sm ${fitsEth ? "border-line" : "border-bad/60 bg-bad/10"}`}>
-          <b>Ethereum'da bu simülasyon:</b> ≈ <span className="num font-mono">{fmtGas(eth)}</span> gas (soğuk SLOAD
-          2.100/slot + karesel bellek; model, Ethereum kurallarıyla çalıştırılan fork ölçümüyle ±%1 doğrulandı).{" "}
-          {fitsEth ? (
-            <span className="font-semibold">
-              Tek işleme sığar, ama Monad'dakinin {fmtNum(eth / Math.max(1, gas), 1)} katı gas.
-            </span>
-          ) : (
-            <span className="font-semibold text-bad">
-              Ethereum'un tx tavanının (16.777.216, EIP-7825) {fmtNum(eth / ETH_TX_GAS_CAP, 1)} katı → Ethereum'da tek
-              işleme sığmıyor.
-            </span>
-          )}
-          <div className="mt-1 text-xs text-muted">
-            Bellek tek başına tavanı aşmıyor ({fmtGas(ethMemoryGas(mem))} gas); asıl fark pozisyon başına soğuk okuma
-            ve toplam hesap.
-          </div>
-        </div>
-        <p className="text-xs text-muted">
-          Tüm motor tek kontratta: defter + simülasyon (Kaskad.sol), harici çağrı yok. Monad'da kontrat limiti 128 KB
-          (Ethereum 24 KB). Pozisyonlar ardışık slotlarda: MIP-8 ile 128 slotluk sayfa ilk erişimde 8.100, sonrası 100 gas.
-        </p>
-      </div>
+      <div className="mt-5 grid grid-cols-3 gap-3 text-center"><div><div className="num text-xl">{fmtNum(r.positionsUsed)}</div><div className="mt-1 text-[10px] text-muted">pozisyon</div></div><div><div className="num text-xl">{fmtGas(monadMemoryGas(mem))}</div><div className="mt-1 text-[10px] text-muted">Monad bellek gas'ı</div></div><div><div className="num text-xl">{fmtGas(ethMemoryGas(mem))}</div><div className="mt-1 text-[10px] text-muted">Ethereum bellek gas'ı</div></div></div>
+      <Details>Monad: gasleft() farkı ve bellek tavanı motor içinde ölçülür. Ethereum tahmini: slot başına 2.100 soğuk SLOAD ve karesel bellek; fork ölçümüyle ±%1 doğrulandı. Monad bellek maliyeti w/2; Ethereum 3w + w²/512. MIP-8: 128 slotluk sayfa, ilk erişim 8.100 gas; sonrası 100 gas. Defter ve simülasyon tek kontratta, harici çağrı yok. Kontrat boyutu sınırı Monad'da 128 KB, Ethereum'da 24 KB.</Details>
     </div>
   );
 }

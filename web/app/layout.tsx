@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { SignerBadge } from "./_components/SignerBadge";
+import { Navigation } from "@/components/sections/Navigation";
+import { ToastProvider } from "@/components/ui/feedback";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin", "latin-ext"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
@@ -16,32 +17,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="tr" className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col font-sans">
-        <header className="border-b border-line">
-          <nav className="mx-auto flex max-w-7xl items-center gap-6 px-4 py-3">
-            <Link href="/" className="text-lg font-bold tracking-tight">
-              <span className="text-accent">▼</span> Kaskad
-            </Link>
-            <Link href="/" className="text-sm text-muted hover:text-text">
-              Protokol
-            </Link>
-            <Link href="/cuzdan" className="text-sm text-muted hover:text-text">
-              Param güvende mi?
-            </Link>
-            <Link href="/baglan" className="text-sm text-muted hover:text-text">
-              Cüzdan bağla
-            </Link>
-            <span className="ml-auto flex items-center gap-2">
-              <SignerBadge />
-              <span className="hidden rounded-full border border-line px-3 py-1 text-xs text-muted md:inline">
-                Monad testnet · veri: Monad mainnet Aave
-              </span>
-            </span>
-          </nav>
-        </header>
-        <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6">{children}</main>
-        <footer className="border-t border-line py-4 text-center text-xs text-muted">
-          Monad üzerinde · Aave verisi · Envio HyperSync · Alchemy
-        </footer>
+        <a href="#main" className="skip-link">İçeriğe geç</a>
+        <div className="ambient-background" aria-hidden="true" />
+        <Navigation />
+        <main id="main" className="main-shell">{children}</main>
+        <footer className="site-footer"><Link className="brand" href="/">kaskad.</Link><span>Monad · Aave verisi · Envio HyperSync · Alchemy · Mera</span><a href="https://github.com/mryavascann/kaskad" target="_blank" rel="noreferrer">GitHub ↗</a><span className="footer-network"><span className="status-dot" /> Monad testnet</span></footer>
+        <ToastProvider />
       </body>
     </html>
   );

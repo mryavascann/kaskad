@@ -10,6 +10,8 @@ import { simulateGasLimit } from "@/lib/kaskad/math";
 import { fmtPct } from "@/lib/kaskad/format";
 import { previewScenario, type Scenario } from "./useKaskad";
 import { confirmCost, CostTag } from "./CostTag";
+import { Details } from "@/components/ui/disclosure";
+import { TransactionFeedback } from "@/components/ui/feedback";
 
 type MarketState = { paused: boolean; maxLtvBps: number; borrowed: bigint };
 const BORROW_GAS = 80_000n;
@@ -44,7 +46,7 @@ function Market({
   const paused = s?.paused;
   return (
     <div className={`rounded-xl border p-4 ${paused ? "border-bad bg-bad/10" : "border-line bg-panel-2"}`}>
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <div className="font-semibold">{title}</div>
           <div className="text-xs text-muted">{subtitle}</div>
@@ -165,7 +167,7 @@ export function GuardPanel() {
       <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
         <h3 className="text-sm font-semibold uppercase tracking-wider text-muted">Guard: zincir üstü devre kesici</h3>
         <span className="text-xs text-muted">
-          Senaryo: syrupUSDC −%3, en kötü durum (oracle havuzu izler) · eşik: karşılıksız borç, toplam borcun %0,5'ini aşarsa
+          syrupUSDC −%3 · en kötü durum · eşik %0,5
         </span>
       </div>
       <div className="grid gap-3 md:grid-cols-2">
@@ -195,7 +197,7 @@ export function GuardPanel() {
       >
         Guard'ı çalıştır
       </button>
-      <CostTag gasLimit={guardGas} />
+      <CostTag gasLimit={guardGas} /><TransactionFeedback message={status} /><TransactionFeedback message={msgA} /><TransactionFeedback message={msgB} />
       {status && (
         <div className="mt-2 text-sm text-muted">
           {status}{" "}
@@ -206,10 +208,10 @@ export function GuardPanel() {
           )}
         </div>
       )}
-      <p className="mt-3 text-xs text-muted">
+      <Details>
         Herkes Guard.refresh() çağırabilir: Guard, Kaskad motorunda ({kaskad.slice(0, 8)}…) senaryoyu çalıştırır; karşılıksız
         borç eşiği aşarsa Piyasa B'de borcu durdurur ve maks. LTV'yi %70'e düşürür.
-      </p>
+      </Details>
     </div>
   );
 }

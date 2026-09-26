@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { DEPLOYMENT } from "@/lib/kaskad/config";
 import { fmtNum, fmtUsd, wadToNum } from "@/lib/kaskad/format";
 import { previewScenario, type Result } from "./useKaskad";
+import { Details } from "@/components/ui/disclosure";
 
 // Same shock, books from two chains: all simulated by the same engine on Monad.
 const ROWS: { id: number; chain: "Monad" | "Ethereum"; note?: string }[] = [
@@ -56,10 +57,10 @@ export function ComparePanel({ shockBps, feedback, steps, rounds }: {
       <div className="mb-3 flex flex-wrap items-baseline justify-between gap-2">
         <h3 className="text-sm font-semibold uppercase tracking-wider text-muted">Monad ↔ Ethereum: aynı şok</h3>
         <span className="text-xs text-muted">
-          −%{fmtNum(shockBps / 100, 1)} · {feedback ? "en kötü durum: oracle anlık havuz fiyatını izler" : "oracle dış fiyatı izler (gerçekçi)"} · veriler iki ağdan, hesap Monad'da
+          −%{fmtNum(shockBps / 100, 1)} · {feedback ? "en kötü durum" : "dış fiyat"} · hesap Monad'da
         </span>
       </div>
-      <div className="overflow-x-auto">
+      <div className="overflow-x-auto" role="region" aria-label="Ağ karşılaştırma tablosu" tabIndex={0}>
         <table className="w-full min-w-[640px] text-sm">
           <thead className="text-left text-xs text-muted">
             <tr>
@@ -83,7 +84,7 @@ export function ComparePanel({ shockBps, feedback, steps, rounds }: {
                       {row.chain}
                     </span>
                     {a.symbol.replace(" (Ethereum)", "")}
-                    {row.note && <span className="ml-1 text-xs text-muted">· {row.note}</span>}
+                    {row.note && <span className="mt-1 block text-[10px] text-muted">{row.note}</span>}
                   </td>
                   <td className="num">{fmtUsd(a.debtUsd)}</td>
                   <td className="num">
@@ -101,11 +102,11 @@ export function ComparePanel({ shockBps, feedback, steps, rounds }: {
           </tbody>
         </table>
       </div>
-      <p className="mt-3 text-xs text-muted">
+      <Details>
         Derinlik tek başına değil, <b className="text-text">riskteki borca oranla</b> önemli. Ethereum'daki USDe havuzu
         Monad'dakinden ~48 kat derin ama üstündeki borç da 11 kat büyük; USDC'nin havuzu ise borcun yüzlerce katı, bu yüzden
         %10'luk düşüşte bile karşılıksız borç çıkmıyor.
-      </p>
+      </Details>
     </div>
   );
 }

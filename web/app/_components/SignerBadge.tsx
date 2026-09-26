@@ -1,13 +1,14 @@
 "use client";
+import { useSigner } from "@/components/ui/use-signer";
 
 import Link from "next/link";
-import { useSyncExternalStore } from "react";
+
 import { shortAddr } from "@/lib/kaskad/format";
-import { signerLabel, signerStore } from "@/lib/kaskad/signer";
+import { signerLabel } from "@/lib/kaskad/signer";
 
 /** Header chip: which wallet signs on-chain actions; links to the connect tab. */
 export function SignerBadge() {
-  const s = useSyncExternalStore(signerStore.subscribe, signerStore.get, signerStore.server);
+  const s = useSigner();
   return (
     <Link
       href="/baglan"
