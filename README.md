@@ -38,6 +38,26 @@ Bir pozisyonun teminatı borcunun altına düşerse, teminatın tamamı satılsa
 
 **Oracle tasarımı $116M'lık fark yaratıyor.** Borsa fiyatını izleyen bir oracle ile $7M derinlikteki havuz ölüm sarmalına giriyor. Kur oracle'ı sarmalı kırıyor, ama likidatörler sığ havuzda kâr edemediği için $111M borç likide edilemeden bekliyor.
 
+## Monad ↔ Ethereum: aynı şok, iki ağın verisi
+
+Karşılaştırma defterleri Ethereum Aave V3'ten okundu (Envio HyperSync + public RPC). Simülasyonun tamamı yine Monad'da çalışıyor. −%3, oracle zincir üstü havuz fiyatını izliyor:
+
+| Defter | Borç | DEX derinliği | Derinlik / borç | Karşılıksız kalan |
+|---|---|---|---|---|
+| syrupUSDC (Monad) | $123,7M | $7,0M | %5,7 | $115,9M |
+| syrupUSDT (Ethereum, aynı Maple döngüsü) | $98,8M | $5,1M | %5,2 | $71,8M |
+| USDe (Monad) | $46,7M | $1M (varsayım) | %2,1 | $44,0M |
+| USDe (Ethereum) | $515,6M | $47,8M | %9,3 | $276,8M |
+| USDC (Ethereum, USDC borçlu döngüler hariç) | $26,9M | $631,6M | %2.352 | $0 |
+
+**Derinlik tek başına değil, riskteki borca oranla önemli.** Ethereum USDe havuzu 48 kat daha derin, ama üstündeki borç da 11 kat büyük.
+
+**Klasik pozisyon: ETH yatır, stablecoin borç al.** ETH −%20 düşerse:
+- Monad WETH ($2,1M borç): kayıpsız atlatıyor.
+- Ethereum WETH ($513M borç, $430M stablecoin-DEX derinliği): $64M karşılıksız borç çıkıyor. ETH'nin gerçek oracle'ı CEX'leri de izlediği için bu, üst sınır bir stres senaryosu.
+
+Sentetik varlık kimlikleri: 7 = WETH (Ethereum), 13 = USDC (Ethereum), 14 = USDe (Ethereum), 15 = syrupUSDT (Ethereum). syrupUSDC, Ethereum Aave'de listelenmediği için en yakın muadil olarak syrupUSDT kullanıldı.
+
 ## Monad'ın sınırlarını zorlamak
 
 | | Monad (ölçülen, testnet) | Ethereum (aynı iş) |
