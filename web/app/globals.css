@@ -160,8 +160,9 @@ thead { background: #ffffff03; }
 .domino-line { width:100%; height:45px; margin-top:12px; overflow:visible; }
 .domino-line polyline { fill:none; stroke:#b59bff; stroke-width:2; vector-effect:non-scaling-stroke; stroke-dasharray:1; stroke-dashoffset:0; animation:line-draw 1.6s ease-out both; }
 .domino-track { display:flex; align-items:end; gap:4px; padding:12px 3px 5px; overflow-x:auto; scrollbar-width:thin; }
-.domino-tile { flex:1 0 18px; max-width:38px; height:44px; border:1px solid #aa8eff65; border-radius:5px; background:linear-gradient(#9875ff32,#9875ff0b); display:flex; flex-direction:column; justify-content:space-between; padding:5px 3px; font-size:8px; text-align:center; color:#c1b1ed; transform-origin:bottom center; animation:domino-fall .5s var(--delay) ease-out both; }
+.domino-tile { flex:1 0 10px; max-width:38px; height:44px; border:1px solid #aa8eff65; border-radius:5px; background:linear-gradient(#9875ff32,#9875ff0b); display:flex; flex-direction:column; justify-content:space-between; padding:5px 3px; font-size:8px; text-align:center; color:#c1b1ed; transform-origin:bottom center; animation:domino-fall .5s var(--delay) ease-out both; }
 .domino-tile.still { animation:none; }
+.domino-tile.idle { border-color:#ffffff14; background:#ffffff04; color:#6f6a85; }
 .why-grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
 .chain-card { padding:25px; border:1px solid var(--line); border-radius:19px; background:#ffffff02; }
 .chain-card.monad { background:linear-gradient(130deg,#836ef90e,#836ef903); border-color:#836ef92b; }

@@ -143,3 +143,46 @@ describe("calibrated book", () => {
     expect(p.debt).toBe(30_000_000_000_000n);
   });
 });
+
+import { blockTimeline } from "./timeline";
+
+describe("block timeline", () => {
+  const W = 10n ** 18n;
+  const stalled = {
+    startPrice: (1185n * W) / 1000n,
+    finalPrice: (11492n * W) / 10000n,
+    log: [{ step: 1, round: 0, liquidations: 1, priceWad: (11832n * W) / 10000n, liquidatedDebt: 133_891n * W }],
+  };
+
+  it("shows every block even when the cascade stalls after block 1", () => {
+    const t = blockTimeline(stalled, { steps: 20, shockBps: 300, oracleFeedbackBps: 0 });
+    expect(t.points).toHaveLength(21);
+    expect(t.activeBlocks).toBe(1);
+    expect(t.lastActiveStep).toBe(1);
+    expect(t.points[1].liquidated).toBeCloseTo(133_891, 0);
+    expect(t.points.slice(2).every((p) => p.liquidations === 0)).toBe(true);
+    // external oracle: straight-line path, final point = final price
+    expect(t.points[10].price).toBeCloseTo(1.185 * (1 - 0.015), 6);
+    expect(t.points[20].price).toBeCloseTo(1.1492, 6);
+    for (let i = 1; i < t.points.length; i++) expect(t.points[i].price).toBeLessThanOrEqual(t.points[i - 1].price);
+  });
+
+  it("sums several waves inside a block", () => {
+    const r = {
+      startPrice: W,
+      finalPrice: W / 2n,
+      log: [
+        { step: 1, round: 0, liquidations: 2, priceWad: (99n * W) / 100n, liquidatedDebt: 10n * W },
+        { step: 1, round: 1, liquidations: 3, priceWad: (95n * W) / 100n, liquidatedDebt: 5n * W },
+        { step: 3, round: 0, liquidations: 1, priceWad: (80n * W) / 100n, liquidatedDebt: 1n * W },
+      ],
+    };
+    const t = blockTimeline(r, { steps: 4, shockBps: 1000, oracleFeedbackBps: 10_000 });
+    expect(t.points[1]).toMatchObject({ liquidations: 5, waves: 2, liquidated: 15, price: 0.99 });
+    expect(t.points[2].liquidations).toBe(0);
+    expect(t.points[3].price).toBeCloseTo(0.8, 6);
+    expect(t.points[4].price).toBeCloseTo(0.5, 6);
+    expect(t.activeBlocks).toBe(2);
+    expect(t.lastActiveStep).toBe(3);
+  });
+});

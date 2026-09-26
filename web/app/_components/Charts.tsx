@@ -13,20 +13,18 @@ import {
   YAxis,
 } from "recharts";
 import { fmtUsd, wadToNum } from "@/lib/kaskad/format";
-import type { Result } from "./useKaskad";
+import { blockTimeline } from "@/lib/kaskad/timeline";
+import type { Result, Scenario } from "./useKaskad";
 
 const axis = { stroke: "#8b92a8", fontSize: 11 };
 
-export function CascadeChart({ r }: { r: Result }) {
-  const start = { name: "0", price: wadToNum(r.startPrice), liq: 0 };
-  const data = [
-    start,
-    ...r.log.map((l) => ({
-      name: `${l.step}.${l.round + 1}`,
-      price: wadToNum(l.priceWad),
-      liq: wadToNum(l.liquidatedDebt) / 1e6,
-    })),
-  ];
+/** Per-block chart: price along the whole shock window, liquidated debt per block. */
+export function CascadeChart({ r, s }: { r: Result; s: Scenario }) {
+  const data = blockTimeline(r, s).points.map((p) => ({
+    name: String(p.step),
+    price: p.price,
+    liq: p.liquidated / 1e6,
+  }));
   return (
     <ResponsiveContainer width="100%" height={240}>
       <ComposedChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
@@ -37,7 +35,7 @@ export function CascadeChart({ r }: { r: Result }) {
         <Tooltip
           contentStyle={{ background: "#10131b", border: "1px solid #242a3a", borderRadius: 8 }}
           formatter={(v, k) => (k === "Fiyat" ? `$${Number(v).toFixed(4)}` : `$${Number(v).toFixed(2)}M`)}
-          labelFormatter={(l) => `blok.dalga ${l}`}
+          labelFormatter={(l) => `Blok ${l}`}
         />
         <Legend wrapperStyle={{ fontSize: 12 }} />
         <Bar yAxisId="l" dataKey="liq" name="Likide edilen borç" fill="#836ef9" isAnimationActive={false} />
