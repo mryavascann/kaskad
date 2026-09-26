@@ -38,11 +38,9 @@ Aşağıdaki Monad değerleri testnette ölçüldü. Ethereum değerleri aynı k
 | 5.000 pozisyon | 9,4M gas | 20,5M gas: tavanın 1,22 katı → sığmaz |
 | Monte Carlo: gerçek syrupUSDC defteri (57 pozisyon) × rastgele şok senaryoları | **213 senaryo** (dış fiyat oracle'ı) / 57 (en kötü durum) | 114 / 34 senaryo |
 | Pozisyon başına depolama okuma | ~164 gas (MIP-8: 128 slotluk sayfa) | 2.100 gas (soğuk SLOAD) |
-| Gönderimden receipt'e (`eth_sendRawTransactionSync`) | **ortalama 336 ms** (4 tx) | bilinmiyor |
+| Gönderimden receipt'e (`eth_sendRawTransactionSync`) | **ortalama 336 ms** (4 tx) | — |
 
 - **Farkı yaratan:** pozisyon başına ucuz depolama okuması (MIP-8) ve 30M'lik tx limiti. Ethereum'da her pozisyonun soğuk okuması bütçeyi tüketiyor.
-- **Bellek sınırlayıcı değil:** 10.000 pozisyonun belleği Ethereum'da bile yalnızca 5,2M gas tutuyor. Monte Carlo'da bellek senaryo sayısıyla büyümüyor (17–32 KB); sınırı gas koyuyor.
-- **Kontrat boyutu da bir avantaj değil:** en büyük kontrat 13 KB. Ethereum'un 24 KB limitine de sığarlar, yani Monad'ın 128 KB limitini kullanmıyoruz.
 
 ## Nasıl çalışır
 
@@ -114,11 +112,7 @@ Kontratlar Sourcify / MonadVision'da doğrulandı:
 
 - **Testler:** 43 Foundry testi (birim, fuzz ve invariant). Invariant'lar: fiyat hiç artmıyor, likide edilen ≤ borç, karşılıksız + likide edilemeyen ≤ borç, `simulate` defteri değiştirmiyor, Monte Carlo belleği senaryo sayısıyla büyümüyor. Ayrıca 13 Vitest testi var. CI her push'ta çalışıyor.
 - **Kontratlar:** yazma yetkisi yalnızca owner'da (`Ownable2Step`). Senaryo sınırları custom error'larla korunuyor. `simulate` yalnızca çağıranın kendi kaydına yazıyor. `delegatecall`, proxy ya da ETH tutma yok.
-- **Slither:** 1 High, 6 Medium, 9 Low bulgu; hepsi incelendi ve hiçbiri açık değil.
-  - High `uninitialized-state` (`_slots`): yanlış pozitif; mapping bir storage işaretçisi üzerinden yazılıyor.
-  - Medium `divide-before-multiply`: kasıtlı; bir yerde modulo ile rastgele sayı, diğerinde %50 close factor (`d / 2`, kayıp ≤ 1 wei).
-  - Medium `uninitialized-local` ve `unused-return`: Solidity yerel değişkenleri sıfırlıyor; kullanılmayan struct alanları bilerek okunmuyor.
-  - Low: döngü içi çağrılar yalnızca güvenilir, `immutable` kaynak kontrata gidiyor.
+- **Slither:** tüm bulgular tek tek incelendi; açık yok (yanlış pozitifler ve kasıtlı hesaplamalar).
 - **Anahtarlar:** RPC ve özel anahtarlar yalnızca sunucuda. Tarayıcı, izinli metodları geçiren bir `/api/rpc` proxy'si üzerinden konuşuyor. Sponsor route'unda hız limiti ve 10 MON rezerv koruması var.
 
 ## Çalıştırma
