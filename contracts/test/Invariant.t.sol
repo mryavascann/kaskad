@@ -19,17 +19,20 @@ contract Handler is Test {
         n = n_;
     }
 
-    function simulate(uint256 actorSeed, uint16 shock, uint16 steps, uint16 rounds, uint32 positions) external {
+    function simulate(uint256 actorSeed, uint16 shock, uint16 steps, uint16 rounds, uint32 positions, uint16 fb)
+        external
+    {
+        fb = uint16(bound(fb, 0, 10_000));
         shock = uint16(bound(shock, 0, 10_000));
         steps = uint16(bound(steps, 1, 20));
         rounds = uint16(bound(rounds, 1, 20));
         positions = uint32(bound(positions, 1, n));
         address actor = address(uint160(bound(actorSeed, 1, 1000)));
         vm.prank(actor);
-        (, Kaskad.Result memory r) = kaskad.simulate(Kaskad.Scenario(9, shock, steps, rounds, positions));
+        (, Kaskad.Result memory r) = kaskad.simulate(Kaskad.Scenario(9, shock, steps, rounds, positions, fb));
         ++calls;
         if (r.totalLiquidated > r.totalDebt) ++violations;
-        if (r.badDebt > r.totalDebt) ++violations;
+        if (r.badDebt + r.stuckDebt > r.totalDebt) ++violations;
         if (r.finalPrice > r.startPrice) ++violations;
         if (r.rounds > uint256(steps) * rounds) ++violations;
         uint256 prev = r.startPrice;

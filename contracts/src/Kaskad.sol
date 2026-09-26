@@ -28,6 +28,7 @@ contract Kaskad is PositionBook {
         uint16 steps; // price path length (blocks)
         uint16 maxRoundsPerStep;
         uint32 maxPositions; // resolution: first N positions of the asset's book
+        uint16 oracleFeedbackBps; // 10000: oracle follows the pool price, 0: oracle sees only the shock path
     }
 
     struct RoundLog {
@@ -46,6 +47,7 @@ contract Kaskad is PositionBook {
         uint256 totalLiquidated; // USD WAD
         uint256 totalSeized; // tokens WAD
         uint256 badDebt; // USD WAD, sum of max(0, debt - collateral value) at the end
+        uint256 stuckDebt; // USD WAD, debt still under HF 1 at the end: liquidators could not profit
         uint256 startPrice;
         uint256 finalPrice;
         uint32 rounds;
@@ -76,6 +78,9 @@ contract Kaskad is PositionBook {
         uint256[] meta; // other collateral USD WAD << 32 | ltBps << 16 | bonusBps
         uint256[] heap; // max-heap of (liquidation price << 32 | index)
         uint256 heapSize;
+        uint256 x0; // pool token reserve at start (WAD)
+        uint256 x; // pool token reserve now; USD reserve is base * x0^2 / x
+        uint256 base; // external price path at the current step
     }
 
     mapping(address => uint256) public nonces;
@@ -104,6 +109,7 @@ contract Kaskad is PositionBook {
     );
 
     error InvalidShock();
+    error InvalidFeedback();
     error InvalidSteps();
     error InvalidRounds();
     error InvalidPositions(uint256 requested, uint256 available);
@@ -182,6 +188,7 @@ contract Kaskad is PositionBook {
         cfg = assets[_assetOf(s.assetId)];
         if (cfg.priceWad == 0) revert InvalidAsset(s.assetId);
         if (s.shockBps > BPS) revert InvalidShock();
+        if (s.oracleFeedbackBps > BPS) revert InvalidFeedback();
         if (s.steps == 0 || s.steps > MAX_STEPS) revert InvalidSteps();
         if (s.maxRoundsPerStep == 0 || s.maxRoundsPerStep > MAX_ROUNDS) revert InvalidRounds();
         uint256 available = bookStats[s.assetId].count;
@@ -198,10 +205,14 @@ contract Kaskad is PositionBook {
         r.positionsUsed = uint32(n);
         r.startPrice = p0;
 
-        // virtual constant-product pool: x tokens against depth/2 USD
-        uint256 x0 = Math.mulDiv(cfg.depthUsdWad, WAD, 2 * p0);
+        // Virtual constant-product pool: x tokens against depth/2 USD. At partial resolution the
+        // depth is scaled by the simulated share of the book's debt, so sold/depth stays representative.
+        uint256 bookDebt = uint256(bookStats[s.assetId].debt1e6) * SCALE_1E6;
+        uint256 depth = Math.mulDiv(cfg.depthUsdWad, r.totalDebt, bookDebt);
+        uint256 x0 = Math.mulDiv(depth, WAD, 2 * p0);
         if (x0 == 0) x0 = 1;
-        uint256 x = x0;
+        st.x0 = x0;
+        st.x = x0;
 
         RoundLog[] memory log = new RoundLog[](uint256(s.steps) * s.maxRoundsPerStep);
         uint256 nLog;
@@ -211,14 +222,16 @@ contract Kaskad is PositionBook {
         uint256 denom = BPS * s.steps;
 
         for (uint256 step = 1; step <= s.steps; ++step) {
-            uint256 base = Math.mulDiv(p0, denom - uint256(s.shockBps) * step, denom);
+            st.base = Math.mulDiv(p0, denom - uint256(s.shockBps) * step, denom);
             for (uint256 round; round < s.maxRoundsPerStep; ++round) {
-                price = _impact(base, x0, x);
+                // oracle is read once per round (liquidation wave): the shock path, pulled toward
+                // the pool's spot price by the feedback share
+                uint256 spot = _impact(st.base, x0, st.x);
+                price = st.base - Math.mulDiv(st.base - spot, s.oracleFeedbackBps, BPS);
                 if (price == 0) break;
                 (uint256 liq, uint256 seized, uint256 cnt, uint256 def) = _liquidateRound(st, price, pending);
-                if (cnt == 0) break;
-                x += seized;
                 deficit += def;
+                if (cnt == 0) break;
                 r.totalLiquidated += liq;
                 r.totalSeized += seized;
                 r.liquidations += uint32(cnt);
@@ -235,8 +248,9 @@ contract Kaskad is PositionBook {
             if (price == 0) break;
         }
 
-        r.finalPrice = _impact(Math.mulDiv(p0, BPS - s.shockBps, BPS), x0, x);
-        r.badDebt = _badDebt(st, n, r.finalPrice);
+        uint256 finalBase = Math.mulDiv(p0, BPS - s.shockBps, BPS);
+        r.finalPrice = finalBase - Math.mulDiv(finalBase - _impact(finalBase, x0, st.x), s.oracleFeedbackBps, BPS);
+        (r.badDebt, r.stuckDebt) = _badDebt(st, n, r.finalPrice);
         r.rounds = uint32(nLog);
         assembly ("memory-safe") {
             mstore(log, nLog)
@@ -297,6 +311,8 @@ contract Kaskad is PositionBook {
     }
 
     /// @dev Liquidates every position whose liquidation price is above `price`, once per round.
+    /// Each liquidation sells its seizure into the pool right away (the pool moves within the
+    /// round, the oracle does not).
     function _liquidateRound(State memory st, uint256 price, uint256[] memory pending)
         internal
         pure
@@ -317,11 +333,14 @@ contract Kaskad is PositionBook {
 
             uint256 i = top & IDX_MASK;
             (uint256 repay, uint256 seize, uint256 d) = _liquidate(st, i, price);
-            if (repay > 0) {
-                liq += repay;
-                seized += seize;
-                ++cnt;
+            if (repay == 0) {
+                // pool too thin to liquidate at a profit: this wave is over
+                pending[np++] = top;
+                break;
             }
+            liq += repay;
+            seized += seize;
+            ++cnt;
             uint256 c = st.coll[i];
             if (c > 0 && st.debt[i] > 0) {
                 pending[np++] = _lp(c, st.debt[i], st.meta[i]) << 32 | i;
@@ -340,7 +359,9 @@ contract Kaskad is PositionBook {
         st.heapSize = size;
     }
 
-    /// @dev Aave v3.3 style liquidation of position i at `price`.
+    /// @dev Aave v3.3 style liquidation of position i at oracle `price`, capped by liquidator
+    /// profitability: selling dx into the pool (x, y) must return at least the repaid debt,
+    /// y * dx / (x + dx) >= dx * price / (1 + bonus)  <=>  x + dx <= y * (1 + bonus) / price.
     /// Returns repaid debt, seized collateral and the realized deficit if collateral ran out.
     function _liquidate(State memory st, uint256 i, uint256 price)
         internal
@@ -365,6 +386,16 @@ contract Kaskad is PositionBook {
             repay = Math.mulDiv(collVal, BPS, BPS + bonus);
             if (repay > d) repay = d;
         }
+        uint256 x = st.x;
+        uint256 y = Math.mulDiv(Math.mulDiv(st.base, st.x0, x), st.x0, WAD);
+        uint256 xMax = Math.mulDiv(y * (BPS + bonus), WAD, BPS * price);
+        uint256 cap = xMax > x ? xMax - x : 0;
+        if (seize > cap) {
+            seize = cap; // partial liquidation up to break-even, 0 = stuck this round
+            repay = Math.mulDiv(seize * BPS, price, (BPS + bonus) * WAD);
+            if (seize == 0 || repay == 0) return (0, 0, 0);
+        }
+        st.x = x + seize;
         c -= seize;
         d -= repay;
         st.coll[i] = c;
@@ -390,7 +421,7 @@ contract Kaskad is PositionBook {
     }
 
     /// @dev coll <= 2^88 * 1e12 and price <= 2^128, so coll * price < 2^256.
-    function _badDebt(State memory st, uint256 n, uint256 price) internal pure returns (uint256 bad) {
+    function _badDebt(State memory st, uint256 n, uint256 price) internal pure returns (uint256 bad, uint256 stuck) {
         (uint256[] memory coll, uint256[] memory debt, uint256[] memory meta) = (st.coll, st.debt, st.meta);
         unchecked {
             for (uint256 i; i < n; ++i) {
@@ -405,6 +436,7 @@ contract Kaskad is PositionBook {
                 }
                 uint256 v = c * price / WAD + (m >> 32);
                 if (d > v) bad += d - v;
+                else if (v * ((m >> 16) & 0xffff) < d * BPS) stuck += d;
             }
         }
     }

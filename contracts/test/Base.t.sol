@@ -79,6 +79,14 @@ abstract contract Base is Test {
         pure
         returns (Kaskad.Scenario memory)
     {
-        return Kaskad.Scenario(assetId, shock, steps, rounds, n);
+        return Kaskad.Scenario(assetId, shock, steps, rounds, n, 10_000);
+    }
+
+    function _scf(uint16 assetId, uint16 shock, uint16 steps, uint16 rounds, uint32 n, uint16 feedback)
+        internal
+        pure
+        returns (Kaskad.Scenario memory)
+    {
+        return Kaskad.Scenario(assetId, shock, steps, rounds, n, feedback);
     }
 }

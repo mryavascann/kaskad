@@ -123,6 +123,8 @@ contract KaskadEngineTest is Base {
         _loadSynthetic(SYRUP, 10, 1);
         vm.expectRevert(Kaskad.InvalidShock.selector);
         kaskad.preview(_sc(SYRUP, 10_001, 1, 1, 10));
+        vm.expectRevert(Kaskad.InvalidFeedback.selector);
+        kaskad.preview(_scf(SYRUP, 300, 1, 1, 10, 10_001));
         vm.expectRevert(Kaskad.InvalidSteps.selector);
         kaskad.preview(_sc(SYRUP, 300, 0, 1, 10));
         vm.expectRevert(Kaskad.InvalidSteps.selector);
@@ -217,6 +219,66 @@ contract KaskadEngineTest is Base {
         }
     }
 
+    function test_partialResolutionScalesDepth() public {
+        uint256 risky = _pos(SYRUP, 1_000_000e6, 901_600e6, 0, 9200, 400); // lp 0.98
+        uint256[] memory a = new uint256[](2);
+        a[0] = risky;
+        a[1] = _pos(SYRUP, 3_000_000e6, 901_600e6, 0, 9200, 400); // same debt, never liquidated here
+        vm.startPrank(owner);
+        kaskad.loadPositions(SYRUP, a);
+        kaskad.setAsset(SYRUP, 1e18, 80_000_000e18);
+        vm.stopPrank();
+        // first position only = half of the book's debt -> engine uses half the depth ($40M)
+        Kaskad.Result memory partialRun = kaskad.preview(_sc(SYRUP, 300, 1, 3, 1));
+
+        vm.startPrank(owner);
+        kaskad.resetBook(SYRUP);
+        uint256[] memory b = new uint256[](1);
+        b[0] = risky;
+        kaskad.loadPositions(SYRUP, b);
+        kaskad.setAsset(SYRUP, 1e18, 40_000_000e18);
+        vm.stopPrank();
+        Kaskad.Result memory alone = kaskad.preview(_sc(SYRUP, 300, 1, 3, 1));
+
+        assertGt(alone.totalLiquidated, 0);
+        assertEq(partialRun.finalPrice, alone.finalPrice);
+        assertEq(partialRun.totalLiquidated, alone.totalLiquidated);
+    }
+
+    /// A thin pool caps each liquidation at break-even for the liquidator. The wave moves the pool
+    /// to x0 * (1 + bonus), i.e. price * 1/(1+bonus)^2, whatever the depth.
+    function test_profitabilityCapLeavesStuckDebt() public {
+        _load(SYRUP, _pos(SYRUP, 10_000_000e6, 9_000_000e6, 0, 9200, 244)); // lp 0.978
+        vm.prank(owner);
+        kaskad.setAsset(SYRUP, 1e18, 1_000_000e18); // $1M pool: x0 = 500k tokens
+        Kaskad.Result memory r = kaskad.preview(_sc(SYRUP, 300, 1, 1, 1));
+        assertApproxEqRel(r.totalSeized, 12_200e18, 1e12); // x0 * 2.44%
+        assertApproxEqRel(r.totalLiquidated, uint256(12_200e18) * 9700 / 10_244, 1e12);
+        assertEq(r.liquidations, 1);
+        assertApproxEqRel(r.finalPrice, uint256(0.97e18) * 1e8 / (10_244 * 10_244), 1e12);
+        // still above water but under HF 1 -> stuck, not bad debt
+        assertEq(r.badDebt, 0);
+        assertApproxEqRel(r.stuckDebt, 9_000_000e18 - r.totalLiquidated, 1e12);
+    }
+
+    /// Exchange-rate oracle (feedback 0): selling into the pool does not move the oracle, so the
+    /// cascade cannot feed itself; liquidations stall and debt gets stuck instead.
+    function test_oracleFeedbackDrivesTheCascade() public {
+        vm.prank(owner);
+        kaskad.setAsset(SYRUP, 1e18, 5_000_000e18);
+        _loadSynthetic(SYRUP, 300, 5);
+        Kaskad.Result memory market = kaskad.preview(_scf(SYRUP, 300, 20, 3, 300, 10_000));
+        Kaskad.Result memory rate = kaskad.preview(_scf(SYRUP, 300, 20, 3, 300, 0));
+        assertEq(rate.finalPrice, 0.97e18);
+        assertLt(market.finalPrice, rate.finalPrice);
+        assertGt(market.badDebt, rate.badDebt);
+        assertEq(rate.badDebt, 0);
+        assertGt(rate.stuckDebt, 0);
+        for (uint256 i; i < rate.log.length; ++i) {
+            assertGe(rate.log[i].priceWad, 0.97e18);
+        }
+    }
+
     function test_totalWipeoutTerminates() public {
         _loadSynthetic(SYRUP, 100, 3);
         Kaskad.Result memory r = kaskad.preview(_sc(SYRUP, 10_000, 5, 20, 100));
@@ -294,9 +356,16 @@ contract KaskadEngineTest is Base {
 
     // --------------------------------------------------------------- fuzz
 
-    function testFuzz_boundedAndSane(uint16 shock, uint16 steps, uint16 rounds, uint32 n, uint128 depth, uint256 seed)
-        public
-    {
+    function testFuzz_boundedAndSane(
+        uint16 shock,
+        uint16 steps,
+        uint16 rounds,
+        uint32 n,
+        uint128 depth,
+        uint256 seed,
+        uint16 fb
+    ) public {
+        fb = uint16(bound(fb, 0, 10_000));
         shock = uint16(bound(shock, 0, 10_000));
         steps = uint16(bound(steps, 1, 30));
         rounds = uint16(bound(rounds, 1, 20));
@@ -306,9 +375,9 @@ contract KaskadEngineTest is Base {
         kaskad.setAsset(SYRUP, 1e18, depth);
         _loadSynthetic(SYRUP, n, seed);
 
-        Kaskad.Result memory r = kaskad.preview(_sc(SYRUP, shock, steps, rounds, n));
+        Kaskad.Result memory r = kaskad.preview(_scf(SYRUP, shock, steps, rounds, n, fb));
         assertLe(r.totalLiquidated, r.totalDebt, "liquidated <= debt");
-        assertLe(r.badDebt, r.totalDebt, "bad debt <= debt");
+        assertLe(r.badDebt + r.stuckDebt, r.totalDebt, "bad + stuck <= debt");
         assertLe(r.totalSeized, r.totalCollateral, "seized <= collateral");
         assertLe(r.finalPrice, r.startPrice, "price never rises");
         assertLe(r.rounds, uint256(steps) * rounds, "rounds bounded");

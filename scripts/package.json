@@ -5,7 +5,10 @@
   "scripts": {
     "fetch": "tsx src/fetch-positions.ts",
     "depth": "tsx src/fetch-depth.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "abi": "tsx src/export-abi.ts",
+    "load": "tsx src/load-testnet.ts",
+    "smoke": "tsx src/smoke.ts"
   },
   "dependencies": {
     "@envio-dev/hypersync-client": "^1.4.1",
