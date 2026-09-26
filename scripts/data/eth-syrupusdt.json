@@ -1,0 +1,420 @@
+{
+ "generatedAt": "2026-09-26T09:30:53.011Z",
+ "chainId": 1,
+ "block": 26060741,
+ "source": "aave-v3-ethereum-core",
+ "addresses": {
+  "pool": "0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2",
+  "poolAddressesProvider": "0x2f39d218133AFaB8F2B819B1066c7E434Ad94E9e",
+  "dataProvider": "0x0a16f2FCC0D44FaE41cc54e079281D84A363bECD",
+  "oracle": "0x54586bE62E3c3580375aE3723C145253060Ca0C2",
+  "asset": "0x356B8d89c1e1239Cbbb9dE4815c39A1474d5BA7D"
+ },
+ "notes": {
+  "scope": "Aave V3 Ethereum Core borrowers (debt > 0) whose dominant collateral (largest USD among collateral-enabled aToken balances) is syrupUSDT. Candidates = unique onBehalfOf of Pool Supply events with reserve = syrupUSDT (HyperSync, blocks 23930264..26053486); holders who only received aSyrupUSDC by transfer are not covered.",
+  "syntheticId": "collateralId is the synthetic Kaskad id 15 (\"syrupUSDT on Ethereum\") for every position; the real Aave Ethereum reserve index is ethReserveId (58). debtByAsset keys are Ethereum reserve indices (see ethReserves).",
+  "cap": "Kept the top 13 of 13 syrupUSDT-dominant positions by debtUsd; dropped 0. Kept positions hold 100.00% of the syrupUSDT-dominant debt ($98,762,506 of $98,762,506).",
+  "hfModel": "hfModel = (collateralUsd + otherCollateralUsd) * ltBps / 1e4 / debtUsd, i.e. the dominant collateral's LT applied to ALL collateral (MVP approximation). hfOnchain = Pool.getUserAccountData.healthFactor / 1e18.",
+  "ltRule": "ltBps/bonusBps: eMode category values if user eMode > 0 and dominant asset is in the category collateralBitmap (aave-v3-origin GenericLogic/LiquidationLogic), else reserve values. bonusBps is the extra part (10400 -> 400).",
+  "totals": "totals.collateralUsd/debtUsd are over the kept positions (collateralUsd includes otherCollateralUsd; byAsset collateralUsd = dominant collateral only). totals.reserveSuppliedUsd = syrupUSDT aToken totalSupply on Aave Ethereum Core (all suppliers); reserveDebtUsd = 0 (syrupUSDT is not borrowed). totals.all* = before the cap.",
+  "depth": "depth = Ethereum DEX exit liquidity for syrupUSDT (GeckoTerminal reserve_in_usd sum, TVL proxy) with DefiLlama cross-check, same format as data/depth.json entries."
+ },
+ "reserves": [
+  {
+   "id": 15,
+   "symbol": "syrupUSDT (Ethereum)",
+   "address": "0x356B8d89c1e1239Cbbb9dE4815c39A1474d5BA7D",
+   "decimals": 6,
+   "priceUsd8": "114457482",
+   "ltBps": 10,
+   "ltvBps": 5,
+   "bonusBps": 600,
+   "totalSupplied": "97946939449261",
+   "totalDebt": "0",
+   "suppliedUsd": 112107600.59,
+   "debtUsd": 0,
+   "ethReserveId": 58,
+   "chainId": 1
+  }
+ ],
+ "ethReserves": [
+  {
+   "id": 8,
+   "symbol": "USDT",
+   "address": "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+   "decimals": 6,
+   "priceUsd8": "99971748",
+   "ltBps": 7800,
+   "ltvBps": 7500,
+   "bonusBps": 450,
+   "suppliedUsd": 2883822624.04,
+   "debtUsd": 2715445625.11
+  },
+  {
+   "id": 20,
+   "symbol": "GHO",
+   "address": "0x40D16FC0246aD3160Ccc09B8D0D3A2cD28aE6C2f",
+   "decimals": 18,
+   "priceUsd8": "100000000",
+   "ltBps": 0,
+   "ltvBps": 0,
+   "bonusBps": 0,
+   "suppliedUsd": 135101535.9,
+   "debtUsd": 115251898.37
+  },
+  {
+   "id": 58,
+   "symbol": "syrupUSDT",
+   "address": "0x356B8d89c1e1239Cbbb9dE4815c39A1474d5BA7D",
+   "decimals": 6,
+   "priceUsd8": "114457482",
+   "ltBps": 10,
+   "ltvBps": 5,
+   "bonusBps": 600,
+   "suppliedUsd": 112107600.59,
+   "debtUsd": 0
+  }
+ ],
+ "eModes": [
+  {
+   "id": 33,
+   "label": "syrupUSDT Stablecoins",
+   "ltvBps": 9000,
+   "ltBps": 9200,
+   "bonusBps": 400,
+   "collateralBitmap": "288230376151711744",
+   "borrowableBitmap": "1048832",
+   "assetIsCollateral": true,
+   "keptPositions": 13
+  }
+ ],
+ "totals": {
+  "positions": 13,
+  "collateralUsd": 111595886.49,
+  "debtUsd": 98762505.9,
+  "reserveSuppliedUsd": 112107600.59,
+  "reserveDebtUsd": 0,
+  "candidates": 129,
+  "candidatesWithDebt": 21,
+  "candidatesWithDebtUsingSyrupAsCollateral": 15,
+  "syrupDominantAll": 13,
+  "dropped": 0,
+  "allCollateralUsd": 111595886.49,
+  "allDebtUsd": 98762505.9,
+  "keptDebtShare": 1,
+  "otherDominantCollateral": {
+   "WBTC": 1,
+   "cbBTC": 1
+  },
+  "byAsset": {
+   "15": {
+    "positions": 13,
+    "collateralUsd": 111595886.22,
+    "debtUsd": 98762505.9,
+    "ltBpsUsed": [
+     9200
+    ]
+   }
+  }
+ },
+ "depth": {
+  "depthUsd": 5063716,
+  "source": "https://api.geckoterminal.com/api/v2/networks/eth/tokens/0x356B8d89c1e1239Cbbb9dE4815c39A1474d5BA7D/pools?page=1",
+  "isAssumption": false,
+  "note": "Sum of GeckoTerminal reserve_in_usd over 8 Ethereum DEX pool(s) (page 1 = top pools); largest: syrupUSDT / USDT 0.08% on uniswap-v4-ethereum ($5,062,266). TVL proxy (both sides of each pool), not a slippage curve; excludes Maple's native withdrawal queue. DefiLlama (yields.llama.fi) non-lending Ethereum pools containing syrupUSDT: uniswap-v4 SYRUPUSDT-USDT $5,102,835 (0.08%). Lending markets using it (not exit liquidity): aave-v3 $112,104,786; morpho-blue $68,557; fluid-lending $13,928.",
+  "pools": [
+   {
+    "name": "syrupUSDT / USDT 0.08%",
+    "dex": "uniswap-v4-ethereum",
+    "reserveUsd": 5062266,
+    "volume24hUsd": 163119,
+    "address": "0xd861038a98942312d1495dd1313fb66c7e7de48f549a15edf3a45decf7338e1d"
+   },
+   {
+    "name": "syrupUSDT / USDC 84%",
+    "dex": "uniswap-v4-ethereum",
+    "reserveUsd": 328,
+    "volume24hUsd": 0,
+    "address": "0xff88f3237f81766e687cb36456b9e3b03d8f2998d95c89697d9421db14e5bc2c"
+   },
+   {
+    "name": "syrupUSDT / ETH 90%",
+    "dex": "uniswap-v4-ethereum",
+    "reserveUsd": 314,
+    "volume24hUsd": 0,
+    "address": "0xdde6d0a099430c7d82324a3330c06bdb61e8f6c932309a71baa5a7d4caadb527"
+   },
+   {
+    "name": "syrupUSDT / USDC 85%",
+    "dex": "uniswap-v4-ethereum",
+    "reserveUsd": 309,
+    "volume24hUsd": 0,
+    "address": "0x9f8a40d9f9e017fbe88f0defaca101d2d0e60bc5dec4f1c3f70fc9964ed5d559"
+   },
+   {
+    "name": "syrupUSDT / WETH",
+    "dex": "dodo-pmm-ethereum",
+    "reserveUsd": 181,
+    "volume24hUsd": 0,
+    "address": "0xd5db421df398d638602a74edb94730371672cc7c"
+   },
+   {
+    "name": "syrupUSDT / USDT 90%",
+    "dex": "uniswap-v4-ethereum",
+    "reserveUsd": 113,
+    "volume24hUsd": 0,
+    "address": "0x1424865f6d1721104085f807b451414a87ee74f9884a1c0e5fdf49830d24618e"
+   },
+   {
+    "name": "syrupUSDT / USDT",
+    "dex": "fluid-ethereum",
+    "reserveUsd": 111,
+    "volume24hUsd": 0,
+    "address": "0x93b17a6497f045dc60309921e47c1fa4dc792302"
+   },
+   {
+    "name": "syrupUSDT / USDT 0.08%",
+    "dex": "uniswap-v4-ethereum",
+    "reserveUsd": 94,
+    "volume24hUsd": 0,
+    "address": "0x74a4f1c4d36a11a56f158f17549e95206a2d114d3431f01d4ad8ce4f6c70383c"
+   }
+  ]
+ },
+ "positions": [
+  {
+   "user": "0x3207363359Ca0c11D11073aD48301E8c958B7910",
+   "eMode": 33,
+   "collateralId": 15,
+   "ethReserveId": 58,
+   "collateralRaw": "88781230477713",
+   "collateralDecimals": 6,
+   "collateralUsd": 101616760.89,
+   "otherCollateralUsd": 0,
+   "debtUsd": 91451679.84,
+   "ltBps": 9200,
+   "bonusBps": 400,
+   "hfOnchain": 1.02226,
+   "hfModel": 1.02226,
+   "debtByAsset": {
+    "8": 91451679.84
+   }
+  },
+  {
+   "user": "0x815f5BB257e88b67216a344C7C83a3eA4EE74748",
+   "eMode": 33,
+   "collateralId": 15,
+   "ethReserveId": 58,
+   "collateralRaw": "4811828357609",
+   "collateralDecimals": 6,
+   "collateralUsd": 5507497.58,
+   "otherCollateralUsd": 0,
+   "debtUsd": 4279075.98,
+   "ltBps": 9200,
+   "bonusBps": 400,
+   "hfOnchain": 1.18411,
+   "hfModel": 1.18411,
+   "debtByAsset": {
+    "8": 4279075.98
+   }
+  },
+  {
+   "user": "0xc526070415809165fbf1D7C78F34409Be2E0BDF6",
+   "eMode": 33,
+   "collateralId": 15,
+   "ethReserveId": 58,
+   "collateralRaw": "2127260151320",
+   "collateralDecimals": 6,
+   "collateralUsd": 2434808.4,
+   "otherCollateralUsd": 0,
+   "debtUsd": 2177763.83,
+   "ltBps": 9200,
+   "bonusBps": 400,
+   "hfOnchain": 1.028588,
+   "hfModel": 1.028589,
+   "debtByAsset": {
+    "8": 2177763.83
+   }
+  },
+  {
+   "user": "0xd6c757043e7d59088969B188923C62fa960aFE9B",
+   "eMode": 33,
+   "collateralId": 15,
+   "ethReserveId": 58,
+   "collateralRaw": "1300372126214",
+   "collateralDecimals": 6,
+   "collateralUsd": 1488373.19,
+   "otherCollateralUsd": 0,
+   "debtUsd": 380774.7,
+   "ltBps": 9200,
+   "bonusBps": 400,
+   "hfOnchain": 3.596098,
+   "hfModel": 3.596099,
+   "debtByAsset": {
+    "8": 380774.7
+   }
+  },
+  {
+   "user": "0x78a508cE92A7cE18bc42F309922f4d39D0D6a439",
+   "eMode": 33,
+   "collateralId": 15,
+   "ethReserveId": 58,
+   "collateralRaw": "297393725253",
+   "collateralDecimals": 6,
+   "collateralUsd": 340389.37,
+   "otherCollateralUsd": 0,
+   "debtUsd": 304914.94,
+   "ltBps": 9200,
+   "bonusBps": 400,
+   "hfOnchain": 1.027034,
+   "hfModel": 1.027035,
+   "debtByAsset": {
+    "20": 304914.94
+   }
+  },
+  {
+   "user": "0x927F1Ed8d3C6183d468E5324A38A9d7F52f15B9c",
+   "eMode": 33,
+   "collateralId": 15,
+   "ethReserveId": 58,
+   "collateralRaw": "101275078317",
+   "collateralDecimals": 6,
+   "collateralUsd": 115916.9,
+   "otherCollateralUsd": 0,
+   "debtUsd": 92565.99,
+   "ltBps": 9200,
+   "bonusBps": 400,
+   "hfOnchain": 1.152081,
+   "hfModel": 1.152081,
+   "debtByAsset": {
+    "8": 92565.99
+   }
+  },
+  {
+   "user": "0x3b3bDAA4462851621818D2CEBC835E077587147A",
+   "eMode": 33,
+   "collateralId": 15,
+   "ethReserveId": 58,
+   "collateralRaw": "46422486547",
+   "collateralDecimals": 6,
+   "collateralUsd": 53134.01,
+   "otherCollateralUsd": 0,
+   "debtUsd": 42511.13,
+   "ltBps": 9200,
+   "bonusBps": 400,
+   "hfOnchain": 1.149893,
+   "hfModel": 1.149894,
+   "debtByAsset": {
+    "8": 42511.13
+   }
+  },
+  {
+   "user": "0x31B7d5A2B1CE1871Dd642F6aeCC0Ef68d126B95A",
+   "eMode": 33,
+   "collateralId": 15,
+   "ethReserveId": 58,
+   "collateralRaw": "31750127262",
+   "collateralDecimals": 6,
+   "collateralUsd": 36340.4,
+   "otherCollateralUsd": 0,
+   "debtUsd": 31789.32,
+   "ltBps": 9200,
+   "bonusBps": 400,
+   "hfOnchain": 1.05171,
+   "hfModel": 1.051711,
+   "debtByAsset": {
+    "8": 31789.32
+   }
+  },
+  {
+   "user": "0x5F5869f30535C0F322657DE121260A6612FfACf4",
+   "eMode": 33,
+   "collateralId": 15,
+   "ethReserveId": 58,
+   "collateralRaw": "2122326519",
+   "collateralDecimals": 6,
+   "collateralUsd": 2429.16,
+   "otherCollateralUsd": 0,
+   "debtUsd": 1229.65,
+   "ltBps": 9200,
+   "bonusBps": 400,
+   "hfOnchain": 1.817456,
+   "hfModel": 1.817457,
+   "debtByAsset": {
+    "8": 1229.65
+   }
+  },
+  {
+   "user": "0x90C1B6977F13B72c439786141F8251cF7C7896c1",
+   "eMode": 33,
+   "collateralId": 15,
+   "ethReserveId": 58,
+   "collateralRaw": "203512669",
+   "collateralDecimals": 6,
+   "collateralUsd": 232.94,
+   "otherCollateralUsd": 0,
+   "debtUsd": 199.53,
+   "ltBps": 9200,
+   "bonusBps": 400,
+   "hfOnchain": 1.074007,
+   "hfModel": 1.074007,
+   "debtByAsset": {
+    "8": 199.53
+   }
+  },
+  {
+   "user": "0x09eF36e734Fca837A30665ec5B448D8Ae2843e1f",
+   "eMode": 33,
+   "collateralId": 15,
+   "ethReserveId": 58,
+   "collateralRaw": "1878329",
+   "collateralDecimals": 6,
+   "collateralUsd": 2.15,
+   "otherCollateralUsd": 0,
+   "debtUsd": 0.89,
+   "ltBps": 9200,
+   "bonusBps": 400,
+   "hfOnchain": 2.234096,
+   "hfModel": 2.234097,
+   "debtByAsset": {
+    "20": 0.89
+   }
+  },
+  {
+   "user": "0xAa6aA4a75020F6972D6b404b5ed1d2b1453F5574",
+   "eMode": 33,
+   "collateralId": 15,
+   "ethReserveId": 58,
+   "collateralRaw": "95065",
+   "collateralDecimals": 6,
+   "collateralUsd": 0.11,
+   "otherCollateralUsd": 0,
+   "debtUsd": 0.1,
+   "ltBps": 9200,
+   "bonusBps": 400,
+   "hfOnchain": 1.010202,
+   "hfModel": 1.010235,
+   "debtByAsset": {
+    "8": 0.1
+   }
+  },
+  {
+   "user": "0x453272BD0bC51F699E18F7d2c25cdf7A85C0a40D",
+   "eMode": 33,
+   "collateralId": 15,
+   "ethReserveId": 58,
+   "collateralRaw": "977213",
+   "collateralDecimals": 6,
+   "collateralUsd": 1.12,
+   "otherCollateralUsd": 0.27,
+   "debtUsd": 0,
+   "ltBps": 9200,
+   "bonusBps": 400,
+   "hfOnchain": 125304726.98,
+   "hfModel": 127734004.28,
+   "debtByAsset": {
+    "20": 0
+   }
+  }
+ ]
+}

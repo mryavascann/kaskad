@@ -9,7 +9,8 @@
     "abi": "tsx src/export-abi.ts",
     "load": "tsx src/load-testnet.ts",
     "smoke": "tsx src/smoke.ts",
-    "reset-guard": "tsx src/reset-guard.ts"
+    "reset-guard": "tsx src/reset-guard.ts",
+    "fetch-eth": "tsx src/fetch-eth-syrup.ts"
   },
   "dependencies": {
     "@envio-dev/hypersync-client": "^1.4.1",

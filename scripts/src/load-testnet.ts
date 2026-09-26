@@ -3,7 +3,7 @@
 //   npm run load -- --yes        -> sends the transactions
 //   --cal 9:10000,12:2000        -> calibrated book sizes per asset (default below)
 // Idempotent: books already at the target length are skipped, partial books resume.
-import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
@@ -52,6 +52,19 @@ type Depth = Record<string, { depthUsd: number; source: string; isAssumption: bo
 
 const data: Data = JSON.parse(readFileSync(join(root, "scripts/data/positions.json"), "utf8"));
 const depth: Depth = JSON.parse(readFileSync(join(root, "scripts/data/depth.json"), "utf8"));
+
+// Optional comparison books from Aave on Ethereum (scripts/data/eth-*.json), simulated on Monad
+// under synthetic asset ids (14, 15). Pass --no-eth to skip.
+type EthBook = Pick<Data, "reserves" | "positions"> & { depth: Depth[string] };
+const ethFiles = args.includes("--no-eth")
+  ? []
+  : readdirSync(join(root, "scripts/data")).filter((f) => /^eth-.*.json$/.test(f) && !f.endsWith(".raw.json"));
+for (const f of ethFiles) {
+  const eth: EthBook = JSON.parse(readFileSync(join(root, "scripts/data", f), "utf8"));
+  data.reserves.push(...eth.reserves);
+  data.positions.push(...eth.positions);
+  depth[String(eth.reserves[0].id)] = eth.depth;
+}
 const dep = JSON.parse(readFileSync(join(root, "contracts/deployments/testnet.json"), "utf8")) as {
   kaskad: Address;
   guard: Address;

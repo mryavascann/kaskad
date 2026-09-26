@@ -198,6 +198,24 @@
       "ltBps": 9500,
       "bonusBps": 244,
       "inUi": true
+    },
+    "15": {
+      "id": 15,
+      "symbol": "syrupUSDT (Ethereum)",
+      "decimals": 6,
+      "priceUsd": 1.14457482,
+      "suppliedUsd": 112107600.59,
+      "depthUsd": 5063716,
+      "depthIsAssumption": false,
+      "depthSource": "https://api.geckoterminal.com/api/v2/networks/eth/tokens/0x356B8d89c1e1239Cbbb9dE4815c39A1474d5BA7D/pools?page=1",
+      "depthNote": "Sum of GeckoTerminal reserve_in_usd over 8 Ethereum DEX pool(s) (page 1 = top pools); largest: syrupUSDT / USDT 0.08% on uniswap-v4-ethereum ($5,062,266). TVL proxy (both sides of each pool), not a slippage curve; excludes Maple's native withdrawal queue. DefiLlama (yields.llama.fi) non-lending Ethereum pools containing syrupUSDT: uniswap-v4 SYRUPUSDT-USDT $5,102,835 (0.08%). Lending markets using it (not exit liquidity): aave-v3 $112,104,786; morpho-blue $68,557; fluid-lending $13,928.",
+      "realPositions": 12,
+      "calibratedPositions": 0,
+      "collateralUsd": 111595885.10000002,
+      "debtUsd": 98762505.89999999,
+      "ltBps": 9200,
+      "bonusBps": 400,
+      "inUi": false
     }
   }
 }

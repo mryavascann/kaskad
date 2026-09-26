@@ -73,8 +73,8 @@ const PRESETS: Preset[] = [
   {
     id: "eth",
     emoji: "🌊",
-    title: "Aynı şok, Ethereum'da",
-    story: "Ethereum Aave'deki syrupUSDC borçluları, derin havuz. Hesap yine Monad'da.",
+    title: "Aynı döngü, Ethereum'da",
+    story: "Ethereum Aave'deki syrupUSDT borçluları: aynı Maple döngüsü, $98,8M borç. Hesap yine Monad'da.",
     s: { ...BASE, assetId: ETH_SYRUP },
   },
   {
