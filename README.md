@@ -4,7 +4,7 @@
 
 Monad Blitz İstanbul · 26 Eylül 2026 · Monad testnet üzerinde çalışır, veriyi Monad mainnet'teki Aave'den okur.
 
-> Demo: _Vercel linki_ · Video: _1,5 dk Türkçe video linki_
+> **Demo: https://kaskad42.vercel.app** · Video: _1,5 dk Türkçe video linki_
 
 ---
 
