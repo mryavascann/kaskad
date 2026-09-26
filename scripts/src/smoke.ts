@@ -45,7 +45,7 @@ const scenarios: [string, Sc][] = [
   ["syrupUSDC gerçek −3%, kur oracle'ı", sc(9, 300, 57, 0)],
   ["syrupUSDC gerçek −12%, kur oracle'ı", sc(9, 1200, 57, 0)],
   ["PT-AUSD gerçek −2%, piyasa oracle'ı", sc(12, 200, 50)],
-  ["syrupUSDC kalibre 2k −3%", sc(265, 300, 2000)],
+  ["syrupUSDC kalibre 5k −3%", sc(265, 300, 5000)],
   ["syrupUSDC kalibre 10k −3%", sc(265, 300, 10000)],
 ];
 

@@ -8,7 +8,8 @@
     "typecheck": "tsc --noEmit",
     "abi": "tsx src/export-abi.ts",
     "load": "tsx src/load-testnet.ts",
-    "smoke": "tsx src/smoke.ts"
+    "smoke": "tsx src/smoke.ts",
+    "reset-guard": "tsx src/reset-guard.ts"
   },
   "dependencies": {
     "@envio-dev/hypersync-client": "^1.4.1",

@@ -32,6 +32,8 @@ const CAL: Record<number, number> =
     ? Object.fromEntries(calArg.split(",").map((kv) => kv.split(":").map(Number)))
     : { 9: 10_000, 12: 2_000 };
 
+const maxLoadArg = args[args.indexOf("--max-load") + 1];
+const MAX_LOAD = args.includes("--max-load") && maxLoadArg ? Number(maxLoadArg) : Infinity; // per book, this run
 const CALIBRATED = 256;
 const CHUNK = 1_000;
 const MIN_DEPTH_USD = 250_000; // below this we do not trust the measured on-chain depth
@@ -87,7 +89,7 @@ let nonce = 0;
 let spentWei = 0n;
 async function send(data: Hex, to: Address, gasOverride?: bigint, label = "") {
   const gas =
-    gasOverride ?? ((await client.estimateGas({ account: account.address, to, data })) * 110n) / 100n + 20_000n;
+    gasOverride ?? ((await client.estimateGas({ account: account.address, to, data })) * 102n) / 100n + 5_000n;
   const raw = await account.signTransaction({
     chainId: monadTestnet.id,
     type: "eip1559",
@@ -147,7 +149,7 @@ async function main() {
   for (const b of books) {
     const len = Number(await read<bigint>("bookLength", [BigInt(b.bookId)]));
     lengths.set(b.bookId, len);
-    newSlots += Math.max(0, b.packed.length - len);
+    newSlots += Math.max(0, Math.min(b.packed.length, MAX_LOAD) - len);
   }
   const estGas = BigInt(newSlots) * 19_000n + 3_000_000n;
   console.log(`deployer ${account.address} balance ${(Number(balance) / 1e18).toFixed(3)} MON, gas price ${Number(gasPrice) / 1e9} gwei`);
@@ -181,8 +183,9 @@ async function main() {
   for (const b of books) {
     let len = lengths.get(b.bookId)!;
     if (len > b.packed.length) throw new Error(`book ${b.bookId} longer than plan; resetBook first`);
-    while (len < b.packed.length) {
-      const part = b.packed.slice(len, len + CHUNK);
+    const target = Math.min(b.packed.length, MAX_LOAD);
+    while (len < target) {
+      const part = b.packed.slice(len, Math.min(len + CHUNK, target));
       await send(
         encodeFunctionData({ abi: kaskadAbi, functionName: "loadPositions", args: [BigInt(b.bookId), part] }),
         dep.kaskad,
@@ -231,7 +234,7 @@ function writeWebConfig() {
       depthSource: d.source,
       depthNote: d.note,
       realPositions: ps.length,
-      calibratedPositions: CAL[id] ?? 0,
+      calibratedPositions: Math.min(CAL[id] ?? 0, MAX_LOAD),
       collateralUsd: ps.reduce((s, p) => s + p.collateralUsd, 0),
       debtUsd: ps.reduce((s, p) => s + p.debtUsd, 0),
       ltBps: ps[0].ltBps,

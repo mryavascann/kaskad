@@ -66,6 +66,6 @@ export function repayToSurvive(
 
 /** Gas limit for a real simulate() tx from the free preview's measured engine gas. */
 export function simulateGasLimit(previewGas: bigint, rounds: number): bigint {
-  // engine x1.2 + events (~4k each) + summary storage, calldata and intrinsic
-  return (previewGas * 12n) / 10n + BigInt(rounds) * 4_000n + 250_000n;
+  // engine x1.15 + events (~4k each) + summary storage, calldata and intrinsic
+  return (previewGas * 115n) / 100n + BigInt(rounds) * 4_000n + 250_000n;
 }

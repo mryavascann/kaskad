@@ -99,7 +99,7 @@ describe("risk math", () => {
   });
 
   it("gas limit is above the measured engine gas", () => {
-    expect(simulateGasLimit(1_000_000n, 10)).toBe(1_200_000n + 40_000n + 250_000n);
+    expect(simulateGasLimit(1_000_000n, 10)).toBe(1_150_000n + 40_000n + 250_000n);
   });
 });
 
