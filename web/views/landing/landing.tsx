@@ -25,11 +25,10 @@ import { MONAD_PAGE_SLOTS } from "@/lib/kaskad/math";
 import { cn } from "@/lib/utils";
 import { SmoothScroll } from "@/motion/smooth-scroll";
 import { Pipeline } from "../how/diagrams";
-import { FindingGap, GuardTeaser, LivePulse, MiniDial, ScaleGauge, WalletTeaser } from "./below-fold";
+import { FindingGap, GuardTeaser, LivePulse, MiniDial, OnchainUnlock, ScaleGauge, WalletTeaser } from "./below-fold";
 import type { LandingData } from "./data";
 import { GAUNTLET_AAVE_FEE_USD_PER_YEAR, GAUNTLET_FEE_SOURCE_URL, MONAD_BLOCK_TIME_MS, MONAD_FINALITY_MS } from "./facts";
 import { HeroIntro, type FindingMeta } from "./hero-intro";
-import { OnchainUnlock } from "./onchain-unlock";
 import { ShockScene } from "./shock-scene";
 import type { WalletSample } from "./wallet-teaser";
 

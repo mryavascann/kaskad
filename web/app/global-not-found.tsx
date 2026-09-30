@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import "./globals.css";
 import { fontVariables } from "@/design/fonts";
+import { IntentLink } from "@/design/ui/intent-link";
 import { Eyebrow } from "@/design/ui/label";
 import { LogoMark } from "@/design/ui/logo";
 import { href } from "@/i18n/config";
@@ -20,12 +20,12 @@ export default function GlobalNotFound() {
           <h1 className="text-title-1">This page is not on the chain.</h1>
           <p className="text-lead text-fg-2" lang="tr">Bu sayfa zincirde yok.</p>
           <p className="flex flex-wrap gap-3">
-            <Link href={href("home", "en")} className="rounded-control border border-line-3 px-4 py-2.5 text-body-sm hover:border-line-strong">
+            <IntentLink href={href("home", "en")} className="rounded-control border border-line-3 px-4 py-2.5 text-body-sm hover:border-line-strong">
               Back to Kaskad
-            </Link>
-            <Link href={href("home", "tr")} lang="tr" className="rounded-control border border-line-3 px-4 py-2.5 text-body-sm hover:border-line-strong">
+            </IntentLink>
+            <IntentLink href={href("home", "tr")} lang="tr" className="rounded-control border border-line-3 px-4 py-2.5 text-body-sm hover:border-line-strong">
               Türkçe ana sayfa
-            </Link>
+            </IntentLink>
           </p>
         </main>
       </body>

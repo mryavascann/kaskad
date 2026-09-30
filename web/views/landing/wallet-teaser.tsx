@@ -7,13 +7,13 @@
  * navigates; the wallet page validates the address again (viem, checksum) before any read.
  */
 import { ArrowRight, Wallet } from "lucide-react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { Button } from "@/design/ui/button";
 import { chipStyles } from "@/design/ui/chip";
 import { Field } from "@/design/ui/field";
 import { addressInputProps, Input } from "@/design/ui/input";
+import { IntentLink } from "@/design/ui/intent-link";
 import { href, type Locale } from "@/i18n/config";
 import { landingMessages } from "@/i18n/messages/landing";
 import { cn } from "@/lib/utils";
@@ -80,10 +80,10 @@ export function WalletTeaser({ locale, samples }: { locale: Locale; samples: rea
         <ul aria-labelledby="landing-samples" className="flex flex-wrap gap-2">
           {samples.map((s) => (
             <li key={s.id}>
-              <Link href={walletHref(locale, s.address)} className={cn(chipStyles({ size: "md" }), "gap-2")}>
+              <IntentLink href={walletHref(locale, s.address)} className={cn(chipStyles({ size: "md" }), "gap-2")}>
                 <span>{t.sampleNames[s.id] ?? s.description}</span>
                 <code className="font-mono text-caption text-fg-3">{s.short}</code>
-              </Link>
+              </IntentLink>
             </li>
           ))}
         </ul>

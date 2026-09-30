@@ -5,8 +5,6 @@ import { mockMatchMedia } from "./test-utils";
 const media = mockMatchMedia();
 
 const lenisInstances: { opts: unknown; destroy: ReturnType<typeof vi.fn> }[] = [];
-const tickerAdd = vi.fn();
-const tickerRemove = vi.fn();
 
 vi.mock("lenis", () => ({
   default: class {
@@ -14,17 +12,12 @@ vi.mock("lenis", () => ({
     constructor(opts: unknown) {
       lenisInstances.push({ opts, destroy: this.destroy });
     }
-    on() {}
-    off() {}
-    raf() {}
   },
 }));
-vi.mock("gsap", () => ({ gsap: { registerPlugin: vi.fn(), ticker: { add: tickerAdd, remove: tickerRemove, lagSmoothing: vi.fn() } } }));
-vi.mock("gsap/ScrollTrigger", () => ({ ScrollTrigger: { update: vi.fn() } }));
 
 const { SmoothScroll } = await import("./smooth-scroll");
 const { MotionProvider } = await import("./provider");
-const { resetScrollKit } = await import("./scroll");
+const { resetScrollIntent } = await import("./scroll");
 
 const flush = () => act(async () => {
   await new Promise((r) => setTimeout(r, 0));
@@ -32,26 +25,29 @@ const flush = () => act(async () => {
 
 beforeEach(() => {
   lenisInstances.length = 0;
-  tickerAdd.mockReset();
-  tickerRemove.mockReset();
-  resetScrollKit();
+  resetScrollIntent();
 });
 
-afterEach(() => media.set({ reduce: false }));
+afterEach(() => media.set({ reduce: false, fine: true }));
 
 describe("SmoothScroll", () => {
-  it("starts Lenis on the GSAP ticker after hydration and destroys it on unmount", async () => {
+  it("starts Lenis after the first intent (not at load) and destroys it on unmount", async () => {
     const { unmount } = render(
       <MotionProvider>
         <SmoothScroll />
       </MotionProvider>,
     );
     await flush();
+    expect(lenisInstances).toHaveLength(0);
+    await act(async () => {
+      window.dispatchEvent(new Event("wheel"));
+      await new Promise((r) => setTimeout(r, 0));
+    });
+    await flush();
     expect(lenisInstances).toHaveLength(1);
-    expect(tickerAdd).toHaveBeenCalledTimes(1);
+    expect(lenisInstances[0].opts).toMatchObject({ autoRaf: true });
     unmount();
     expect(lenisInstances[0].destroy).toHaveBeenCalled();
-    expect(tickerRemove).toHaveBeenCalled();
   });
 
   it("stays off under reduced motion", async () => {
@@ -61,6 +57,19 @@ describe("SmoothScroll", () => {
         <SmoothScroll />
       </MotionProvider>,
     );
+    window.dispatchEvent(new Event("wheel"));
+    await flush();
+    expect(lenisInstances).toHaveLength(0);
+  });
+
+  it("stays off without a fine pointer (touch screens scroll natively)", async () => {
+    media.set({ fine: false });
+    render(
+      <MotionProvider>
+        <SmoothScroll />
+      </MotionProvider>,
+    );
+    window.dispatchEvent(new Event("touchstart"));
     await flush();
     expect(lenisInstances).toHaveLength(0);
   });

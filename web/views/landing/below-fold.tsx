@@ -11,4 +11,5 @@ export const ScaleGauge = deferred(() => import("./charts").then((m) => m.ScaleG
 export const LivePulse = deferred(() => import("./charts").then((m) => m.LivePulse));
 export const MiniDial = deferred(() => import("./charts").then((m) => m.MiniDial));
 export const GuardTeaser = deferred(() => import("./guard-teaser").then((m) => m.GuardTeaser));
+export const OnchainUnlock = deferred(() => import("./onchain-unlock").then((m) => m.OnchainUnlock));
 export const WalletTeaser = deferred(() => import("./wallet-teaser").then((m) => m.WalletTeaser));

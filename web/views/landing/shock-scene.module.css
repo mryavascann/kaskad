@@ -1,8 +1,8 @@
 /*
  * The hero + shock scene: one tall scroll track with a sticky viewport (CSS sticky, so nothing jumps
- * when scripts arrive). Scroll progress arrives as CSS variables on the track, set without React
- * re-renders: --intro (1 → 0: headline out), --panel (0 → 1: shock panel in), --loop (0 → 1: loop
- * diagram drawn). Defaults = first paint: headline visible, panel hidden.
+ * when scripts arrive). Scroll progress arrives as CSS variables on the track, written by
+ * ShockDriver without React renders: --intro (1 → 0: headline out), --panel (0 → 1: shock panel
+ * in), --loop (0 → 1: loop diagram drawn). Defaults = first paint: headline visible, panel hidden.
  *
  * Reduced motion: no sticky, no scroll length; the headline, the panel (final state) and the strip
  * stack as a normal layout, and the stage shows the final poster behind the headline.
@@ -111,7 +111,8 @@
   transform: translate3d(0, calc((1 - var(--intro)) * -3rem), 0);
 }
 
-.introHidden {
+/* Set by the driver once the headline has faded out: its links leave the tab order. */
+.track[data-intro-gone] .intro {
   pointer-events: none;
   visibility: hidden;
 }
@@ -248,7 +249,7 @@
     transform: none;
   }
 
-  .introHidden {
+  .track[data-intro-gone] .intro {
     visibility: visible;
     pointer-events: auto;
   }

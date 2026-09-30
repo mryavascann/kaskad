@@ -11,8 +11,6 @@ vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 // The WebGL stage is covered by web/three's own tests; here it is a box.
 vi.mock("@/three/hero-stage", () => ({ HeroStage: () => <div data-testid="hero-stage" /> }));
 vi.mock("@/lib/chain/hooks/useLiveBlock", () => ({ useLiveBlock: () => ({ block: null, updatedAt: null, error: null }) }));
-// No scroll library in jsdom: the scene stays at its first frame.
-vi.mock("@/motion/scroll", async (orig) => ({ ...(await orig<typeof import("@/motion/scroll")>()), loadScrollKit: () => new Promise(() => {}) }));
 
 const { Landing } = await import("./landing");
 const { engageNow } = await import("./deferred");

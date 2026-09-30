@@ -6,30 +6,25 @@ import { mockMatchMedia } from "./test-utils";
 
 const media = mockMatchMedia();
 
-type TriggerVars = { trigger: Element; start: string; end: string; onUpdate: (self: { progress: number }) => void };
-const created: TriggerVars[] = [];
-const kill = vi.fn();
-const registerPlugin = vi.fn();
-
-vi.mock("gsap", () => ({ gsap: { registerPlugin } }));
-vi.mock("gsap/ScrollTrigger", () => ({
-  ScrollTrigger: {
-    create: (vars: TriggerVars) => {
-      created.push(vars);
-      return { progress: 0.25, kill };
-    },
+const observed: { el: Element; range: unknown; onChange: (p: number) => void }[] = [];
+const stop = vi.fn();
+vi.mock("./scroll", async (orig) => ({
+  ...(await orig<typeof import("./scroll")>()),
+  observeScrollProgress: (el: Element, range: unknown, onChange: (p: number) => void) => {
+    observed.push({ el, range, onChange });
+    onChange(0.25);
+    return stop;
   },
 }));
 
 const { useScrollProgress } = await import("./use-scroll-progress");
 const { MotionProvider } = await import("./provider");
-const { resetScrollKit } = await import("./scroll");
 
 const probe: { value: MotionValue<number> | null } = { value: null };
 
-function Probe() {
+function Probe({ when }: { when?: () => Promise<void> }) {
   const ref = useRef<HTMLDivElement>(null);
-  const progress = useScrollProgress(ref, { start: "top top", end: "bottom bottom" });
+  const progress = useScrollProgress(ref, { start: "top top", end: "bottom bottom", when });
   useEffect(() => {
     probe.value = progress;
   }, [progress]);
@@ -41,34 +36,49 @@ const flush = () => act(async () => {
 });
 
 beforeEach(() => {
-  created.length = 0;
-  kill.mockReset();
+  observed.length = 0;
+  stop.mockReset();
   probe.value = null;
-  resetScrollKit();
 });
 
 afterEach(() => media.set({ reduce: false }));
 
 describe("useScrollProgress", () => {
-  it("creates a ScrollTrigger on the element after hydration and follows its progress", async () => {
+  it("observes the element after hydration and follows its progress", async () => {
     const { unmount, getByTestId } = render(
       <MotionProvider>
         <Probe />
       </MotionProvider>,
     );
-    expect(probe.value?.get()).toBe(0);
     await flush();
-    expect(created).toHaveLength(1);
-    expect(created[0].trigger).toBe(getByTestId("track"));
-    expect(created[0].start).toBe("top top");
+    expect(observed).toHaveLength(1);
+    expect(observed[0].el).toBe(getByTestId("track"));
+    expect(observed[0].range).toEqual({ start: "top top", end: "bottom bottom" });
     expect(probe.value?.get()).toBe(0.25);
-    act(() => created[0].onUpdate({ progress: 0.6 }));
+    act(() => observed[0].onChange(0.6));
     expect(probe.value?.get()).toBe(0.6);
     unmount();
-    expect(kill).toHaveBeenCalled();
+    expect(stop).toHaveBeenCalled();
   });
 
-  it("jumps to the final state and loads nothing under reduced motion", async () => {
+  it("waits for `when` before observing", async () => {
+    let open!: () => void;
+    const gate = new Promise<void>((r) => (open = r));
+    const when = () => gate;
+    render(
+      <MotionProvider>
+        <Probe when={when} />
+      </MotionProvider>,
+    );
+    await flush();
+    expect(observed).toHaveLength(0);
+    expect(probe.value?.get()).toBe(0);
+    open();
+    await flush();
+    expect(observed).toHaveLength(1);
+  });
+
+  it("jumps to the final state and observes nothing under reduced motion", async () => {
     media.set({ reduce: true });
     render(
       <MotionProvider>
@@ -76,7 +86,7 @@ describe("useScrollProgress", () => {
       </MotionProvider>,
     );
     await flush();
-    expect(created).toHaveLength(0);
+    expect(observed).toHaveLength(0);
     expect(probe.value?.get()).toBe(1);
   });
 });

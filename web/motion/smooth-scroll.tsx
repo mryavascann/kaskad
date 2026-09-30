@@ -1,14 +1,16 @@
 "use client";
 
 /**
- * Lenis smooth scrolling for one page (the landing), synced with ScrollTrigger through the GSAP
- * ticker. Mount it inside the page that wants it; it tears down on navigation. Off under reduced
- * motion (OS setting or a forced MotionConfig); Lenis leaves native touch scrolling alone. Both
- * libraries load after hydration, so first paint never waits for them.
+ * Lenis smooth scrolling for one page (the landing). Mount it inside the page that wants it; it
+ * tears down on navigation. Only with a fine pointer (mouse, trackpad: Lenis leaves touch scrolling
+ * native anyway, so phones never download it), never under reduced motion (OS setting or a forced
+ * MotionConfig), and only after the reader's first intent (`whenScrollIntent`: scroll, wheel, key,
+ * mouse move), so nothing of it runs while the page loads. Lenis drives its own frame loop
+ * (`autoRaf`) and scrolls the window, so native scroll listeners (`observeScrollProgress`) follow it.
  */
 import { useEffect } from "react";
-import { useShouldReduceMotion } from "./hooks";
-import { loadScrollKit } from "./scroll";
+import { useFinePointer, useShouldReduceMotion } from "./hooks";
+import { whenScrollIntent } from "./scroll";
 
 export type SmoothScrollProps = {
   /** Lenis lerp (0–1): lower is smoother. Default 0.1. */
@@ -17,25 +19,18 @@ export type SmoothScrollProps = {
 
 export function SmoothScroll({ lerp = 0.1 }: SmoothScrollProps) {
   const reduce = useShouldReduceMotion();
+  const fine = useFinePointer();
 
   useEffect(() => {
-    if (reduce) return;
+    if (reduce || !fine) return;
     let cancelled = false;
     let teardown: (() => void) | null = null;
-    Promise.all([import("lenis"), loadScrollKit()])
-      .then(([{ default: Lenis }, { gsap, ScrollTrigger }]) => {
-        if (cancelled) return;
-        const lenis = new Lenis({ lerp, anchors: true, autoRaf: false });
-        const onScroll = () => ScrollTrigger.update();
-        const raf = (time: number) => lenis.raf(time * 1000);
-        lenis.on("scroll", onScroll);
-        gsap.ticker.add(raf);
-        gsap.ticker.lagSmoothing(0);
-        teardown = () => {
-          gsap.ticker.remove(raf);
-          lenis.off("scroll", onScroll);
-          lenis.destroy();
-        };
+    whenScrollIntent()
+      .then(() => (cancelled ? null : import("lenis")))
+      .then((mod) => {
+        if (!mod || cancelled) return;
+        const lenis = new mod.default({ lerp, anchors: true, autoRaf: true });
+        teardown = () => lenis.destroy();
       })
       .catch(() => {
         // Native scrolling keeps working.
@@ -44,7 +39,7 @@ export function SmoothScroll({ lerp = 0.1 }: SmoothScrollProps) {
       cancelled = true;
       teardown?.();
     };
-  }, [reduce, lerp]);
+  }, [reduce, fine, lerp]);
 
   return null;
 }
