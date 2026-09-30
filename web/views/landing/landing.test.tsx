@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import { formatters } from "@/i18n/format";
 import { landingMessages } from "@/i18n/messages/landing";
@@ -13,25 +13,25 @@ vi.mock("@/three/hero-stage", () => ({ HeroStage: () => <div data-testid="hero-s
 vi.mock("@/lib/chain/hooks/useLiveBlock", () => ({ useLiveBlock: () => ({ block: null, updatedAt: null, error: null }) }));
 
 const { Landing } = await import("./landing");
-const { engageNow } = await import("./deferred");
+const { openScrollIntent } = await import("@/motion/scroll");
 const { recordedLanding, EMPTY_LANDING } = await import("./__fixtures__/landing-data");
 
 const data = recordedLanding();
 const f = data.finding!;
 const en = formatters("en");
-/** The first load of a deferred chunk (viz + motion) can take a while in a busy test run. */
+/** The first load of a live chunk (viz + motion) can take a while in a busy test run. */
 const LAZY = { timeout: 10_000 };
 
 beforeAll(() => {
   expect(f).not.toBeNull();
   // Below-the-fold parts load after the reader engages; open that gate for every test.
-  engageNow();
+  openScrollIntent();
 });
 
 describe("Landing (EN)", () => {
   it("has the headline as the page's only h1 and one h2 per section", async () => {
     render(<Landing locale="en" data={data} />);
-    // The sections below the scene hydrate after the first intent (a lazy boundary in the browser).
+    // The sections below the scene are server HTML first; their live parts take over after the first intent.
     await screen.findByRole("heading", { level: 2, name: landingMessages.en.how.title }, LAZY);
     const h1 = screen.getByRole("heading", { level: 1 });
     expect(h1).toHaveTextContent("One transaction. Every liquidation wave.");
@@ -61,7 +61,7 @@ describe("Landing (EN)", () => {
   it("states the gap with the computed ratio and always shows the model footnote", async () => {
     render(<Landing locale="en" data={data} />);
     const section = screen.getByRole("region", { name: landingMessages.en.finding.title });
-    expect(await within(section).findByText(en.ratio(f.stuckDebtUsd / f.clearedUsd), {}, LAZY)).toBeInTheDocument();
+    await waitFor(() => expect(within(section).getByText(en.ratio(f.stuckDebtUsd / f.clearedUsd))).toBeInTheDocument(), LAZY);
     expect(within(section).getAllByText(en.usd(f.clearedUsd)).length).toBeGreaterThan(0);
     expect(within(section).getByText(landingMessages.en.finding.footnote)).toBeVisible();
     expect(within(section).getByText(`${data.positions!.belowThreshold} of ${data.positions!.total}`)).toBeInTheDocument();
@@ -76,7 +76,8 @@ describe("Landing (EN)", () => {
 
   it("validates addresses and offers the sample borrowers", async () => {
     render(<Landing locale="en" data={data} />);
-    expect(await screen.findByRole("textbox", { name: "Wallet address" }, LAZY)).toBeInTheDocument();
+    // Query and check in one go: the live teaser may replace the static form at any moment.
+    await waitFor(() => expect(screen.getByRole("textbox", { name: "Wallet address" })).toBeInTheDocument(), LAZY);
     const sample = screen.getByRole("link", { name: /Largest syrupUSDC borrower/ });
     expect(sample.getAttribute("href")).toMatch(/^\/wallet\?address=0x[0-9a-fA-F]{40}$/);
   });
@@ -85,7 +86,8 @@ describe("Landing (EN)", () => {
     render(<Landing locale="en" data={data} />);
     const section = screen.getByRole("region", { name: landingMessages.en.wallet.title });
     const block = en.block(DEPLOYMENT.source.block);
-    expect(await within(section).findByText(new RegExp(`book snapshot \\(Monad mainnet block ${block.replace(/[#,]/g, (c) => `\\${c}`)}\\)`), {}, LAZY)).toBeInTheDocument();
+    const snapshot = new RegExp(`book snapshot \\(Monad mainnet block ${block.replace(/[#,]/g, (c) => `\\${c}`)}\\)`);
+    await waitFor(() => expect(within(section).getByText(snapshot)).toBeInTheDocument(), LAZY);
     expect(within(section).getByText(landingMessages.en.wallet.dialNote)).toBeInTheDocument();
   });
 

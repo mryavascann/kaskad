@@ -1,5 +1,5 @@
 import { ArrowUpRight } from "lucide-react";
-import type { ReactNode } from "react";
+import type { ComponentType, ReactNode } from "react";
 import { ButtonArrow } from "@/design/ui/button";
 import { ButtonLink } from "@/design/ui/button-link";
 import { Footnote } from "@/design/ui/footnote";
@@ -25,13 +25,16 @@ import { MONAD_PAGE_SLOTS } from "@/lib/kaskad/math";
 import { cn } from "@/lib/utils";
 import { SmoothScroll } from "@/motion/smooth-scroll";
 import { Pipeline } from "../how/diagrams";
-import { FindingGap, GuardTeaser, LivePulse, MiniDial, ScaleGauge, WalletTeaser } from "./below-fold";
+import { LiveFindingGap, LiveGuardTeaser, LiveMiniDial, LivePulse, LiveScaleGauge, LiveWalletTeaser } from "./below-fold";
+import { FindingGapStatic, LivePulseStatic, MiniDialStatic, ScaleGaugeStatic } from "./charts-static";
 import type { LandingData } from "./data";
 import { GAUNTLET_AAVE_FEE_USD_PER_YEAR, GAUNTLET_FEE_SOURCE_URL, MONAD_BLOCK_TIME_MS, MONAD_FINALITY_MS } from "./facts";
 import { HeroIntro, type FindingMeta } from "./hero-intro";
+import { GuardTeaserStatic } from "./guard-cards";
 import { OnchainUnlock } from "./onchain-unlock";
 import { ShockScene } from "./shock-scene";
-import type { WalletSample } from "./wallet-teaser";
+import type { WalletSample } from "./wallet-links";
+import { WalletTeaserStatic } from "./wallet-teaser-static";
 
 function Section({ id, index, kicker, title, lead, children, className }: { id: string; index: number; kicker: string; title: string; lead?: ReactNode; children: ReactNode; className?: string }) {
   return (
@@ -51,6 +54,20 @@ function Section({ id, index, kicker, title, lead, children, className }: { id: 
       </div>
       <div className="mt-12 lg:mt-16">{children}</div>
     </section>
+  );
+}
+
+/**
+ * A below-the-fold part: the static server rendering (`Static`, no client code) inside its takeover
+ * island (`Live`, see `below-fold.tsx`), which swaps in the live component with the same props after
+ * the reader's first intent. The server HTML is in the document and stays visible, with or without
+ * JavaScript.
+ */
+function Island<P extends object>({ Live, Static, props }: { Live: ComponentType<P & { children: ReactNode }>; Static: ComponentType<P>; props: P }) {
+  return (
+    <Live {...props}>
+      <Static {...props} />
+    </Live>
   );
 }
 
@@ -74,6 +91,24 @@ export function Landing({ locale, data }: { locale: Locale; data: LandingData })
   const depth = depthNote(asset, locale);
   const findingProof = PROOF_TXS.find((p) => p.id === "finding");
   const readRatio = ETH_READ_GAS_PER_POSITION / MONAD_READ_GAS_PER_POSITION;
+  const gapProps = {
+    locale,
+    cleared: finding?.clearedUsd ?? null,
+    stuck: finding?.stuckDebtUsd ?? null,
+    copy: t.finding.gap,
+    footnote: <Footnote label={t.finding.footnoteLabel}>{t.finding.footnote}</Footnote>,
+  };
+  const largest = positions?.largest;
+  const dialProps = {
+    locale,
+    value: largest?.healthFactor ?? null,
+    copy: walletMessages[locale].dial,
+    caption: largest
+      ? largest.thresholdDrop !== null && largest.thresholdDrop > 0
+        ? t.wallet.dialCaption({ asset: meta.asset, drop: fmt.drop(largest.thresholdDrop, 2), block: fmt.block(DEPLOYMENT.source.block) })
+        : t.wallet.dialCaptionSafe({ asset: meta.asset, block: fmt.block(DEPLOYMENT.source.block) })
+      : undefined,
+  };
 
   return (
     <div className="flex flex-col" data-landing="">
@@ -144,13 +179,7 @@ export function Landing({ locale, data }: { locale: Locale; data: LandingData })
             </p>
           </div>
           <div className="flex min-w-0 flex-col gap-6 rounded-panel border border-line-2 bg-elev-1 p-5 sm:p-8">
-            <FindingGap
-              locale={locale}
-              cleared={finding?.clearedUsd ?? null}
-              stuck={finding?.stuckDebtUsd ?? null}
-              copy={t.finding.gap}
-              footnote={<Footnote label={t.finding.footnoteLabel}>{t.finding.footnote}</Footnote>}
-            />
+            <Island Live={LiveFindingGap} Static={FindingGapStatic} props={gapProps} />
             <div className="flex flex-wrap items-center gap-2 border-t border-line pt-4 text-caption text-fg-3">
               <HonestyTag kind="real">{c.honesty.real}</HonestyTag>
               <HonestyTag kind="model">{t.hero.oracle}</HonestyTag>
@@ -197,7 +226,7 @@ export function Landing({ locale, data }: { locale: Locale; data: LandingData })
               </h3>
               <HonestyTag kind="synthetic">{c.honesty.synthetic}</HonestyTag>
             </div>
-            <ScaleGauge locale={locale} facts={scale?.facts ?? null} copy={t.monad.gas.copy} />
+            <Island Live={LiveScaleGauge} Static={ScaleGaugeStatic} props={{ locale, facts: scale?.facts ?? null, copy: t.monad.gas.copy }} />
             {scale && (
               <a
                 href={txUrl(scale.hash)}
@@ -245,7 +274,7 @@ export function Landing({ locale, data }: { locale: Locale; data: LandingData })
               <h3 id="monad-blocks" className="text-title-3 text-fg-1">
                 {t.monad.blocks.title({ block: fmt.ms(MONAD_BLOCK_TIME_MS), finality: fmt.ms(MONAD_FINALITY_MS) })}
               </h3>
-              <LivePulse locale={locale} copy={t.monad.blocks.pulse} />
+              <Island Live={LivePulse} Static={LivePulseStatic} props={{ locale, copy: t.monad.blocks.pulse }} />
               <p className="text-body-sm text-fg-2">{t.monad.blocks.body}</p>
             </article>
           </div>
@@ -255,7 +284,7 @@ export function Landing({ locale, data }: { locale: Locale; data: LandingData })
       {/* 04 · Guard */}
       <Section id="guard" index={4} kicker={t.guard.kicker} title={t.guard.title} lead={t.guard.lead}>
         <div className="flex flex-col gap-5">
-          <GuardTeaser locale={locale} markets={markets} guarded={{ a: MARKETS.a.guarded, b: MARKETS.b.guarded }} />
+          <Island Live={LiveGuardTeaser} Static={GuardTeaserStatic} props={{ locale, markets, guarded: { a: MARKETS.a.guarded, b: MARKETS.b.guarded } }} />
           <div className="flex flex-wrap items-center justify-between gap-4">
             <p className="text-caption text-fg-3">{markets ? t.guard.read : t.guard.missing}</p>
             <ButtonLink href={href("guard", locale)} variant="secondary">
@@ -269,20 +298,9 @@ export function Landing({ locale, data }: { locale: Locale; data: LandingData })
       {/* 05 · Is my position safe? */}
       <Section id="wallet" index={5} kicker={t.wallet.kicker} title={t.wallet.title} lead={t.wallet.lead}>
         <div className="grid gap-10 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:items-center lg:gap-16">
-          <WalletTeaser locale={locale} samples={WALLET_SAMPLES} />
+          <Island Live={LiveWalletTeaser} Static={WalletTeaserStatic} props={{ locale, samples: WALLET_SAMPLES }} />
           <figure className="flex flex-col items-center gap-3 rounded-panel border border-line-2 bg-elev-1 p-6" data-landing-dial="">
-            <MiniDial
-              locale={locale}
-              value={positions?.largest?.healthFactor ?? null}
-              copy={walletMessages[locale].dial}
-              caption={
-                positions?.largest
-                  ? positions.largest.thresholdDrop !== null && positions.largest.thresholdDrop > 0
-                    ? t.wallet.dialCaption({ asset: meta.asset, drop: fmt.drop(positions.largest.thresholdDrop, 2), block: fmt.block(DEPLOYMENT.source.block) })
-                    : t.wallet.dialCaptionSafe({ asset: meta.asset, block: fmt.block(DEPLOYMENT.source.block) })
-                  : undefined
-              }
-            />
+            <Island Live={LiveMiniDial} Static={MiniDialStatic} props={dialProps} />
             {positions?.largest && (
               <figcaption className="flex flex-col items-center gap-2 text-center">
                 <HonestyTag kind="real">{c.honesty.real}</HonestyTag>

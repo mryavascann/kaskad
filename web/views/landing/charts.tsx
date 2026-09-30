@@ -1,37 +1,32 @@
 "use client";
 
 /**
- * Client wrappers for the charts the landing shows: they bind the page's formatters (functions
- * can't cross the server → client boundary) and the live block poll. Data arrives as props from the
- * server read; nothing here fetches except `LivePulse` (eth_blockNumber every 3 s while visible).
+ * The landing's live charts (a chunk loaded by the takeover islands of `below-fold.tsx` after the
+ * reader's first intent): they bind the page's formatters (functions can't cross the server → client
+ * boundary) and the live block poll. Data arrives as props from the server read; nothing here
+ * fetches except `LivePulse` (eth_blockNumber every 3 s while visible). Formats and fixed props come
+ * from `charts-static.tsx`, so the live markup matches the static server rendering it replaces.
  */
-import type { ReactNode } from "react";
-import type { Locale } from "@/i18n/config";
-import { formatters } from "@/i18n/format";
 import { useLiveBlock } from "@/lib/chain/hooks/useLiveBlock";
-import { BlockPulse, type BlockPulseCopy } from "@/viz/block-pulse";
-import { GapBars, type GapBarsCopy } from "@/viz/gap-bars";
-import { GasGauge, type GasGaugeCopy } from "@/viz/gas-gauge";
-import type { LimitData } from "@/viz/gauge-model";
-import { HealthDial, type HealthDialCopy } from "@/viz/health-dial";
+import { BlockPulse } from "@/viz/block-pulse";
+import { GapBars } from "@/viz/gap-bars";
+import { GasGauge } from "@/viz/gas-gauge";
+import { HealthDial } from "@/viz/health-dial";
+import { dialProps, gapFormats, gaugeFormats, pulseProps, type FindingGapProps, type LivePulseProps, type MiniDialProps, type ScaleGaugeProps } from "./charts-static";
 
-export function FindingGap({ locale, cleared, stuck, copy, footnote }: { locale: Locale; cleared: number | null; stuck: number | null; copy: GapBarsCopy; footnote?: ReactNode }) {
-  const fmt = formatters(locale);
-  return <GapBars cleared={cleared} stuck={stuck} copy={copy} footnote={footnote} formatUsd={fmt.usd} formatRatio={fmt.ratio} formatPct={(x) => fmt.pct(x, 2)} />;
+export function FindingGap({ locale, cleared, stuck, copy, footnote }: FindingGapProps) {
+  return <GapBars cleared={cleared} stuck={stuck} copy={copy} footnote={footnote} {...gapFormats(locale)} />;
 }
 
-export function ScaleGauge({ locale, facts, copy, error }: { locale: Locale; facts: LimitData | null; copy: GasGaugeCopy; error?: ReactNode }) {
-  const fmt = formatters(locale);
-  return <GasGauge facts={facts} error={error} copy={copy} formatGas={fmt.gas} formatBytes={fmt.bytes} formatInt={fmt.int} formatRatio={fmt.ratio} />;
+export function ScaleGauge({ locale, facts, copy, error }: ScaleGaugeProps) {
+  return <GasGauge facts={facts} error={error} copy={copy} {...gaugeFormats(locale)} />;
 }
 
-export function LivePulse({ locale, copy }: { locale: Locale; copy: BlockPulseCopy }) {
+export function LivePulse({ locale, copy }: LivePulseProps) {
   const { block, error } = useLiveBlock();
-  const fmt = formatters(locale);
-  return <BlockPulse block={block} error={error ? copy.errorTitle : undefined} copy={copy} formatInt={fmt.int} formatNum={(x) => fmt.num(x, 2)} cells={32} />;
+  return <BlockPulse block={block} error={error ? copy.errorTitle : undefined} copy={copy} {...pulseProps(locale)} />;
 }
 
-export function MiniDial({ locale, value, caption, copy }: { locale: Locale; value: number | null; caption?: ReactNode; copy: HealthDialCopy }) {
-  const fmt = formatters(locale);
-  return <HealthDial value={value} caption={caption} copy={copy} formatHf={(x) => fmt.num(x, 3)} formatNum={(x) => fmt.num(x, 2)} className="w-full max-w-60" />;
+export function MiniDial({ locale, value, caption, copy }: MiniDialProps) {
+  return <HealthDial value={value} caption={caption} copy={copy} {...dialProps(locale)} />;
 }

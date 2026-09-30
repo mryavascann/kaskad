@@ -28,7 +28,7 @@ Live reference with demos: `/design#motion` (`/design?only=motion`).
 | Hover / press / focus | CSS transitions: `duration-(--dur-fast) ease-out-quart`. `Magnetic` / `Spotlight` for desktop pointers. |
 | Loops (live dot, skeleton) | `motion-safe:animate-live`, `motion-safe:animate-shimmer`. |
 | Canvas, WebGL, SVG plots | `ease.*` (`easing.ts`), `springStep` (`spring.ts`), seeded `mulberry32` (`random.ts`). |
-| Scroll scenes (landing) | `useScrollProgress` (GSAP ScrollTrigger → MotionValue, loaded after hydration) + CSS sticky for pinning; `SmoothScroll` (Lenis) on the page that wants it. |
+| Scroll scenes (landing) | CSS sticky for pinning + `useScrollProgress` / `observeScrollProgress` (native scroll → MotionValue, started after `whenScrollIntent`); `SmoothScroll` (Lenis, fine pointer only) on the page that wants it. Parts that load after intent take over from static server HTML (see Scroll scenes). |
 
 ## API
 
@@ -47,9 +47,9 @@ Live reference with demos: `/design#motion` (`/design?only=motion`).
 | `split-text.tsx` (server) | `<SplitText as text \| lines accent stagger delay>`. CSS in `split-text.module.css`. |
 | `magnetic.tsx` (client) | `<Magnetic strength={6}>` around one control. |
 | `spotlight.tsx` (client) | `<Spotlight as size={260} intensity={0.06}>`. |
-| `scroll.ts` | `loadScrollKit()` (GSAP + ScrollTrigger, one shared dynamic import, plugin registered once), `segment(p, from, to)` (a beat of a 0–1 progress), `resetScrollKit()` (tests). |
-| `use-scroll-progress.ts` (client) | `useScrollProgress(ref, { start, end, initial = 0, reducedValue = 1, enabled })` → `MotionValue<number>`: a ScrollTrigger's progress without re-renders. Reduced motion: no trigger, jumps to `reducedValue` (the final state). |
-| `smooth-scroll.tsx` (client) | `<SmoothScroll lerp={0.1} />`: Lenis on the GSAP ticker, synced with ScrollTrigger; mount it inside one page (the landing). Off under reduced motion. |
+| `scroll.ts` | `observeScrollProgress(el, { start, end }, onChange)` (native scroll, cached offsets, one read per frame; returns a stop function), `whenScrollIntent()` (resolves on the first scroll, wheel, touch, press, key or mouse move, or at once when the page opens scrolled / after a click in this document / on the server; no timer), `openScrollIntent()`, `resetScrollIntent()` (tests), `segment(p, from, to)` (a beat of a 0–1 progress), `scrollAt` / `edgeOffset` / `progressBetween` (range math). `loadScrollKit()` (GSAP + ScrollTrigger, one shared dynamic import) and `resetScrollKit()` are still exported for scenes that need GSAP timelines; the landing no longer uses GSAP. |
+| `use-scroll-progress.ts` (client) | `useScrollProgress(ref, { start, end, initial = 0, reducedValue = 1, enabled, when })` → `MotionValue<number>`: the element's scroll progress from native scroll events (`observeScrollProgress`) without re-renders; `when` (e.g. `whenScrollIntent`) delays the observer. Reduced motion: no observer, jumps to `reducedValue` (the final state). |
+| `smooth-scroll.tsx` (client) | `<SmoothScroll lerp={0.1} />`: Lenis (its own `autoRaf` loop, scrolling the window, so native scroll listeners follow it), loaded after `whenScrollIntent` and only with a fine pointer (phones never download it); mount it inside one page (the landing). Off under reduced motion. |
 
 ## Setup (root layout)
 
@@ -63,12 +63,21 @@ Live reference with demos: `/design#motion` (`/design?only=motion`).
 
 ## Scroll scenes
 
-Pin with CSS (`position: sticky` in a tall track), not with ScrollTrigger's `pin`: the layout is final
+Pin with CSS (`position: sticky` in a tall track), not with a scroll library's pin: the layout is final
 at first paint, so nothing shifts when scripts arrive (CLS) and no-JS readers get a normal page. Drive
-the scene from one progress value: `useScrollProgress(track)` → pass the MotionValue to three.js,
-write `segment()` beats to CSS variables in a `useMotionValueEvent` handler (no re-render per frame),
-and keep React state for discrete steps only (e.g. the whole block number). GSAP, ScrollTrigger and
-Lenis are separate chunks requested after hydration; they never block first paint.
+the scene from one progress value: `useScrollProgress(track, { when: whenScrollIntent })` (or
+`observeScrollProgress` in a driver that renders nothing) → pass the MotionValue to three.js, write
+`segment()` beats to CSS variables (no re-render per frame), and keep React state for discrete steps
+only (e.g. the whole block number). Nothing of it runs until the reader's first intent; Lenis
+(`SmoothScroll`) is a separate chunk requested after that intent, with a fine pointer only.
+
+Parts whose code loads after intent are **takeover islands** (`views/landing/takeover.tsx`): the server
+renders a static version (server components, no client code; the charts have `*Static` variants in
+`viz/*-view.tsx` with the live chart's markup), a small eager wrapper shows it and swaps in the live
+component after intent. Don't defer hydration with a `lazy` component behind a Suspense boundary that
+waits on intent: React client-renders a dehydrated boundary with its fallback when a context above it
+changes before it hydrates (the server HTML vanishes), and streamed content sits in hidden segments
+that only a script reveals (no-JS readers and crawlers may never see it).
 
 ## Notes
 

@@ -42,6 +42,14 @@ One line per component; every prop list also takes `error?`, `errorAction?`, `lo
 | `HealthDial` (client) | `value` (HF; null = skeleton, `Infinity` = "no debt"), `target?` (default 1.05), `caption?` | `walletRisk().hf`, or `ClassifiedPosition.healthFactor` / `finalHealthFactor` |
 | `BlockPulse` (client) | `block: bigint \| null`, `cells?` (default 40) | `useLiveBlock().block` (pass `error` when `useLiveBlock().error` is set) |
 
+**Static variants.** `GapBars`, `GasGauge`, `HealthDial` and `BlockPulse` keep their markup in a
+server-safe `*-view.tsx` (no hooks, no client code) that the live chart renders too. `GapBarsStatic`,
+`GasGaugeStatic`, `HealthDialStatic` and `BlockPulseStatic` (same props) render that markup as plain
+server HTML: the complete chart at rest, no motion, no JavaScript. A page can show them from the first
+paint and swap in the live chart later (the landing's takeover islands) without a layout shift: same
+box, same markup (`views/landing/takeover-markup.test.tsx` checks it). The live components and their
+APIs are unchanged; the copy constants and types are re-exported from the usual modules.
+
 Shared pieces: `frame.tsx` (`StateBox`, `chartStatus`), `data-table.tsx` (`DataTable`), `outcome.tsx`
 (`StateLegend`, `StateSwatch`, `STATE_FILL`, `STATE_ICON`), `use-enter-view.ts`, `viz.module.css`
 (patterns, flip keyframes). Pure models (no React, server-safe, unit-tested): `format.ts`, `copy.ts`,
