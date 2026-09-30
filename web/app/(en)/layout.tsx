@@ -1,17 +1,10 @@
 import type { Metadata } from "next";
 import "../globals.css";
-import { commonMessages } from "@/i18n/messages/common";
 import { RootDocument } from "@/shell/root-document";
-import { siteDescription } from "@/shell/site-metadata";
+import { rootMetadata } from "@/shell/site-metadata";
 import { SiteShell } from "@/shell/site-shell";
 
-const t = commonMessages.en.meta;
-
-export const metadata: Metadata = {
-  title: { default: t.title, template: "%s · Kaskad" },
-  description: siteDescription("en"),
-  applicationName: "Kaskad",
-};
+export const metadata: Metadata = rootMetadata("en");
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
