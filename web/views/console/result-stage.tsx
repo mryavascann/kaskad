@@ -124,7 +124,10 @@ export function ResultStage({ locale, settings, preview }: { locale: Locale; set
   const tilesExpected = expectedTiles && canClassify(expectedTiles) ? expectedTiles.maxPositions : undefined;
   const shareCaption = (share: number | undefined) =>
     share === undefined ? undefined : `${t.share({ pct: fmt.pct(share) })}${facts?.scaled ? ` · ${t.scaled}` : ""}`;
-  const beat = (b: "context" | "hero" | "detail") => cn("motion-safe:animate-rise", b === "hero" && "[animation-delay:var(--beat-hero)]", b === "detail" && "[animation-delay:var(--beat-detail)]");
+  // `backwards`, not the token's `both`: a filled translate3d keeps the block on its own compositor
+  // layer after the rise, and Chromium then paints the timeline's non-scaling-stroke ticks at 1x DPR
+  // as viewBox-wide grey smears (the "blurred band" under the cascade chart).
+  const beat = (b: "context" | "hero" | "detail") => cn("motion-safe:animate-rise motion-safe:[animation-fill-mode:backwards]!", b === "hero" && "[animation-delay:var(--beat-hero)]", b === "detail" && "[animation-delay:var(--beat-detail)]");
   const ready = result !== null;
 
   return (
