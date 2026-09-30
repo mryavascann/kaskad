@@ -1,3 +1,4 @@
+import { CircleCheck } from "lucide-react";
 import type { CSSProperties, ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { duration } from "@/motion/tokens";
@@ -221,10 +222,15 @@ export function MonteCarloChart({
                 {copy.p95Tag}
               </span>
             )}
+            {/* No loss: the dots all sit on the $0 line, so the note fills the empty plot above them
+                (the box keeps its height: same box in every state). */}
             {!any && (
-              <p aria-hidden className="label-mono absolute top-2 left-2 text-fg-3">
-                {copy.noLoss}
-              </p>
+              <div aria-hidden className="absolute inset-x-0 top-0 bottom-6 grid place-items-center px-4 text-center">
+                <p className="flex max-w-xs flex-col items-center gap-2 text-body-sm font-medium text-fg-1">
+                  <CircleCheck className="size-5 text-safe" />
+                  {copy.noLoss}
+                </p>
+              </div>
             )}
             {geo.worst && (
               <div aria-hidden className="pointer-events-none absolute" style={{ left: pct(geo.worst.x), top: pct(geo.worst.y) }}>
