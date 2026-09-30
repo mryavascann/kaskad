@@ -37,6 +37,7 @@ Rules it follows:
 | `replay.ts` | `replay(book, scenario)`: exact off-chain mirror of the engine, per position | `contracts/src/Kaskad.sol:200-484`, `KaskadMC.sol:203-245` |
 | `book.ts` | `readBook`, `readBookCached`, `classifyPositions`, `compareWithEngine`, `canClassify`, `BOOK_READ_MAX` | `PositionBook.sol:135-147` views + `lib/kaskad/pack.ts` |
 | `finding.ts` | `findingScenario`, `findingFacts`, `fetchFinding`, `fetchFindingPositions` | landing finding (below) |
+| `block-number.ts` | `fetchBlockNumber()`, `parseQuantity`, `blockNumberEndpoint`, `BlockNumberError`: one `eth_blockNumber` POST with plain `fetch`, no viem (used by `useLiveBlock`, which the nav runs on every page) | `TESTNET_RPC` rule of `lib/kaskad/config.ts:38-40` |
 | `poll.ts` | `pollWhileVisible(tick, ms)`, `MIN_POLL_MS` | `GuardPanel.tsx:110-117`, `Connect.tsx:81-88` |
 | `hooks/*` (client) | `usePreview`, `useStressCurve`, `useMonteCarlo`, `useCompare`, `useGuardMarkets`, `useGuardConfig`, `useSigner`, `useSignerBalances`, `useSignerConnect`, `useWalletRisk`, `useLiveBlock`, `useFinding`, `usePositionMap` | `useKaskad.ts:76-107`, `Protocol.tsx:220-241`, `MonteCarlo.tsx:68-101`, `ComparePanel.tsx:30-54`, `GuardPanel.tsx:87-117`, `use-signer.ts`, `Connect.tsx:69-100`, `Wallet.tsx:34-96`; `useLiveBlock` is new |
 
@@ -129,7 +130,7 @@ The proxy allows 60 requests / 10 s per IP and batches of at most 20 calls.
 - Debounces as before: preview 600 ms, Monte Carlo 800 ms, compare 900 ms. The stress curve had none
   (default 0 here); pass `{ debounceMs }` when steps / rounds come from a slider.
 - Pollers pause while the tab is hidden, never run more often than once per second, and skip a tick
-  while the previous one is in flight: `useLiveBlock` 1 call / 3 s, `useGuardMarkets` 6 calls / 6 s
+  while the previous one is in flight: `useLiveBlock` 1 call / 3 s (plain fetch, `block-number.ts`), `useGuardMarkets` 6 calls / 6 s
   (one batch), `useSignerBalances` up to 3 calls + `GET /api/fund` / 10 s.
 - Largest single tick from this layer: `useCompare` 7 calls. All pollers plus a compare reload in the
   same tick come to 17 calls, still one batch under 20.

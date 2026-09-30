@@ -67,4 +67,42 @@ describe("useLiveBlock", () => {
     await act(() => vi.advanceTimersByTimeAsync(LIVE_BLOCK_POLL_MS));
     expect(result.current).toMatchObject({ block: 8n, error: null });
   });
+
+  it("reads with a plain fetch to /api/rpc by default (no viem client)", async () => {
+    const fetchMock = vi.fn<typeof fetch>(async () => new Response(JSON.stringify({ jsonrpc: "2.0", id: 1, result: "0x3ff3a3d" })));
+    vi.stubGlobal("fetch", fetchMock);
+    try {
+      const { result, unmount } = renderHook(() => useLiveBlock());
+      await act(() => vi.advanceTimersByTimeAsync(0));
+      expect(result.current).toMatchObject({ block: 67_058_237n, error: null });
+      const [url, init] = fetchMock.mock.calls[0];
+      expect(String(url)).toMatch(/\/api\/rpc$|^http/);
+      expect(JSON.parse(String(init?.body)).method).toBe("eth_blockNumber");
+      unmount();
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("maps a 429 from the proxy to rate-limited and skips ticks while a read is in flight", async () => {
+    let release: (() => void) | undefined;
+    const read = vi
+      .fn<() => Promise<bigint>>()
+      .mockResolvedValueOnce(5n)
+      .mockImplementationOnce(() => new Promise<bigint>((_, reject) => (release = () => reject(new Error("HTTP request failed.\n\nStatus: 429")))));
+    const { result } = renderHook(() => useLiveBlock({ read }));
+    await act(() => vi.advanceTimersByTimeAsync(0));
+    await act(() => vi.advanceTimersByTimeAsync(LIVE_BLOCK_POLL_MS * 3)); // one read hangs; the next two ticks are skipped
+    expect(read).toHaveBeenCalledTimes(2);
+    await act(async () => release?.());
+    expect(result.current).toMatchObject({ block: 5n, error: { code: "rate-limited" } });
+  });
+
+  it("never polls faster than once per second", async () => {
+    const read = vi.fn(async () => 1n);
+    renderHook(() => useLiveBlock({ read, everyMs: 10 }));
+    await act(() => vi.advanceTimersByTimeAsync(0));
+    await act(() => vi.advanceTimersByTimeAsync(3_000));
+    expect(read).toHaveBeenCalledTimes(4);
+  });
 });
