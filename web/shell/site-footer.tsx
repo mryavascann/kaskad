@@ -1,5 +1,5 @@
 import { ArrowUpRight } from "lucide-react";
-import Link from "next/link";
+import { IntentLink as Link } from "@/design/ui/intent-link";
 import type { ReactNode } from "react";
 import { Label } from "@/design/ui/label";
 import { Logo } from "@/design/ui/logo";

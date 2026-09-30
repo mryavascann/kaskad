@@ -1,11 +1,11 @@
 "use client";
 
 import { Menu, Search } from "lucide-react";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { Button, ButtonArrow } from "@/design/ui/button";
 import { ButtonLink } from "@/design/ui/button-link";
+import { IntentLink as Link } from "@/design/ui/intent-link";
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/design/ui/dialog";
 import { Logo } from "@/design/ui/logo";
 import { SoundToggle } from "@/audio/sound-toggle";

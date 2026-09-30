@@ -17,6 +17,8 @@ export function LocaleSwitch({ locale, t, className }: { locale: Locale; t: Comm
   return (
     <Link
       href={switchLocalePath(pathname, target)}
+      // Each locale has its own root layout: the switch is a full page load, a prefetch would be wasted.
+      prefetch={false}
       hrefLang={target}
       lang={target}
       className={cn(
