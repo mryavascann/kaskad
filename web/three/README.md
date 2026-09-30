@@ -114,8 +114,14 @@ Poster coordinates are rounded to 0.1 (design rule 9); gradient ids come from `u
   not used. The client chunk of `HeroStage` holds only the poster math and the stage logic.
 - **Poster first**: the server renders the poster; the client decides after the first paint.
 - **Poster only** (`chooseHeroMode`): reduced motion, no WebGL 2, software renderer
-  (`failIfMajorPerformanceCaveat`), ≤ 2 cores, ≤ 2 GB (`deviceMemory`), `saveData`. Context loss or a
-  scene error falls back to the poster (`scene-failed`).
+  (`failIfMajorPerformanceCaveat` fails, or the unmasked renderer string names SwiftShader, llvmpipe,
+  softpipe, "Software" or Basic Render Driver: headless Chrome runs SwiftShader, where the scene cost
+  ~20 s of blocking time in the Stage 6 Lighthouse run), ≤ 2 cores, ≤ 2 GB (`deviceMemory`), `saveData`.
+  Context loss or a scene error falls back to the poster (`scene-failed`).
+- **Touch-first screens** (`(pointer: coarse)` and ≤ 820 px): the scene waits for the first scroll,
+  touch, wheel or key (`defer: "interaction"`, root `data-defer`), so the poster stays the LCP element.
+- **Demo mode** (`?demo=1`): the scene loads whenever WebGL 2 exists (even on software GL, e.g. a
+  headless recording), except under reduced motion.
 - **On demand**: `frameloop="demand"`; frames only on progress / pointer / size / quality changes.
   `compileAsync` before the first frame; `onReady` after it is on screen.
 - **Frame budget** (`FrameBudget`, not drei's FPS monitor, which reads idle time as slowness in demand
@@ -130,4 +136,5 @@ Poster coordinates are rounded to 0.1 (design rule 9); gradient ids come from `u
 `npx vitest run three`: model (height scale, tip angle vs progress, fall order, no interpenetration,
 landing spring), data (the recorded syrupUSDC −3 % and pool-spiral previews), palette (state → color
 from `hex`), stage (crop, projection), capability, frame budget, poster geometry and DOM, stage (mocked
-scene). Headless Chrome may render WebGL in software; allow ~5–20 s before a screenshot.
+scene). Headless Chrome renders WebGL in software, so it gets the poster; use `?demo=1` to capture the
+scene (allow ~5–20 s before a screenshot).

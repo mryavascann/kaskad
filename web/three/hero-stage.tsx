@@ -3,8 +3,10 @@
 /**
  * The hero stage: the SVG poster first (server render, hydration, no layout shift), then — on
  * capable devices, once the stage is near the viewport and the browser is idle — the WebGL scene,
- * cross-faded in when its first frame is on screen. Reduced motion, no or software WebGL, low-end
- * devices and the data saver keep the poster, showing the final state (every outcome visible).
+ * cross-faded in when its first frame is on screen. On touch-first small screens the scene waits for
+ * the first interaction (scroll, touch, key), so the poster stays the LCP element. Reduced motion, no
+ * or software WebGL (SwiftShader, llvmpipe, …), low-end devices and the data saver keep the poster,
+ * showing the final state (every outcome visible). Demo mode (`?demo=1`) loads the scene when it can.
  * The stage is decorative (`aria-hidden`): the page carries the text.
  */
 import dynamic from "next/dynamic";
@@ -58,6 +60,22 @@ function afterIdle(callback: () => void): () => void {
   };
 }
 
+const INTERACTIONS = ["pointerdown", "touchstart", "keydown", "wheel", "scroll"] as const;
+
+/** Runs `callback` once, on the first user interaction with the page. */
+function afterInteraction(callback: () => void): () => void {
+  let done = false;
+  const fire = () => {
+    if (done) return;
+    done = true;
+    stop();
+    callback();
+  };
+  const stop = () => INTERACTIONS.forEach((type) => window.removeEventListener(type, fire, { capture: true }));
+  INTERACTIONS.forEach((type) => window.addEventListener(type, fire, { capture: true, passive: true }));
+  return stop;
+}
+
 class SceneBoundary extends Component<{ onError: () => void; children: ReactNode }, { failed: boolean }> {
   state = { failed: false };
   static getDerivedStateFromError() {
@@ -104,12 +122,12 @@ export function HeroStage({
   // probe (throwaway contexts) should not delay it. Re-decides when reduced motion is switched.
   useEffect(() => {
     const frame = requestAnimationFrame(() => {
-      const next = failed ? SCENE_FAILED : chooseHeroMode(readHeroEnv(), mode);
+      const next = failed ? SCENE_FAILED : chooseHeroMode(readHeroEnv(window, undefined, demo), mode);
       setDecision(next);
       callbacks.current.onModeChange?.(next);
     });
     return () => cancelAnimationFrame(frame);
-  }, [mode, reducedMotion, failed]);
+  }, [mode, reducedMotion, failed, demo]);
 
   // Only load WebGL for a stage that is (about to be) on screen.
   useEffect(() => {
@@ -128,10 +146,19 @@ export function HeroStage({
   }, []);
 
   const wantsScene = decision?.mode === "scene" && near;
+  const deferred = decision?.defer === "interaction";
   useEffect(() => {
     if (!wantsScene) return;
-    return afterIdle(() => setLoad(true));
-  }, [wantsScene]);
+    if (!deferred) return afterIdle(() => setLoad(true));
+    let cancelIdle: (() => void) | undefined;
+    const cancelWait = afterInteraction(() => {
+      cancelIdle = afterIdle(() => setLoad(true));
+    });
+    return () => {
+      cancelWait();
+      cancelIdle?.();
+    };
+  }, [wantsScene, deferred]);
 
   const showScene = wantsScene && load && !failed;
   const sceneVisible = showScene && ready;
@@ -150,6 +177,7 @@ export function HeroStage({
       data-hero-stage=""
       data-mode={decision?.mode ?? "pending"}
       data-reason={decision?.reason}
+      data-defer={decision?.mode === "scene" && !load ? decision.defer : undefined}
       data-ready={sceneVisible ? "" : undefined}
       className={cn("relative isolate overflow-hidden bg-void", className)}
     >

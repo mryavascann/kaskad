@@ -72,6 +72,19 @@ describe("HeroStage", () => {
     expect(container.querySelector("[data-hero-poster]")).toBeNull();
   });
 
+  it("on a touch-first screen, waits for the first interaction before loading the scene", async () => {
+    env.current = { ...CAPABLE, touchFirst: true };
+    const { container } = render(<HeroStage />);
+    await waitFor(() => expect(stageOf(container)).toHaveAttribute("data-defer", "interaction"));
+    act(() => io.intersect());
+    await new Promise((resolve) => setTimeout(resolve, 200));
+    expect(scene.mounts).toBe(0);
+
+    act(() => void window.dispatchEvent(new Event("touchstart")));
+    await waitFor(() => expect(scene.mounts).toBe(1));
+    expect(stageOf(container)).not.toHaveAttribute("data-defer");
+  });
+
   it.each([
     [{ reducedMotion: true }, "reduced-motion"],
     [{ webgl2: false }, "no-webgl"],
