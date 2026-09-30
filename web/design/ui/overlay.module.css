@@ -1,0 +1,130 @@
+/*
+ * Enter / exit motion for floating layers: tooltip, popover (and Term), dialog.
+ *
+ * Radix `Presence` keeps a closing layer mounted until its exit animation ends, but only when the exit
+ * animation has a different name from the enter one, hence the separate keyframes. Travel uses the
+ * motion tokens (`--nudge`, `--enter`), which are 0 under reduced motion: the dialog then only fades,
+ * and tooltips / popovers do not animate at all.
+ */
+
+/* Tooltip, popover: a 4px nudge away from the trigger plus a hint of scale. */
+.float {
+  --float-x: 0px;
+  --float-y: 0px;
+  --float-scale: 0.97;
+  transform-origin: var(--radix-tooltip-content-transform-origin, var(--radix-popover-content-transform-origin, center));
+}
+
+.float[data-side="top"] {
+  --float-y: var(--nudge);
+}
+
+.float[data-side="bottom"] {
+  --float-y: calc(var(--nudge) * -1);
+}
+
+.float[data-side="left"] {
+  --float-x: var(--nudge);
+}
+
+.float[data-side="right"] {
+  --float-x: calc(var(--nudge) * -1);
+}
+
+.float[data-state="open"],
+.float[data-state="delayed-open"] {
+  animation: float-in var(--dur-fast) var(--ease-out-quart);
+}
+
+/* Moving between tooltips in quick succession: no travel, just a quick fade. */
+.float[data-state="instant-open"] {
+  animation: float-fade var(--dur-instant) var(--ease-out-quart);
+}
+
+.float[data-state="closed"] {
+  animation: float-out var(--dur-instant) var(--ease-in-quart) forwards;
+}
+
+@keyframes float-in {
+  from {
+    opacity: 0;
+    transform: translate3d(var(--float-x), var(--float-y), 0) scale(var(--float-scale));
+  }
+}
+
+@keyframes float-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes float-out {
+  to {
+    opacity: 0;
+  }
+}
+
+/* Dialog backdrop. */
+.overlay[data-state="open"] {
+  animation: overlay-in var(--dur-base) var(--ease-out-quart);
+}
+
+.overlay[data-state="closed"] {
+  animation: overlay-out var(--dur-fast) var(--ease-in-quart) forwards;
+}
+
+@keyframes overlay-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes overlay-out {
+  to {
+    opacity: 0;
+  }
+}
+
+/*
+ * Dialog panel: rises into place (centered from 40rem). On phones it is a bottom sheet and comes up
+ * its full height: min(100%, --enter × 100) is 100% normally and 0 when --enter is 0 (reduced motion).
+ */
+.sheet {
+  --sheet-from: var(--enter);
+}
+
+@media (width < 40rem) {
+  .sheet {
+    --sheet-from: min(100%, calc(var(--enter) * 100));
+  }
+}
+
+.sheet[data-state="open"] {
+  animation: sheet-in var(--dur-slow) var(--ease-out-expo);
+}
+
+.sheet[data-state="closed"] {
+  animation: sheet-out var(--dur-fast) var(--ease-in-quart) forwards;
+}
+
+@keyframes sheet-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, var(--sheet-from), 0);
+  }
+}
+
+@keyframes sheet-out {
+  to {
+    opacity: 0;
+    transform: translate3d(0, calc(var(--sheet-from) / 2), 0);
+  }
+}
+
+/* Reduced motion: tooltips and popovers simply appear and disappear; the dialog keeps a short fade. */
+@media (prefers-reduced-motion: reduce) {
+  .float,
+  .float[data-state] {
+    animation: none;
+  }
+}
