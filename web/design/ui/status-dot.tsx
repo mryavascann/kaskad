@@ -61,6 +61,8 @@ type LiveIndicatorProps = Omit<ComponentProps<"span">, "children"> & {
   pulse?: boolean;
   /** Screen-reader text while `value` is null. */
   loadingLabel?: string;
+  /** Formats `value`; defaults to en-US grouping (pass the page locale's formatter). */
+  formatValue?: (value: number) => string;
 };
 
 /**
@@ -74,6 +76,7 @@ export function LiveIndicator({
   tone = "safe",
   pulse = true,
   loadingLabel = "Loading",
+  formatValue = (n) => grouping.format(n),
   className,
   ...props
 }: LiveIndicatorProps) {
@@ -98,7 +101,7 @@ export function LiveIndicator({
                 <Skeleton className="h-[0.8em] w-[9ch]" />
               </>
             ) : (
-              <span className="tabular-nums text-fg-2">{grouping.format(value)}</span>
+              <span className="tabular-nums text-fg-2">{formatValue(value)}</span>
             )}
           </span>
         </>

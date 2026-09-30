@@ -4,6 +4,8 @@ import { ControlsSection, OverlaysSection } from "./_sections/controls";
 import { DataSection, DisplaySection, FeedbackSection } from "./_sections/display";
 import { ColorSection, IconSection, LayoutSection, SurfaceSection, TypeSection } from "./_sections/foundations";
 import { MotionSection } from "./_sections/motion";
+import { ThreeSection } from "./_sections/three";
+import { VizSection } from "./_sections/viz";
 import { GridOverlayToggle } from "./_components/grid-overlay";
 
 export const metadata: Metadata = {
@@ -16,6 +18,7 @@ const toc = [
   { group: "Foundations", items: [["color", "Color"], ["type", "Type"], ["layout", "Layout"], ["surfaces", "Surfaces"], ["icons", "Icons"]] },
   { group: "Motion", items: [["motion", "Motion"]] },
   { group: "Components", items: [["display", "Display"], ["data", "Data"], ["feedback", "Feedback"], ["controls", "Controls"], ["overlays", "Overlays"]] },
+  { group: "Scenes", items: [["viz", "Charts"], ["three", "Hero scene"]] },
 ] as const;
 
 const principles = [
@@ -37,15 +40,18 @@ const sections = {
   feedback: FeedbackSection,
   controls: ControlsSection,
   overlays: OverlaysSection,
+  viz: VizSection,
+  three: ThreeSection,
 } as const;
 
 type SectionId = keyof typeof sections;
 
-/** `/design?only=motion` renders a single section (handy for screenshots and reviews). */
+/** `/design?only=motion` (or `?only=motion,data`) renders just those sections, for screenshots and reviews. */
 export default async function DesignSystemPage({ searchParams }: { searchParams: Promise<{ only?: string }> }) {
   const { only } = await searchParams;
-  const focus = only && only in sections ? (only as SectionId) : null;
-  const visible = focus ? [focus] : (Object.keys(sections) as SectionId[]);
+  const picked = (only ?? "").split(",").filter((id): id is SectionId => id in sections);
+  const focus = picked.length > 0;
+  const visible = focus ? picked : (Object.keys(sections) as SectionId[]);
   return (
     <div lang="en" className="flex min-h-dvh flex-col bg-bg text-body text-fg-1">
       <header className="sticky top-0 z-(--z-nav) border-b border-line bg-bg/85 backdrop-blur-md">

@@ -46,7 +46,12 @@ The "Instrument" language (stage 3 of `web/REDESIGN_PLAN.md`). Live reference: `
    `motion-reduce:` fallbacks that keep the information. Interruptible (retarget, never restart).
 8. **Tests.** Every component has `*.test.tsx` (jsdom project) that checks roles, names, states and keyboard behavior
    with Testing Library. No snapshot tests.
-9. **Deterministic markup.** Round computed SVG geometry (e.g. to 2 decimals) before rendering: Node and the browser
+9. **No Slot across the server boundary.** `asChild` (Radix Slot) only inside client components. For links use
+   `ButtonLink` (no Slot): children a Server Component passes to a client component can arrive as lazy
+   references, and Slot then throws "Slot failed to slot onto its children" depending on tree position.
+10. **Turkish casing.** `label-mono` is uppercase and follows `lang`: under `lang="tr"` an English "i" becomes "İ"
+    ("MAİNNET", "BLİTZ"). Wrap English terms and brand names inside Turkish copy in `<span lang="en">`.
+11. **Deterministic markup.** Round computed SVG geometry (e.g. to 2 decimals) before rendering: Node and the browser
    can disagree in the last bits of `Math.sin/cos/exp`, and the difference is a hydration mismatch. No `Date.now()`
    or unseeded `Math.random()` during render.
 
@@ -54,7 +59,7 @@ The "Instrument" language (stage 3 of `web/REDESIGN_PLAN.md`). Live reference: `
 
 | Group | Files |
 |---|---|
-| Base | `button` (+ `ButtonArrow`), `label` (`Label`, `Eyebrow`), `panel` (`Panel`, `PanelHeader`, `PanelBody`), `tone` |
+| Base | `button` (+ `ButtonArrow`, `button-styles`), `button-link` (`ButtonLink`), `label` (`Label`, `Eyebrow`), `panel` (`Panel`, `PanelHeader`, `PanelBody`), `tone` |
 | Display | `badge`, `status-dot` (`StatusDot`, `LiveIndicator`), `honesty` (`HonestyTag`), `kbd`, `divider`, `logo` (`Logo`, `LogoMark`), `section-header` |
 | Data | `metric` (`Metric`, `MetricGroup`, `formatMetric`), `readout` (`Readout`, `ReadoutRow`), `tick-ruler` |
 | Feedback | `skeleton`, `callout`, `empty-state`, `steps`, `footnote`, `toaster` (`Toaster`, `notify`) |

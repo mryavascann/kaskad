@@ -1,7 +1,7 @@
 import { Copy, Wallet } from "lucide-react";
-import Link from "next/link";
 import type { ReactNode } from "react";
 import { Button, ButtonArrow } from "@/design/ui/button";
+import { ButtonLink } from "@/design/ui/button-link";
 import { Disclosure } from "@/design/ui/disclosure";
 import { Field } from "@/design/ui/field";
 import { Input, addressInputProps } from "@/design/ui/input";
@@ -87,17 +87,13 @@ export function ControlsSection() {
               </Button>
             </State>
           </Specimen>
-          <Specimen label="As a link" meta="asChild + <Link> · <ButtonArrow />">
-            <Button asChild variant="primary">
-              <Link href="/">
-                Open the console <ButtonArrow />
-              </Link>
-            </Button>
-            <Button asChild variant="ghost">
-              <Link href="#overlays">
-                See overlays <ButtonArrow />
-              </Link>
-            </Button>
+          <Specimen label="As a link" meta="<ButtonLink> · <ButtonArrow />">
+            <ButtonLink href="/app" variant="primary">
+              Open the console <ButtonArrow />
+            </ButtonLink>
+            <ButtonLink href="#overlays" variant="ghost">
+              See overlays <ButtonArrow />
+            </ButtonLink>
           </Specimen>
         </SpecGrid>
       </DocBlock>
