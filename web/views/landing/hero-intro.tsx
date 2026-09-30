@@ -32,7 +32,10 @@ export function HeroIntro({ locale, t, finding, meta }: { locale: Locale; t: Lan
         <WinnerBadge label={c.badge.winner} event={c.badge.event} className="animate-fade-in" />
         <SplitText as="h1" lines={t.hero.lines} accent={t.hero.accent} className="text-display text-fg-1" />
 
-        <div className="flex max-w-2xl flex-col gap-2 animate-rise [animation-delay:320ms]">
+        {/* No entrance on this block: its honesty chips and the metric are the page's LCP candidates
+            (the headline is split into small word boxes), and an element that starts at opacity 0
+            only counts once it shows, 320 ms + the rise later, after every eager script. */}
+        <div className="flex max-w-2xl flex-col gap-2">
           <p className="text-body-sm text-fg-2">
             {t.hero.findingLabel({ shock: fmt.drop(meta.shock, 0), asset: meta.asset })}
           </p>
