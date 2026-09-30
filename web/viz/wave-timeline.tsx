@@ -2,7 +2,6 @@
 
 import {
   AnimatePresence,
-  animate,
   m,
   useInView,
   useMotionValue,
@@ -17,6 +16,7 @@ import { TickRuler } from "@/design/ui/tick-ruler";
 import { cn } from "@/lib/utils";
 import { useForcedReducedMotion, useShouldReduceMotion } from "@/motion/hooks";
 import { duration, easing, spring, toSeconds } from "@/motion/tokens";
+import { preloadAnimate, withAnimate } from "./animate";
 import { fill, mergeCopy } from "./copy";
 import { DataTable } from "./data-table";
 import { withFormats, type Formatter, type VizFormats } from "./format";
@@ -212,6 +212,8 @@ function TimelineChart({ id, timeline, variant, step, onStepChange, entrance, sh
   const geo = useMemo(() => timelineGeometry(timeline, variant), [timeline, variant]);
   const { facts, steps } = geo;
   const reduce = useShouldReduceMotion();
+  // Load the animation engine after the first paint, so starts below are synchronous by then.
+  useEffect(preloadAnimate, []);
   const forced = useForcedReducedMotion();
   const plotRef = useRef<HTMLDivElement>(null);
   const inView = useInView(plotRef, { once: true, amount: 0.35 });
@@ -236,7 +238,7 @@ function TimelineChart({ id, timeline, variant, step, onStepChange, entrance, sh
     }
     if (entrance === "replay") progress.jump(0);
     else if (progress.get() >= 1) return;
-    const controls = animate(progress, 1, { duration: toSeconds(duration.sceneLong), ease: easing.linear });
+    const controls = withAnimate((animate) => animate(progress, 1, { duration: toSeconds(duration.sceneLong), ease: easing.linear }));
     return () => controls.stop();
   }, [write, entrance, reduce, progress]);
 
@@ -247,12 +249,14 @@ function TimelineChart({ id, timeline, variant, step, onStepChange, entrance, sh
     const prev = prevHeights.current;
     prevHeights.current = new Map(geo.marks.map((mk) => [mk.step, mk.height]));
     if (!prev || reduce) return;
-    const running = geo.marks.flatMap((mk) => {
-      const el = markRefs.current.get(mk.step);
-      const from = (prev.get(mk.step) ?? 0) / mk.height;
-      return el && Math.abs(from - 1) > 0.001 ? [animate(el, { scaleY: [from, 1] }, spring.soft)] : [];
-    });
-    return () => running.forEach((c) => c.stop());
+    const running = withAnimate((animate) =>
+      geo.marks.flatMap((mk) => {
+        const el = markRefs.current.get(mk.step);
+        const from = (prev.get(mk.step) ?? 0) / mk.height;
+        return el && Math.abs(from - 1) > 0.001 ? [animate(el, { scaleY: [from, 1] }, spring.soft)] : [];
+      }),
+    );
+    return () => running.stop();
   }, [geo, reduce]);
   const markRef = (key: number) => (el: SVGElement | null) => {
     if (el) markRefs.current.set(key, el);

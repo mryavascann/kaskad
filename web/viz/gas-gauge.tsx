@@ -1,12 +1,13 @@
 "use client";
 
 import { CircleCheck, OctagonAlert } from "lucide-react";
-import { animate, m, useMotionValue, useTransform, type MotionValue } from "motion/react";
+import { m, useMotionValue, useTransform, type MotionValue } from "motion/react";
 import { useEffect, useRef, type ReactNode } from "react";
 import { HonestyTag } from "@/design/ui/honesty";
 import { cn } from "@/lib/utils";
 import { useShouldReduceMotion } from "@/motion/hooks";
 import { duration, easing, toSeconds } from "@/motion/tokens";
+import { preloadAnimate, withAnimate } from "./animate";
 import { fill, mergeCopy } from "./copy";
 import { withFormats, type Formatter } from "./format";
 import { StateBox, chartStatus, type StateCopy } from "./frame";
@@ -94,6 +95,8 @@ export function GasGauge({ facts, error, errorAction, locale, formatGas, formatB
   const rootRef = useRef<HTMLElement>(null);
   const entered = useEnterView(rootRef);
   const reduce = useShouldReduceMotion();
+  // Load the animation engine after the first paint, so starts below are synchronous by then.
+  useEffect(preloadAnimate, []);
   // Gas units drawn so far: both bars grow with it, so they move at the same speed on the same scale.
   const top = facts ? Math.max(facts.monad.gas, facts.ethereum.gasEstimate) : 0;
   const drawn = useMotionValue(top);
@@ -105,11 +108,11 @@ export function GasGauge({ facts, error, errorAction, locale, formatGas, formatB
     if (!entered || reduce || !(top > 0)) return;
     drawn.jump(0);
     memory.jump(0);
-    const runs = [
+    const runs = withAnimate((animate) => [
       animate(drawn, top, { duration: toSeconds(duration.sceneLong), ease: easing.outQuart }),
       animate(memory, 1, { duration: toSeconds(duration.scene), ease: easing.outExpo, delay: toSeconds(duration.slow) }),
-    ];
-    return () => runs.forEach((r) => r.stop());
+    ]);
+    return () => runs.stop();
   }, [entered, reduce, top, drawn, memory]);
 
   if (status !== "ready" || !facts) {

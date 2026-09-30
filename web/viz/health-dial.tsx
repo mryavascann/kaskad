@@ -1,13 +1,14 @@
 "use client";
 
 import { OctagonAlert, ShieldCheck, TriangleAlert, type LucideIcon } from "lucide-react";
-import { animate, useMotionValue, useMotionValueEvent } from "motion/react";
+import { useMotionValue, useMotionValueEvent } from "motion/react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { SkeletonMetric } from "@/design/ui/skeleton";
 import { toneText, type Tone } from "@/design/ui/tone";
 import { cn } from "@/lib/utils";
 import { useShouldReduceMotion } from "@/motion/hooks";
 import { spring } from "@/motion/tokens";
+import { preloadAnimate, withAnimate } from "./animate";
 import { fill, mergeCopy } from "./copy";
 import { withFormats, type Formatter } from "./format";
 import { HF_TARGET, hfAngle, hfStops, hfZone, type HfZone } from "./gauge-model";
@@ -75,6 +76,8 @@ export function HealthDial({ value, target = HF_TARGET, caption, locale, formatH
   const targetAngle = angleFor(value);
 
   const reduce = useShouldReduceMotion();
+  // Load the animation engine after the first paint, so starts below are synchronous by then.
+  useEffect(preloadAnimate, []);
   const angle = useMotionValue(targetAngle);
   // The attribute React renders once; afterwards the motion value owns the needle's rotation.
   const [initialAngle] = useState(targetAngle);
@@ -91,7 +94,7 @@ export function HealthDial({ value, target = HF_TARGET, caption, locale, formatH
       return;
     }
     if (previous === null) angle.jump(REST);
-    const controls = animate(angle, targetAngle, spring.needle);
+    const controls = withAnimate((animate) => animate(angle, targetAngle, spring.needle));
     return () => controls.stop();
   }, [value, targetAngle, reduce, angle]);
 

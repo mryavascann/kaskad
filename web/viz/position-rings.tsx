@@ -1,10 +1,11 @@
 "use client";
 
-import { animate, m, useMotionValue } from "motion/react";
+import { m, useMotionValue } from "motion/react";
 import { useEffect, useId, useMemo, useRef, type CSSProperties, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { useShouldReduceMotion } from "@/motion/hooks";
 import { duration, easing, spring, stagger, toSeconds } from "@/motion/tokens";
+import { preloadAnimate, withAnimate } from "./animate";
 import { fill, mergeCopy } from "./copy";
 import { withFormats } from "./format";
 import { StateBox, chartStatus } from "./frame";
@@ -98,6 +99,8 @@ export function PositionRings({
   const boxRef = useRef<HTMLDivElement>(null);
   const entered = useEnterView(boxRef);
   const reduce = useShouldReduceMotion();
+  // Load the animation engine after the first paint, so starts below are synchronous by then.
+  useEffect(preloadAnimate, []);
   const scale = useMotionValue(frontScale);
   const firstRun = useRef(true);
   useEffect(() => {
@@ -109,7 +112,7 @@ export function PositionRings({
       scale.jump(frontScale);
       return;
     }
-    const controls = animate(scale, frontScale, spring.soft);
+    const controls = withAnimate((animate) => animate(scale, frontScale, spring.soft));
     return () => controls.stop();
   }, [frontScale, reduce, scale]);
   useEffect(() => {
@@ -117,7 +120,7 @@ export function PositionRings({
     if (!entered || reduce) return;
     const target = scale.get();
     scale.jump(R_CENTER / R_MAX);
-    const controls = animate(scale, target, { duration: toSeconds(duration.scene), ease: easing.outExpo });
+    const controls = withAnimate((animate) => animate(scale, target, { duration: toSeconds(duration.scene), ease: easing.outExpo }));
     return () => controls.stop();
   }, [entered, reduce, scale]);
 

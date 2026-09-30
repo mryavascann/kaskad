@@ -20,6 +20,10 @@ error states: `/design?only=viz`.
    behind the charts that draw more than they label.
 6. **Motion explains.** Draw-in, flips and springs follow the data, use `motion/tokens`, animate
    transform / opacity only, retarget instead of restarting, and are static under reduced motion.
+   Components are `m.*` (features come from the root `LazyMotion`); imperative `animate` goes through
+   `viz/animate.ts` (`withAnimate`, preloaded on mount), so the animation engine is not in the
+   pages' initial JavaScript. `gap-bars` keeps the static import: its bars render full width, so a
+   late start would flash them before they grow from 0.
 
 ## Components
 
