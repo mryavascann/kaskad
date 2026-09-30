@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
 import { languageAlternates } from "@/i18n/config";
-import { commonMessages } from "@/i18n/messages/common";
-import { PagePlaceholder } from "@/shell/page-placeholder";
+import { guardMessages } from "@/i18n/messages/guard";
+import { GuardPage } from "@/views/guard/guard-page";
 
-const title = commonMessages.tr.nav.guard;
+const t = guardMessages.tr.meta;
 
-export const metadata: Metadata = { title, alternates: { languages: languageAlternates("guard") } };
+export const metadata: Metadata = { title: t.title, description: t.description, alternates: { languages: languageAlternates("guard") } };
+
+// The proof transaction is read at build time; re-read hourly in case the RPC was down.
+export const revalidate = 3600;
 
 export default function Page() {
-  return <PagePlaceholder locale="tr" title={title} />;
+  return <GuardPage locale="tr" />;
 }
