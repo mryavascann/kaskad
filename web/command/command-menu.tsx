@@ -52,10 +52,10 @@ const subscribeNothing = () => () => {};
 const isApple = () => /Mac|iPhone|iPad|iPod/.test(navigator.platform || navigator.userAgent);
 
 /** "⌘ K" on Apple devices, "Ctrl K" elsewhere. The server renders "Ctrl"; the client corrects it after hydration. */
-export function ShortcutHint({ t, className }: { t: CommonMessages["command"]; className?: string }) {
+export function ShortcutHint({ t, className, "aria-hidden": ariaHidden }: { t: CommonMessages["command"]; className?: string; "aria-hidden"?: boolean }) {
   const apple = useSyncExternalStore(subscribeNothing, isApple, () => false);
   return (
-    <KbdGroup className={className}>
+    <KbdGroup className={className} aria-hidden={ariaHidden}>
       {apple ? (
         <Kbd size="sm" label={t.shortcutMac}>
           ⌘K
@@ -69,12 +69,17 @@ export function ShortcutHint({ t, className }: { t: CommonMessages["command"]; c
   );
 }
 
+/**
+ * Named by its content, not `aria-label`, so the name contains the visible word ("Search pages,
+ * scenarios and addresses" starts with "Search", WCAG 2.5.3). The key hint is announced through
+ * `aria-keyshortcuts` instead of being read as part of the name.
+ */
 export function CommandMenuButton({ t, onOpen, className, ...props }: { t: CommonMessages["command"]; onOpen: () => void } & ComponentProps<"button">) {
   return (
     <button
       type="button"
       aria-haspopup="dialog"
-      aria-label={t.open}
+      aria-keyshortcuts="Meta+K Control+K"
       onClick={onOpen}
       onPointerEnter={preloadCommandMenu}
       onFocus={preloadCommandMenu}
@@ -86,8 +91,11 @@ export function CommandMenuButton({ t, onOpen, className, ...props }: { t: Commo
       {...props}
     >
       <Search className="size-3.5" aria-hidden />
-      <span className="hidden 2xl:inline">{t.button}</span>
-      <ShortcutHint t={t} className="hidden md:inline-flex" />
+      <span aria-hidden className="hidden 2xl:inline">
+        {t.button}
+      </span>
+      <span className="sr-only">{t.open}</span>
+      <ShortcutHint t={t} aria-hidden className="hidden md:inline-flex" />
     </button>
   );
 }

@@ -69,7 +69,9 @@ describe("SiteNav", () => {
 describe("LocaleSwitch", () => {
   it("points to the same page in the other language", () => {
     render(<LocaleSwitch locale="en" t={commonMessages.en.locale} />);
-    const link = screen.getByRole("link", { name: "Türkçe" });
+    // The accessible name contains the visible text (label-content-name-mismatch).
+    const link = screen.getByRole("link", { name: "TR — Türkçe" });
+    expect(link).not.toHaveAttribute("aria-label");
     expect(link).toHaveAttribute("href", "/tr/cuzdan");
     expect(link).toHaveAttribute("hreflang", "tr");
   });
