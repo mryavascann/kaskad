@@ -1,0 +1,42 @@
+/*
+ * The poster frame covers its container like `object-fit: cover`, with the same crop the WebGL camera
+ * applies (`frameCrop` in stage.ts): the frame is scaled to cover, then placed by --align-x/--align-y.
+ * Portrait containers switch to the tall framing, like `framingFor`.
+ */
+.stage {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  container-type: size;
+  background: var(--color-void);
+  pointer-events: none;
+  user-select: none;
+}
+
+.frame {
+  position: absolute;
+  width: max(100cqw, 100cqh * var(--aspect));
+  height: max(100cqh, 100cqw / var(--aspect));
+  left: calc((100cqw - max(100cqw, 100cqh * var(--aspect))) * var(--align-x));
+  top: calc((100cqh - max(100cqh, 100cqw / var(--aspect))) * var(--align-y));
+}
+
+.frame > svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.tall {
+  display: none;
+}
+
+@container (aspect-ratio < 1) {
+  .wide {
+    display: none;
+  }
+
+  .tall {
+    display: block;
+  }
+}
