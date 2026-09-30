@@ -110,6 +110,15 @@ Branch: `feat/metropolis-frontend` (never commit to `main`; open a PR at the end
   console (`views/console`, `messages/console.tsx`, `/app` pages), landing (`views/landing`, `messages/landing.tsx`,
   `/` and `/tr`, `motion/**`), polish (`next.config.ts` headers/CSP, `shell/**`, `messages/common.ts`, `design/**`,
   `command/` ⌘K, `audio/` sound off by default, `og/` + `opengraph-image.tsx`). The orchestrator owns this file.
+- **Console done** (`3a5182c`, `d274525`, `09b29e4`, `008edcc`): `/app`, `/tr/app` in `views/console` (presets from
+  `presetFacts`, live preview, metrics → tiles → timeline with scrubber, prove + cost + confirm, Monte Carlo / stress /
+  two networks tabs, signer strip replacing `/baglan`, honesty labels, `?preset=` from ⌘K). USDC depth now from data.
+- **E2E done** (`5881120`, `d149ef4`, `1eb34ab`): `npm run test:e2e` reuses the dev server (`E2E_START=1` builds);
+  a safety fixture aborts any raw tx, `POST /api/fund` and external RPC. Guard B rejects, wallet HF, smoke (200, one
+  h1, no errors, no 360 px scroll, redirects, 404), console up to the send, keyboard checks: 54 pass, 10 by-design
+  skips. The real prove send stays a manual step (costs MON; ask first).
+- `scripts/hardcoded-numbers.sh` (`c25a6ee`, `--summary`): rg report; the typed "3%" in meta/landing copy is being
+  derived from the preset.
 
 ## Handoff (2026-09-30)
 
