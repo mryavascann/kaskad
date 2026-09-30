@@ -4,9 +4,13 @@ import { LoaderCircle, X } from "lucide-react";
 import type { CSSProperties, ReactNode } from "react";
 import { Toaster as Sonner, toast, type ExternalToast, type ToasterProps } from "sonner";
 import { cn } from "@/lib/utils";
+import { requestToaster } from "./toaster-slot";
 import { toneIcon, type Tone } from "./tone";
 
 export { toast };
+
+// A page that can toast mounts the root layout's lazy Toaster (see toaster-slot.tsx).
+requestToaster();
 
 /** Tone of a toast, as a CSS variable the icon chip reads (per type, or per toast via `notify`). */
 const toneColor: Record<Tone, string> = {
@@ -82,7 +86,8 @@ const surface = {
 } as CSSProperties;
 
 /**
- * App-wide toaster (mount once, in the root layout). Bottom right, dark, dismissible, tokens only.
+ * App-wide toaster. The root layout mounts it lazily through `<ToasterSlot />`; render it directly
+ * only outside RootDocument (tests, isolated previews). Bottom right, dark, dismissible, tokens only.
  * Sonner's own calls keep working: `toast.success` = safe, `toast.error` = liq, `toast.warning` = warn,
  * `toast.info` = neutral. Use `notify(title, { tone })` for any of the six tones.
  */
@@ -108,6 +113,7 @@ export type NotifyOptions = ExternalToast & { tone?: Tone };
 
 /** Toast in one of the six tones. Returns the toast id (for `toast.dismiss(id)`). */
 export function notify(title: ReactNode, { tone = "neutral", ...options }: NotifyOptions = {}) {
+  requestToaster();
   switch (tone) {
     case "safe":
       return toast.success(title, options);

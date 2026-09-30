@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import { fontVariables } from "@/design/fonts";
-import { Toaster } from "@/design/ui/toaster";
-import { TooltipProvider } from "@/design/ui/tooltip";
+import { ToasterSlot } from "@/design/ui/toaster-slot";
 import type { Locale } from "@/i18n/config";
 import { cn } from "@/lib/utils";
 import { DemoModeAttribute } from "@/motion/demo-mode";
@@ -10,7 +9,9 @@ import { RevealNoScript } from "@/motion/reveal";
 
 /**
  * <html> + <body> with fonts and the app-wide providers. Every root layout (one per locale, and
- * app/design) renders through this, so they cannot drift apart.
+ * app/design) renders through this, so they cannot drift apart. Kept light, since it is in every
+ * page's initial JS: Motion features load async (`MotionProvider` = LazyMotion), the Toaster (sonner)
+ * mounts on first use (`ToasterSlot`), and each `Tooltip` brings its own provider (no root Radix).
  */
 export function RootDocument({ locale, bodyClassName, children }: { locale: Locale; bodyClassName?: string; children: ReactNode }) {
   return (
@@ -18,10 +19,8 @@ export function RootDocument({ locale, bodyClassName, children }: { locale: Loca
       <body className={cn("flex min-h-full flex-col font-sans", bodyClassName)}>
         <RevealNoScript />
         <DemoModeAttribute />
-        <MotionProvider>
-          <TooltipProvider>{children}</TooltipProvider>
-        </MotionProvider>
-        <Toaster />
+        <MotionProvider>{children}</MotionProvider>
+        <ToasterSlot />
       </body>
     </html>
   );

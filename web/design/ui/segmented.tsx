@@ -2,7 +2,7 @@
 
 import * as ToggleGroup from "@radix-ui/react-toggle-group";
 import type { LucideIcon } from "lucide-react";
-import { motion, useReducedMotion } from "motion/react";
+import { m, useReducedMotion } from "motion/react";
 import { useId, type ReactNode } from "react";
 import { spring } from "@/motion/tokens";
 import { cn } from "@/lib/utils";
@@ -83,7 +83,7 @@ export function Segmented<T extends string>({
               )}
             >
               {active && (
-                <motion.span
+                <m.span
                   layoutId={`${uid}-active`}
                   transition={reduceMotion ? { duration: 0 } : spring.soft}
                   className="absolute inset-0 -z-10 rounded-tag border border-line-3 bg-elev-3 shadow-panel"

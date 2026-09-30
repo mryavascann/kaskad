@@ -1,28 +1,31 @@
-/** Shared pieces of the Motion-based primitives (Reveal, Stagger). Client-only. */
-import { motion } from "motion/react";
+/**
+ * Shared pieces of the Motion-based primitives (Reveal, Stagger). Client-only. They render `m.*`
+ * (features come from `LazyMotion` in `MotionProvider`), not the full `motion.*` bundle.
+ */
+import { m } from "motion/react";
 
 /** Elements Reveal, Stagger and StaggerItem can render as. */
 export const motionTags = {
-  div: motion.div,
-  section: motion.section,
-  article: motion.article,
-  aside: motion.aside,
-  header: motion.header,
-  footer: motion.footer,
-  figure: motion.figure,
-  ul: motion.ul,
-  ol: motion.ol,
-  li: motion.li,
-  p: motion.p,
-  span: motion.span,
-  h2: motion.h2,
-  h3: motion.h3,
+  div: m.div,
+  section: m.section,
+  article: m.article,
+  aside: m.aside,
+  header: m.header,
+  footer: m.footer,
+  figure: m.figure,
+  ul: m.ul,
+  ol: m.ol,
+  li: m.li,
+  p: m.p,
+  span: m.span,
+  h2: m.h2,
+  h3: m.h3,
 } as const;
 
 export type MotionTag = keyof typeof motionTags;
 
-/** The props of these tags are compatible, so the components are typed as `motion.div`. */
-export type MotionElement = typeof motion.div;
+/** The props of these tags are compatible, so the components are typed as `m.div`. */
+export type MotionElement = typeof m.div;
 
 /**
  * Entrance travel. A CSS variable, not a number: it is 12px normally and 0px under

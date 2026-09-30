@@ -39,6 +39,11 @@ describe("Reveal", () => {
       </MotionProvider>,
     );
     const element = screen.getByText("Revealed");
+    // MotionProvider loads the feature bundle asynchronously (LazyMotion); in-view starts after it.
+    await act(async () => {
+      await import("./features");
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
     act(() => viewport.intersect());
     await waitFor(() => expect(Number(element.style.opacity)).toBe(1), { timeout: 2000 });
     expect(element.style.transform).toBe("none");

@@ -1,6 +1,6 @@
 "use client";
 
-import { MotionConfig, MotionConfigContext } from "motion/react";
+import { LazyMotion, MotionConfig, MotionConfigContext } from "motion/react";
 import { useContext, type CSSProperties, type ReactNode } from "react";
 import { transition } from "./tokens";
 
@@ -10,13 +10,20 @@ import { transition } from "./tokens";
  *   Without it Motion's default is "never", and the reduced-motion hooks in `motion/hooks.ts` would
  *   ignore the OS setting.
  * - Default transition `transition.base` (240 ms, out-expo) for every `motion.*` without its own.
- * Not `LazyMotion strict`: components use the full `motion.*` API.
+ * - `LazyMotion`: the feature bundle (`./features`, `domMax`) loads asynchronously after hydration,
+ *   so `m.*` components (Reveal, Stagger, Magnetic, Tabs, Segmented) stay light in the initial JS.
+ *   Not `strict`: a full `motion.*` component still works (it carries its own features, and its weight).
+ *   Prefer `m.*` in anything that renders on many pages.
  */
+const loadFeatures = () => import("./features").then((mod) => mod.default);
+
 export function MotionProvider({ children }: { children: ReactNode }) {
   return (
-    <MotionConfig reducedMotion="user" transition={transition.base}>
-      {children}
-    </MotionConfig>
+    <LazyMotion features={loadFeatures}>
+      <MotionConfig reducedMotion="user" transition={transition.base}>
+        {children}
+      </MotionConfig>
+    </LazyMotion>
   );
 }
 

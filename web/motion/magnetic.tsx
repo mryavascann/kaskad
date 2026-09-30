@@ -8,7 +8,7 @@
  * simply sits still. The outer span receives the pointer (its box never moves, so the pull cannot
  * feed back into itself); the inner span carries the transform.
  */
-import { motion, useSpring } from "motion/react";
+import { m, useSpring } from "motion/react";
 import { useEffect, type HTMLAttributes, type PointerEvent, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { clamp } from "./easing";
@@ -67,9 +67,9 @@ export function Magnetic({ children, strength = 6, className, onPointerMove, onP
       onPointerLeave={release}
       {...props}
     >
-      <motion.span className="flex w-full" style={{ x, y }}>
+      <m.span className="flex w-full" style={{ x, y }}>
         {children}
-      </motion.span>
+      </m.span>
     </span>
   );
 }

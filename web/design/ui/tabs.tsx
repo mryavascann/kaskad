@@ -1,7 +1,7 @@
 "use client";
 
 import * as TabsPrimitive from "@radix-ui/react-tabs";
-import { motion, useReducedMotion } from "motion/react";
+import { m, useReducedMotion } from "motion/react";
 import { createContext, use, useId, useState, type ComponentProps, type ReactNode } from "react";
 import { spring } from "@/motion/tokens";
 import { cn } from "@/lib/utils";
@@ -75,7 +75,7 @@ export function TabsTrigger({ value, count, className, children, ...props }: Tab
         )}
       </span>
       {selected === value && (
-        <motion.span
+        <m.span
           aria-hidden
           layoutId={`${indicatorId}-underline`}
           transition={reduceMotion ? { duration: 0 } : spring.soft}
