@@ -1,23 +1,16 @@
 "use client";
 
-import { decodeEventLog, encodeFunctionData, type Hex } from "viem";
+import { encodeFunctionData } from "viem";
 import { kaskadMCAbi } from "@/lib/kaskad/abi";
 import { DEPLOYMENT } from "@/lib/kaskad/config";
 import { monteCarloGasLimit } from "@/lib/kaskad/math";
 import { MC_SEED } from "../engine";
+import { findMonteCarloDone, type MonteCarloDone } from "../events";
 import { runTx, type TxOptions, type TxOutcome } from "../tx";
 import type { MonteCarloResult, Scenario } from "../types";
 
-/** Fields of KaskadMC's MonteCarloDone event (contracts/src/KaskadMC.sol:40-51). */
-export type MonteCarloDone = {
-  simId: Hex;
-  paths: bigint;
-  meanBadDebt: bigint;
-  p95BadDebt: bigint;
-  worstBadDebt: bigint;
-  gasUsed: bigint;
-  memoryBytes: bigint;
-};
+export { findMonteCarloDone, type MonteCarloDone };
+
 
 export type ProveMonteCarloOutcome = TxOutcome<{ paths: number; monteCarloDone: MonteCarloDone | null }>;
 
@@ -42,23 +35,3 @@ export async function proveMonteCarlo(
   return { ...out, paths, monteCarloDone: findMonteCarloDone(out.receipt.logs) };
 }
 
-export function findMonteCarloDone(logs: readonly { data: Hex; topics: readonly Hex[] }[]): MonteCarloDone | null {
-  for (const l of logs) {
-    try {
-      const ev = decodeEventLog({ abi: kaskadMCAbi, data: l.data, topics: l.topics as [Hex, ...Hex[]] });
-      if (ev.eventName === "MonteCarloDone") {
-        const a = ev.args;
-        return {
-          simId: a.simId,
-          paths: a.paths,
-          meanBadDebt: a.meanBadDebt,
-          p95BadDebt: a.p95BadDebt,
-          worstBadDebt: a.worstBadDebt,
-          gasUsed: a.gasUsed,
-          memoryBytes: a.memoryBytes,
-        };
-      }
-    } catch {}
-  }
-  return null;
-}

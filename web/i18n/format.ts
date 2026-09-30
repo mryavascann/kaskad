@@ -98,6 +98,8 @@ export function formatters(locale: Locale) {
     ms: (n: number) => `${nf(0, 0).format(n)} ms`,
     /** A date in the locale's long style (UTC, so server and browser agree). */
     date: (d: Date) => new Intl.DateTimeFormat(tag, { year: "numeric", month: "long", day: "numeric", timeZone: "UTC" }).format(d),
+    /** A compact date for tables: Sep 26, 2026 / 26 Eyl 2026 (UTC). */
+    dateShort: (d: Date) => new Intl.DateTimeFormat(tag, { year: "numeric", month: "short", day: "numeric", timeZone: "UTC" }).format(d),
   };
 }
 

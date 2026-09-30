@@ -72,6 +72,15 @@ const en = {
     copy: "Copy",
     copied: "Copied",
   },
+  /** Labels for design/ui/honesty HonestyTag. */
+  honesty: {
+    measured: "Measured",
+    assumption: "Assumption",
+    synthetic: "Synthetic book",
+    real: "Real book",
+    estimate: "Estimate",
+    model: "Model",
+  },
 };
 
 export type CommonMessages = typeof en;
@@ -140,6 +149,14 @@ const tr = {
     retry: "Tekrar dene",
     copy: "Kopyala",
     copied: "Kopyalandı",
+  },
+  honesty: {
+    measured: "Ölçüldü",
+    assumption: "Varsayım",
+    synthetic: "Sentetik defter",
+    real: "Gerçek defter",
+    estimate: "Tahmin",
+    model: "Model",
   },
 } satisfies CommonMessages;
 

@@ -1,15 +1,16 @@
 "use client";
 
-import { decodeEventLog, encodeFunctionData, type Hex } from "viem";
+import { encodeFunctionData } from "viem";
 import { guardAbi } from "@/lib/kaskad/abi";
 import { DEPLOYMENT } from "@/lib/kaskad/config";
+import { findGuardChecked, type GuardChecked } from "../events";
 import { guardGasLimit, readMarkets, type MarketId } from "../guard";
 import type { ChainReader } from "../reader";
 import { failBeforeSend, runTx, type TxOptions, type TxOutcome } from "../tx";
 import type { MarketState } from "../types";
 
-/** Guard's GuardChecked event (contracts/src/Guard.sol:25): the decision refresh() took. */
-export type GuardChecked = { simId: Hex; badDebtRatioBps: bigint; liquidationRatioBps: bigint; tripped: boolean };
+export { findGuardChecked, type GuardChecked };
+
 
 type Markets = { markets: Record<MarketId, MarketState> | null };
 export type RunGuardOutcome = TxOutcome<{ checked: GuardChecked | null } & Markets, Markets>;
@@ -35,14 +36,3 @@ export async function runGuard(opts: TxOptions & { reader?: ChainReader } = {}):
   return { ...out, checked: findGuardChecked(out.receipt.logs, guard), markets };
 }
 
-/** GuardChecked from the Guard's own logs (the engine's logs in the same receipt are skipped). */
-export function findGuardChecked(logs: readonly { address: string; data: Hex; topics: readonly Hex[] }[], guard: string): GuardChecked | null {
-  for (const l of logs) {
-    if (l.address.toLowerCase() !== guard.toLowerCase()) continue;
-    try {
-      const ev = decodeEventLog({ abi: guardAbi, data: l.data, topics: l.topics as [Hex, ...Hex[]] });
-      if (ev.eventName === "GuardChecked") return { ...ev.args };
-    } catch {}
-  }
-  return null;
-}

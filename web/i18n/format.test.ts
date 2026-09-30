@@ -65,5 +65,7 @@ describe("percent, ratio and units", () => {
   it("formats dates in UTC so server and browser agree", () => {
     expect(en.date(new Date(Date.UTC(2026, 9, 8)))).toBe("October 8, 2026");
     expect(tr.date(new Date(Date.UTC(2026, 9, 8)))).toBe("8 Ekim 2026");
+    expect(en.dateShort(new Date(Date.UTC(2026, 8, 26)))).toBe("Sep 26, 2026");
+    expect(tr.dateShort(new Date(Date.UTC(2026, 8, 26)))).toBe("26 Eyl 2026");
   });
 });
