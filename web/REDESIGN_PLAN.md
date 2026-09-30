@@ -66,7 +66,7 @@ Branch: `feat/metropolis-frontend` (never commit to `main`; open a PR at the end
        `formatUsd` from `formatters(locale)` so Turkish charts print `$111,0M` like the text (Intl default: `Mn`).
      - `5028aa9` `web/three` (see its README; demo at `/design?only=three`): HeroStage (poster first, lazy R3F
        scene, capability and frame-budget fallbacks), HeroPoster, HeroScene; `heroFromClassification` maps the
-       finding's positions to dominoes. `@react-three/drei` is installed but unused (removable).
+       finding's positions to dominoes. `@react-three/drei` was removed (unused).
      - State at handoff: typecheck and lint clean, 101 test files / 682 tests pass; every route answers 200 on
        the dev server (`/app`, `/tr`, `/tr/app` are still placeholders, `/` is still the legacy console).
    - **Next, in this order**

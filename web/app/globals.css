@@ -2,31 +2,3 @@
 @import "../design/tokens.css";
 @import "../motion/tokens.css";
 @import "../design/base.css";
-
-/*
- * Legacy bridge: class names used by the pre-redesign pages (`text-muted`, `bg-panel-2`, …),
- * mapped onto the new tokens so both can coexist. Deleted in stage 4 with app/(legacy).
- */
-:root {
-  --bg: var(--color-bg);
-  --panel: var(--color-elev-1);
-  --panel-2: var(--color-elev-2);
-  --line: var(--color-line);
-  --text: var(--color-fg-1);
-  --muted: var(--color-fg-2);
-  --accent: var(--color-monad);
-  --bad: var(--color-liq);
-  --good: var(--color-safe);
-  --warn: var(--color-warn);
-}
-
-@theme inline {
-  --color-panel: var(--panel);
-  --color-panel-2: var(--panel-2);
-  --color-text: var(--text);
-  --color-muted: var(--muted);
-  --color-accent: var(--accent);
-  --color-bad: var(--bad);
-  --color-good: var(--good);
-  --color-white: oklch(1 0 0);
-}

@@ -9,8 +9,8 @@ import { MotionProvider } from "@/motion/provider";
 import { RevealNoScript } from "@/motion/reveal";
 
 /**
- * <html> + <body> with fonts and the app-wide providers. Every root layout (one per locale, plus the
- * legacy group until it is removed) renders through this, so they cannot drift apart.
+ * <html> + <body> with fonts and the app-wide providers. Every root layout (one per locale, and
+ * app/design) renders through this, so they cannot drift apart.
  */
 export function RootDocument({ locale, bodyClassName, children }: { locale: Locale; bodyClassName?: string; children: ReactNode }) {
   return (

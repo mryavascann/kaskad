@@ -8,7 +8,7 @@ import { href } from "@/i18n/config";
 
 export const metadata: Metadata = { title: "404 · Kaskad", robots: { index: false } };
 
-// Unmatched URLs across all root layouts (app/(en), app/(tr), legacy). Bilingual on purpose: the
+// Unmatched URLs across all root layouts (app/(en), app/(tr), app/design). Bilingual on purpose: the
 // locale of a URL that matches nothing is unknown.
 export default function GlobalNotFound() {
   return (
