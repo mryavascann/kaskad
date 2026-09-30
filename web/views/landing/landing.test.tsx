@@ -15,14 +15,19 @@ vi.mock("@/lib/chain/hooks/useLiveBlock", () => ({ useLiveBlock: () => ({ block:
 vi.mock("@/motion/scroll", async (orig) => ({ ...(await orig<typeof import("@/motion/scroll")>()), loadScrollKit: () => new Promise(() => {}) }));
 
 const { Landing } = await import("./landing");
+const { engageNow } = await import("./deferred");
 const { recordedLanding, EMPTY_LANDING } = await import("./__fixtures__/landing-data");
 
 const data = recordedLanding();
 const f = data.finding!;
 const en = formatters("en");
+/** The first load of a deferred chunk (viz + motion) can take a while in a busy test run. */
+const LAZY = { timeout: 10_000 };
 
 beforeAll(() => {
   expect(f).not.toBeNull();
+  // Below-the-fold parts load after the reader engages; open that gate for every test.
+  engageNow();
 });
 
 describe("Landing (EN)", () => {
@@ -53,11 +58,11 @@ describe("Landing (EN)", () => {
     expect(screen.getByRole("link", { name: "Is my position safe?" })).toHaveAttribute("href", "/wallet");
   });
 
-  it("states the gap with the computed ratio and always shows the model footnote", () => {
+  it("states the gap with the computed ratio and always shows the model footnote", async () => {
     render(<Landing locale="en" data={data} />);
     const section = screen.getByRole("region", { name: landingMessages.en.finding.title });
+    expect(await within(section).findByText(en.ratio(f.stuckDebtUsd / f.clearedUsd), {}, LAZY)).toBeInTheDocument();
     expect(within(section).getAllByText(en.usd(f.clearedUsd)).length).toBeGreaterThan(0);
-    expect(within(section).getByText(en.ratio(f.stuckDebtUsd / f.clearedUsd))).toBeInTheDocument();
     expect(within(section).getByText(landingMessages.en.finding.footnote)).toBeVisible();
     expect(within(section).getByText(`${data.positions!.belowThreshold} of ${data.positions!.total}`)).toBeInTheDocument();
   });
@@ -69,15 +74,24 @@ describe("Landing (EN)", () => {
     expect(screen.getByText("12.9× cheaper per position")).toBeInTheDocument();
   });
 
-  it("validates addresses and offers the sample borrowers", () => {
+  it("validates addresses and offers the sample borrowers", async () => {
     render(<Landing locale="en" data={data} />);
-    expect(screen.getByRole("textbox", { name: "Wallet address" })).toBeInTheDocument();
+    expect(await screen.findByRole("textbox", { name: "Wallet address" }, LAZY)).toBeInTheDocument();
     const sample = screen.getByRole("link", { name: /Largest syrupUSDC borrower/ });
     expect(sample.getAttribute("href")).toMatch(/^\/wallet\?address=0x[0-9a-fA-F]{40}$/);
   });
 
-  it("renders skeletons instead of numbers when the chain could not be read", () => {
+  it("labels the largest-position dial as the book snapshot, not the live position", async () => {
+    render(<Landing locale="en" data={data} />);
+    const section = screen.getByRole("region", { name: landingMessages.en.wallet.title });
+    const block = en.block(DEPLOYMENT.source.block);
+    expect(await within(section).findByText(new RegExp(`book snapshot \\(Monad mainnet block ${block.replace(/[#,]/g, (c) => `\\${c}`)}\\)`), {}, LAZY)).toBeInTheDocument();
+    expect(within(section).getByText(landingMessages.en.wallet.dialNote)).toBeInTheDocument();
+  });
+
+  it("renders skeletons instead of numbers when the chain could not be read", async () => {
     render(<Landing locale="en" data={EMPTY_LANDING} />);
+    await screen.findByRole("textbox", { name: "Wallet address" }, LAZY);
     expect(screen.getByText("Live preview unavailable right now")).toBeInTheDocument();
     expect(screen.getByRole("region", { name: landingMessages.en.finding.title }).querySelector("[aria-busy='true']")).not.toBeNull();
     expect(screen.queryByText(/\$111/)).toBeNull();
@@ -86,9 +100,10 @@ describe("Landing (EN)", () => {
 });
 
 describe("Landing (TR)", () => {
-  it("uses the Turkish copy and number format", () => {
+  it("uses the Turkish copy and number format", async () => {
     const tr = formatters("tr");
     render(<Landing locale="tr" data={data} />);
+    await screen.findByRole("textbox", { name: "Cüzdan adresi" }, LAZY);
     expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Tek işlem. Tüm likidasyon dalgaları.");
     expect(screen.getByText("syrupUSDC −%3 düşerse anında likide edilemeyen borç")).toBeInTheDocument();
     expect(screen.getAllByText(tr.usd(f.stuckDebtUsd)).length).toBeGreaterThan(0);

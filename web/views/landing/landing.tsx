@@ -17,19 +17,20 @@ import { findingScenario } from "@/lib/chain/finding";
 import { ETH_READ_GAS_PER_POSITION, MONAD_READ_GAS_PER_POSITION } from "@/lib/chain/limits";
 import { PROOF_TXS } from "@/lib/chain/proofs";
 import { symbolParts } from "@/lib/chain/scenario";
+import { SAMPLES } from "@/lib/chain/wallet";
 import { DEPLOYMENT, txUrl } from "@/lib/kaskad/config";
+import { shortAddr } from "@/lib/kaskad/format";
 import { MONAD_PAGE_SLOTS } from "@/lib/kaskad/math";
 import { cn } from "@/lib/utils";
 import { SmoothScroll } from "@/motion/smooth-scroll";
 import { Pipeline } from "../how/diagrams";
-import { FindingGap, LivePulse, MiniDial, ScaleGauge } from "./charts";
+import { FindingGap, GuardTeaser, LivePulse, MiniDial, ScaleGauge, WalletTeaser } from "./below-fold";
 import type { LandingData } from "./data";
 import { GAUNTLET_AAVE_FEE_USD_PER_YEAR, GAUNTLET_FEE_SOURCE_URL, MONAD_BLOCK_TIME_MS, MONAD_FINALITY_MS } from "./facts";
-import { GuardTeaser } from "./guard-teaser";
 import { HeroIntro, type FindingMeta } from "./hero-intro";
 import { OnchainUnlock } from "./onchain-unlock";
 import { ShockScene } from "./shock-scene";
-import { WalletTeaser } from "./wallet-teaser";
+import type { WalletSample } from "./wallet-teaser";
 
 function Section({ id, index, kicker, title, lead, children, className }: { id: string; index: number; kicker: string; title: string; lead?: ReactNode; children: ReactNode; className?: string }) {
   return (
@@ -52,6 +53,9 @@ export function findingMeta(): FindingMeta & { assetId: number } {
   const asset = DEPLOYMENT.assets[String(s.assetId & 0xff)];
   return { assetId: asset.id, asset: symbolParts(asset).base, shock: s.shockBps / 10_000, bookPositions: asset.realPositions };
 }
+
+/** The sample borrowers for the wallet teaser, resolved here so its client chunk needs no viem. */
+export const WALLET_SAMPLES: readonly WalletSample[] = SAMPLES.map((s) => ({ id: s.id, address: s.address, short: shortAddr(s.address), description: s.description }));
 
 export function Landing({ locale, data }: { locale: Locale; data: LandingData }) {
   const t = landingMessages[locale];
@@ -258,8 +262,8 @@ export function Landing({ locale, data }: { locale: Locale; data: LandingData })
       {/* 05 · Is my position safe? */}
       <Section id="wallet" index={5} kicker={t.wallet.kicker} title={t.wallet.title} lead={t.wallet.lead}>
         <div className="grid gap-10 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:items-center lg:gap-16">
-          <WalletTeaser locale={locale} />
-          <div className="flex flex-col items-center gap-3 rounded-panel border border-line-2 bg-elev-1 p-6">
+          <WalletTeaser locale={locale} samples={WALLET_SAMPLES} />
+          <figure className="flex flex-col items-center gap-3 rounded-panel border border-line-2 bg-elev-1 p-6" data-landing-dial="">
             <MiniDial
               locale={locale}
               value={positions?.largest?.healthFactor ?? null}
@@ -267,12 +271,18 @@ export function Landing({ locale, data }: { locale: Locale; data: LandingData })
               caption={
                 positions?.largest
                   ? positions.largest.thresholdDrop !== null && positions.largest.thresholdDrop > 0
-                    ? t.wallet.dialCaption({ asset: meta.asset, drop: fmt.drop(positions.largest.thresholdDrop, 2) })
-                    : t.wallet.dialCaptionSafe({ asset: meta.asset })
+                    ? t.wallet.dialCaption({ asset: meta.asset, drop: fmt.drop(positions.largest.thresholdDrop, 2), block: fmt.block(DEPLOYMENT.source.block) })
+                    : t.wallet.dialCaptionSafe({ asset: meta.asset, block: fmt.block(DEPLOYMENT.source.block) })
                   : undefined
               }
             />
-          </div>
+            {positions?.largest && (
+              <figcaption className="flex flex-col items-center gap-2 text-center">
+                <HonestyTag kind="real">{c.honesty.real}</HonestyTag>
+                <span className="text-caption text-fg-3">{t.wallet.dialNote}</span>
+              </figcaption>
+            )}
+          </figure>
         </div>
       </Section>
 

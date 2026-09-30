@@ -33,5 +33,5 @@ export function LivePulse({ locale, copy }: { locale: Locale; copy: BlockPulseCo
 
 export function MiniDial({ locale, value, caption, copy }: { locale: Locale; value: number | null; caption?: ReactNode; copy: HealthDialCopy }) {
   const fmt = formatters(locale);
-  return <HealthDial value={value} caption={caption} copy={copy} formatHf={(x) => fmt.num(x, 2)} formatNum={(x) => fmt.num(x, 2)} className="w-full max-w-60" />;
+  return <HealthDial value={value} caption={caption} copy={copy} formatHf={(x) => fmt.num(x, 3)} formatNum={(x) => fmt.num(x, 2)} className="w-full max-w-60" />;
 }

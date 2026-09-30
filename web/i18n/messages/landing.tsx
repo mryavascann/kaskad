@@ -198,8 +198,11 @@ const en = {
       "largest-syrupusdc-borrower": "Largest syrupUSDC borrower",
       "largest-pt-ausd-borrower": "Largest PT-AUSD borrower",
     } as Record<string, string>,
-    dialCaption: (v: { asset: string; drop: Stat }) => `Largest ${v.asset} position in the book: liquidatable after a ${v.drop} drop.`,
-    dialCaptionSafe: (v: { asset: string }) => `Largest ${v.asset} position in the book.`,
+    dialCaption: (v: { asset: string; drop: Stat; block: Stat }) =>
+      `Largest ${v.asset} position in the book snapshot (Monad mainnet block ${v.block}), priced where the live preview starts: liquidatable after a ${v.drop} drop.`,
+    dialCaptionSafe: (v: { asset: string; block: Stat }) =>
+      `Largest ${v.asset} position in the book snapshot (Monad mainnet block ${v.block}), priced where the live preview starts.`,
+    dialNote: "A snapshot, not the live position. The wallet page reads the live Aave position, so its numbers can differ.",
   },
   how: {
     kicker: "How it works",
@@ -399,8 +402,11 @@ const tr = {
       "largest-syrupusdc-borrower": "En büyük syrupUSDC borçlusu",
       "largest-pt-ausd-borrower": "En büyük PT-AUSD borçlusu",
     } as Record<string, string>,
-    dialCaption: (v: { asset: string; drop: Stat }) => `Defterdeki en büyük ${v.asset} pozisyonu: ${v.drop} düşüşte likide edilebilir.`,
-    dialCaptionSafe: (v: { asset: string }) => `Defterdeki en büyük ${v.asset} pozisyonu.`,
+    dialCaption: (v: { asset: string; drop: Stat; block: Stat }) =>
+      `Defter fotoğrafındaki (Monad mainnet bloğu ${v.block}) en büyük ${v.asset} pozisyonu, canlı ön izlemenin başladığı fiyatla: ${v.drop} düşüşte likide edilebilir.`,
+    dialCaptionSafe: (v: { asset: string; block: Stat }) =>
+      `Defter fotoğrafındaki (Monad mainnet bloğu ${v.block}) en büyük ${v.asset} pozisyonu, canlı ön izlemenin başladığı fiyatla.`,
+    dialNote: "Canlı pozisyon değil, fotoğraf. Cüzdan sayfası Aave'deki canlı pozisyonu okur; rakamlar farklı olabilir.",
   },
   how: {
     kicker: "Nasıl çalışır",
