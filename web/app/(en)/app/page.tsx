@@ -1,12 +1,15 @@
 import type { Metadata } from "next";
 import { languageAlternates } from "@/i18n/config";
-import { commonMessages } from "@/i18n/messages/common";
-import { PagePlaceholder } from "@/shell/page-placeholder";
+import { consoleMessages } from "@/i18n/messages/console";
+import { ConsolePage } from "@/views/console/console-page";
 
-const title = commonMessages.en.nav.console;
+const t = consoleMessages.en.meta;
 
-export const metadata: Metadata = { title, alternates: { languages: languageAlternates("app") } };
+export const metadata: Metadata = { title: t.title, description: t.description, alternates: { languages: languageAlternates("app") } };
+
+// Preset facts use the render time (days to a PT maturity): re-render hourly.
+export const revalidate = 3600;
 
 export default function Page() {
-  return <PagePlaceholder locale="en" title={title} />;
+  return <ConsolePage locale="en" />;
 }
