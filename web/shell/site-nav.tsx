@@ -1,6 +1,6 @@
 "use client";
 
-import { Menu } from "lucide-react";
+import { Menu, Search } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -8,6 +8,7 @@ import { Button, ButtonArrow } from "@/design/ui/button";
 import { ButtonLink } from "@/design/ui/button-link";
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/design/ui/dialog";
 import { Logo } from "@/design/ui/logo";
+import { CommandMenu, CommandMenuButton, preloadCommandMenu, ShortcutHint, useCommandMenu } from "@/command/command-menu";
 import { href, matchRoute, type Locale, type RouteId } from "@/i18n/config";
 import type { CommonMessages } from "@/i18n/messages/common";
 import { useLiveBlock } from "@/lib/chain/hooks/useLiveBlock";
@@ -28,6 +29,7 @@ export function SiteNav({ locale, t }: { locale: Locale; t: CommonMessages }) {
   const [open, setOpen] = useState(false);
   // One poller for both copies of the network status (desktop bar and mobile sheet).
   const live = useLiveBlock();
+  const command = useCommandMenu();
 
   return (
     <header className="sticky top-0 z-(--z-nav) border-b border-line bg-bg/85 backdrop-blur-md">
@@ -44,7 +46,7 @@ export function SiteNav({ locale, t }: { locale: Locale; t: CommonMessages }) {
                   href={href(route, locale)}
                   aria-current={current === route ? "page" : undefined}
                   className={cn(
-                    "inline-flex h-9 items-center rounded-control px-3 text-body-sm text-fg-2",
+                    "inline-flex h-9 items-center whitespace-nowrap rounded-control px-3 text-body-sm text-fg-2",
                     "transition-colors duration-(--dur-fast) ease-out-quart hover:text-fg-1",
                     "aria-[current=page]:text-fg-1 aria-[current=page]:underline aria-[current=page]:decoration-line-strong aria-[current=page]:underline-offset-8",
                   )}
@@ -58,6 +60,7 @@ export function SiteNav({ locale, t }: { locale: Locale; t: CommonMessages }) {
 
         <div className="ml-auto flex items-center gap-3">
           <NetworkStatus live={live} locale={locale} t={t.network} className="hidden xl:inline-flex" />
+          <CommandMenuButton t={t.command} onOpen={command.openMenu} />
           <LocaleSwitch locale={locale} t={t.locale} />
           <ButtonLink href={href("app", locale)} variant="secondary" size="sm" className="hidden sm:inline-flex">
             {t.nav.cta}
@@ -91,6 +94,21 @@ export function SiteNav({ locale, t }: { locale: Locale; t: CommonMessages }) {
                   ))}
                 </ul>
               </nav>
+              <button
+                type="button"
+                aria-haspopup="dialog"
+                onPointerEnter={preloadCommandMenu}
+                onFocus={preloadCommandMenu}
+                onClick={() => {
+                  setOpen(false);
+                  command.openMenu();
+                }}
+                className="mt-4 flex min-h-12 w-full items-center gap-3 rounded-control border border-line-2 px-3 text-body-sm text-fg-2 transition-colors duration-(--dur-fast) hover:border-line-3 hover:text-fg-1"
+              >
+                <Search className="size-4 text-fg-3" aria-hidden />
+                <span className="flex-1 text-left">{t.command.open}</span>
+                <ShortcutHint t={t.command} className="hidden sm:inline-flex" />
+              </button>
               <div className="mt-6 flex flex-col gap-4">
                 <ButtonLink href={href("app", locale)} variant="primary" size="lg" onClick={() => setOpen(false)}>
                   {t.nav.cta}
@@ -102,6 +120,15 @@ export function SiteNav({ locale, t }: { locale: Locale; t: CommonMessages }) {
           </Dialog>
         </div>
       </div>
+      <CommandMenu
+        mounted={command.mounted}
+        open={command.open}
+        onOpenChange={command.setOpen}
+        locale={locale}
+        t={t}
+        pathname={pathname}
+        currentRoute={current ?? null}
+      />
     </header>
   );
 }

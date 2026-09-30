@@ -48,6 +48,16 @@ describe("SiteNav", () => {
     expect(within(dialog).getByRole("link", { name: /Guard/ })).toHaveAttribute("href", "/guard");
     expect(within(dialog).getByRole("link", { name: /Run the stress test/ })).toHaveAttribute("href", "/app");
   });
+
+  it("offers the command menu in the bar and in the mobile menu", async () => {
+    const user = userEvent.setup();
+    render(<SiteNav locale="en" t={commonMessages.en} />);
+    const trigger = screen.getByRole("button", { name: "Search pages, scenarios and addresses" });
+    expect(trigger).toHaveAttribute("aria-haspopup", "dialog");
+    await user.click(screen.getByRole("button", { name: "Menu" }));
+    const dialog = await screen.findByRole("dialog");
+    expect(within(dialog).getByRole("button", { name: /Search pages, scenarios and addresses/ })).toBeInTheDocument();
+  });
 });
 
 describe("LocaleSwitch", () => {
