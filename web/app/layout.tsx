@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { fontVariables } from "@/design/fonts";
-import { ToastProvider } from "@/components/ui/feedback";
+import { Toaster } from "@/design/ui/toaster";
+import { TooltipProvider } from "@/design/ui/tooltip";
+import { DemoModeAttribute } from "@/motion/demo-mode";
+import { MotionProvider } from "@/motion/provider";
+import { RevealNoScript } from "@/motion/reveal";
 
 export const metadata: Metadata = {
   title: "Kaskad: zincir üstü likidasyon kaskadı simülatörü",
@@ -12,8 +16,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="tr" className={`${fontVariables} h-full antialiased`}>
       <body className="min-h-full flex flex-col font-sans">
-        {children}
-        <ToastProvider />
+        <RevealNoScript />
+        <DemoModeAttribute />
+        <MotionProvider>
+          <TooltipProvider>{children}</TooltipProvider>
+        </MotionProvider>
+        <Toaster />
       </body>
     </html>
   );

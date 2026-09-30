@@ -46,6 +46,22 @@ The "Instrument" language (stage 3 of `web/REDESIGN_PLAN.md`). Live reference: `
    `motion-reduce:` fallbacks that keep the information. Interruptible (retarget, never restart).
 8. **Tests.** Every component has `*.test.tsx` (jsdom project) that checks roles, names, states and keyboard behavior
    with Testing Library. No snapshot tests.
+9. **Deterministic markup.** Round computed SVG geometry (e.g. to 2 decimals) before rendering: Node and the browser
+   can disagree in the last bits of `Math.sin/cos/exp`, and the difference is a hydration mismatch. No `Date.now()`
+   or unseeded `Math.random()` during render.
+
+## Components (`design/ui`)
+
+| Group | Files |
+|---|---|
+| Base | `button` (+ `ButtonArrow`), `label` (`Label`, `Eyebrow`), `panel` (`Panel`, `PanelHeader`, `PanelBody`), `tone` |
+| Display | `badge`, `status-dot` (`StatusDot`, `LiveIndicator`), `honesty` (`HonestyTag`), `kbd`, `divider`, `logo` (`Logo`, `LogoMark`), `section-header` |
+| Data | `metric` (`Metric`, `MetricGroup`, `formatMetric`), `readout` (`Readout`, `ReadoutRow`), `tick-ruler` |
+| Feedback | `skeleton`, `callout`, `empty-state`, `steps`, `footnote`, `toaster` (`Toaster`, `notify`) |
+| Controls | `slider`, `segmented`, `tabs`, `switch`, `chip` (`Chip`, `ChipGroup`), `input` (`Input`, `InputAction`), `field` |
+| Overlays | `tooltip` (`TooltipProvider`, `Tooltip`), `popover`, `term`, `dialog` (+ `ConfirmDialog`), `disclosure` |
+
+Root providers (`app/layout.tsx`): `MotionProvider`, `TooltipProvider`, `Toaster`, `DemoModeAttribute`, `RevealNoScript`.
 
 ## Commands
 

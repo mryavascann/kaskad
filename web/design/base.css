@@ -94,20 +94,28 @@
   background-size: var(--grid-cell, 120px) var(--grid-cell, 120px);
 }
 
-/* Instrument corner marks: four L-shaped ticks drawn inside the box. Tune with --tick / --tick-len. */
+/*
+ * Instrument corner marks: four L-shaped ticks drawn inside the box, like crop marks.
+ * Tune with --tick (color, default line-strong), --tick-len (10px) and --tick-inset (0px; inset them to
+ * clear rounded corners).
+ */
 @utility corner-ticks {
-  --tick: var(--color-line-strong);
-  --tick-len: 10px;
   background-image:
-    linear-gradient(var(--tick), var(--tick)), linear-gradient(var(--tick), var(--tick)),
-    linear-gradient(var(--tick), var(--tick)), linear-gradient(var(--tick), var(--tick)),
-    linear-gradient(var(--tick), var(--tick)), linear-gradient(var(--tick), var(--tick)),
-    linear-gradient(var(--tick), var(--tick)), linear-gradient(var(--tick), var(--tick));
+    linear-gradient(var(--tick, var(--color-line-strong)), var(--tick, var(--color-line-strong))),
+    linear-gradient(var(--tick, var(--color-line-strong)), var(--tick, var(--color-line-strong))),
+    linear-gradient(var(--tick, var(--color-line-strong)), var(--tick, var(--color-line-strong))),
+    linear-gradient(var(--tick, var(--color-line-strong)), var(--tick, var(--color-line-strong))),
+    linear-gradient(var(--tick, var(--color-line-strong)), var(--tick, var(--color-line-strong))),
+    linear-gradient(var(--tick, var(--color-line-strong)), var(--tick, var(--color-line-strong))),
+    linear-gradient(var(--tick, var(--color-line-strong)), var(--tick, var(--color-line-strong))),
+    linear-gradient(var(--tick, var(--color-line-strong)), var(--tick, var(--color-line-strong)));
   background-position:
-    top left, top left, top right, top right,
-    bottom left, bottom left, bottom right, bottom right;
+    left var(--tick-inset, 0px) top var(--tick-inset, 0px), left var(--tick-inset, 0px) top var(--tick-inset, 0px),
+    right var(--tick-inset, 0px) top var(--tick-inset, 0px), right var(--tick-inset, 0px) top var(--tick-inset, 0px),
+    left var(--tick-inset, 0px) bottom var(--tick-inset, 0px), left var(--tick-inset, 0px) bottom var(--tick-inset, 0px),
+    right var(--tick-inset, 0px) bottom var(--tick-inset, 0px), right var(--tick-inset, 0px) bottom var(--tick-inset, 0px);
   background-size:
-    var(--tick-len) 1px, 1px var(--tick-len), var(--tick-len) 1px, 1px var(--tick-len),
-    var(--tick-len) 1px, 1px var(--tick-len), var(--tick-len) 1px, 1px var(--tick-len);
+    var(--tick-len, 10px) 1px, 1px var(--tick-len, 10px), var(--tick-len, 10px) 1px, 1px var(--tick-len, 10px),
+    var(--tick-len, 10px) 1px, 1px var(--tick-len, 10px), var(--tick-len, 10px) 1px, 1px var(--tick-len, 10px);
   background-repeat: no-repeat;
 }

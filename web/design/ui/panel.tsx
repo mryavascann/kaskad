@@ -18,7 +18,8 @@ export const panelStyles = cva("relative min-w-0 rounded-panel border", {
       true: "transition-[border-color,background-color] duration-(--dur-fast) ease-out-quart hover:border-line-3",
       false: "",
     },
-    corners: { true: "corner-ticks", false: "" },
+    /** Crop-mark ticks, inset so they clear the rounded corners. */
+    corners: { true: "corner-ticks [--tick-inset:6px]", false: "" },
   },
   defaultVariants: { variant: "solid", interactive: false, corners: false },
 });

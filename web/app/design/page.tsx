@@ -25,7 +25,27 @@ const principles = [
   ["Honest labels", "Measured, assumed, synthetic and estimated values say so, right where the number is."],
 ] as const;
 
-export default function DesignSystemPage() {
+const sections = {
+  color: ColorSection,
+  type: TypeSection,
+  layout: LayoutSection,
+  surfaces: SurfaceSection,
+  icons: IconSection,
+  motion: MotionSection,
+  display: DisplaySection,
+  data: DataSection,
+  feedback: FeedbackSection,
+  controls: ControlsSection,
+  overlays: OverlaysSection,
+} as const;
+
+type SectionId = keyof typeof sections;
+
+/** `/design?only=motion` renders a single section (handy for screenshots and reviews). */
+export default async function DesignSystemPage({ searchParams }: { searchParams: Promise<{ only?: string }> }) {
+  const { only } = await searchParams;
+  const focus = only && only in sections ? (only as SectionId) : null;
+  const visible = focus ? [focus] : (Object.keys(sections) as SectionId[]);
   return (
     <div lang="en" className="flex min-h-dvh flex-col bg-bg text-body text-fg-1">
       <header className="sticky top-0 z-(--z-nav) border-b border-line bg-bg/85 backdrop-blur-md">
@@ -59,7 +79,7 @@ export default function DesignSystemPage() {
         </nav>
 
         <main id="main" className="min-w-0">
-          <section aria-labelledby="intro-title" className="pt-16 pb-16 lg:pt-24">
+          {!focus && <section aria-labelledby="intro-title" className="pt-16 pb-16 lg:pt-24">
             <Eyebrow index="00">Instrument language</Eyebrow>
             <h1 id="intro-title" className="mt-6 max-w-4xl text-display text-fg-1">
               Cascade, <em className="font-serif font-normal tracking-[-0.02em] text-fg-2">measured.</em>
@@ -77,19 +97,12 @@ export default function DesignSystemPage() {
                 </li>
               ))}
             </ul>
-          </section>
+          </section>}
 
-          <ColorSection />
-          <TypeSection />
-          <LayoutSection />
-          <SurfaceSection />
-          <IconSection />
-          <MotionSection />
-          <DisplaySection />
-          <DataSection />
-          <FeedbackSection />
-          <ControlsSection />
-          <OverlaysSection />
+          {visible.map((id) => {
+            const Section = sections[id];
+            return <Section key={id} />;
+          })}
         </main>
       </div>
     </div>
