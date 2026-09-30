@@ -1,0 +1,13 @@
+/*
+ * Ruler ticks hanging under a divider line: a minor tick every 8px, a major one every 40px.
+ * Starts at the line's origin, so a left-aligned label reads like a coordinate on the axis.
+ */
+.ticks {
+  background-image:
+    repeating-linear-gradient(90deg, var(--color-line-3) 0 1px, transparent 1px 40px),
+    repeating-linear-gradient(90deg, var(--color-line-2) 0 1px, transparent 1px 8px);
+  background-size:
+    100% 7px,
+    100% 4px;
+  background-repeat: no-repeat;
+}
