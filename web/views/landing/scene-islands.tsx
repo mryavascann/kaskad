@@ -13,7 +13,7 @@
  *   poster is hidden (same frame, same pixels underneath).
  * - `LiveWaveCounter`, `LivePriceLine`, `LiveReplayStrip`: the readouts, per whole block.
  */
-import { useEffect, useLayoutEffect, useRef, useState, type ComponentType, type ReactNode } from "react";
+import { createElement, useEffect, useLayoutEffect, useRef, useState, type ComponentType, type ReactNode } from "react";
 import { whenScrollIntent } from "@/motion/scroll";
 import type { HeroPosition } from "@/three/model";
 import type { LiveReadoutProps } from "./shock-live";
@@ -43,7 +43,8 @@ export function useAfterIntent<P>(load: () => Promise<ComponentType<P>>): Compon
 function takeover<P extends object>(load: () => Promise<ComponentType<P>>) {
   function Island({ children, ...props }: P & { children: ReactNode }) {
     const C = useAfterIntent(load);
-    return C ? <C {...(props as unknown as P)} /> : children;
+    // createElement: the component is a loaded module export (stable), not one created during render.
+    return C ? createElement(C, props as unknown as P) : children;
   }
   return Island;
 }
@@ -67,7 +68,7 @@ export function LiveStage(props: StageProps) {
   if (!Stage) return null;
   return (
     <div ref={root} className="absolute inset-0">
-      <Stage {...props} />
+      {createElement(Stage, props)}
     </div>
   );
 }
