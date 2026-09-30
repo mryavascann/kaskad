@@ -236,8 +236,8 @@ function GasRow({
   const overScale = useTransform(drawn, (g) => (over > 0 ? round(Math.min(1, Math.max(0, g - ceiling) / over), 4) : 0));
   const StatusIcon = fits ? CircleCheck : OctagonAlert;
   return (
-    <div className="grid gap-x-4 gap-y-2 sm:grid-cols-[6rem_minmax(0,1fr)]">
-      <div className="flex items-center gap-2 sm:flex-col sm:items-start sm:gap-1">
+    <div className="grid gap-x-4 gap-y-2 sm:grid-cols-[8.5rem_minmax(0,1fr)]">
+      <div className="flex items-center gap-2 whitespace-nowrap sm:flex-col sm:items-start sm:gap-1">
         <span className="text-body-sm font-medium text-fg-1">{name}</span>
         {tag}
       </div>
