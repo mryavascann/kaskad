@@ -32,11 +32,39 @@
   z-index: -2;
 }
 
+/*
+ * The loop diagram and the price line get their own space: while the shock panel comes in
+ * (--panel 0 → 1) the row slides out from under them. Phones and tablets: down, below the panel's
+ * copy (the diagram also sits on its own backplate). Desktop: right, past the copy column
+ * (gutter + max-w-lg + 2rem), so no domino is drawn under the panel.
+ */
+.stage {
+  --stage-shift-y: 9svh;
+  transform: translate3d(0, calc(var(--panel) * var(--stage-shift-y)), 0);
+}
+
 /* Desktop: the row sits right of the copy column and fades in from the left. */
 @media (width >= 64rem) {
   .stage {
+    --panel-column: calc(max(0px, (100vw - var(--container-page)) / 2) + var(--page-gutter) + 32rem + 2rem);
+    --stage-shift-x: max(0px, calc(var(--panel-column) - 30vw));
     left: 30%;
     mask-image: linear-gradient(to right, transparent 0%, #000 22%);
+    transform: translate3d(calc(var(--panel) * var(--stage-shift-x)), 0, 0);
+  }
+}
+
+/*
+ * Phones: the copy block is bottom-anchored, but never pushed under the sticky header; if it is
+ * taller than the space it starts at the top instead (safe alignment).
+ */
+.introBody {
+  justify-content: safe flex-end;
+}
+
+@media (width >= 64rem) {
+  .introBody {
+    justify-content: safe center;
   }
 }
 
@@ -164,6 +192,26 @@
   transition: transform var(--dur-slow) var(--ease-out-quart);
 }
 
+/*
+ * Portrait tablets (768–1023 px wide, taller than wide): the headline sits at the top and the row
+ * below it, instead of a bottom-anchored block under an empty top half.
+ */
+@media (width >= 48rem) and (width < 64rem) and (orientation: portrait) {
+  .stage {
+    --stage-shift-y: 6svh;
+    transform: translate3d(0, calc(8svh + var(--panel) * var(--stage-shift-y)), 0);
+  }
+
+  .introBody {
+    justify-content: flex-start;
+    padding-top: clamp(2rem, 7svh, 5rem);
+  }
+
+  .scrim {
+    background: linear-gradient(to bottom, var(--color-bg) 0%, color-mix(in oklab, var(--color-bg) 78%, transparent) 42%, transparent 70%);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .track {
     height: auto;
@@ -179,6 +227,7 @@
   .stage {
     bottom: auto;
     height: 100svh;
+    transform: none;
   }
 
   .scrim {

@@ -280,10 +280,11 @@ function PriceLine({ locale, t, finding, block }: { locale: Locale; t: LandingMe
   );
 }
 
+/** The feedback loop, on its own backplate so the domino row never shows through it. */
 function LoopDiagram({ t }: { t: LandingMessages }) {
   const steps = t.shock.loop;
   return (
-    <figure className="flex flex-col gap-3">
+    <figure className="flex flex-col gap-3 rounded-panel border border-line-2 bg-bg/85 p-3 backdrop-blur-sm sm:p-4" data-landing-loop="">
       <figcaption className="label-mono text-fg-3">{t.shock.loopLabel}</figcaption>
       <div className="relative">
         <ol className="grid grid-cols-[1fr_auto_1fr_auto_1fr] items-stretch gap-1.5 sm:gap-2">
