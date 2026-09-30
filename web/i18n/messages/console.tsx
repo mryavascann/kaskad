@@ -676,7 +676,7 @@ const tr = {
       fits: "Tek işleme sığar",
       overLimit: "İşlem başı limitin üstünde",
       doesntFit: "Tek işleme sığmaz",
-      multiple: "Monad gas'ının {value} katı",
+      multiple: "Monad gas'ının {value}",
       memory: "Bellek · Monad işlem başı limit",
       memoryUsed: "{limit} içinde {used}",
       memoryGas: "Bellek gas'ı",
