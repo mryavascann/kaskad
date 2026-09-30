@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowUpRight, ChevronDown, Fingerprint, KeyRound, Wallet, Zap } from "lucide-react";
+import { memo } from "react";
 import { formatEther } from "viem";
 import { buttonStyles } from "@/design/ui/button-styles";
 import { Button } from "@/design/ui/button";
@@ -36,8 +37,9 @@ function Cell({ label, children, className }: { label: string; children: React.R
  * Who signs and pays for "Prove on chain": the active signer, its balance, the sponsor budget that
  * funds the temporary wallet, and the switch to a browser wallet or a Mera passkey. Replaces the old
  * /baglan page. Reads only (balances, GET /api/fund); switching signers never sends a transaction.
+ * A memo: scenario edits re-render the console, not the strip (its balance polls re-render only it).
  */
-export function SignerStrip({ locale }: { locale: Locale }) {
+export const SignerStrip = memo(function SignerStrip({ locale }: { locale: Locale }) {
   const t = consoleMessages[locale].signer;
   const fmt = formatters(locale);
   const signer = useSigner();
@@ -132,4 +134,4 @@ export function SignerStrip({ locale }: { locale: Locale }) {
       </div>
     </section>
   );
-}
+});

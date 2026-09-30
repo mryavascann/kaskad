@@ -1,7 +1,7 @@
 "use client";
 
 import { ArrowUpRight, Pause, Play, RotateCcw } from "lucide-react";
-import { useEffect, useMemo, useRef, useState, type ComponentProps } from "react";
+import { memo, useEffect, useMemo, useRef, useState, type ComponentProps } from "react";
 import { useCue } from "@/audio/use-cue";
 import { Badge } from "@/design/ui/badge";
 import { Button } from "@/design/ui/button";
@@ -93,7 +93,6 @@ function useReplayTick(timeline: CascadeTimeline | null, step: number) {
 /** The main stage: context line, the two hero numbers, positions, the cascade, the story, the proof. */
 export function ResultStage({ locale, settings, preview }: { locale: Locale; settings: Settings; preview: PreviewState }) {
   const t = consoleMessages[locale].stage;
-  const charts = consoleMessages[locale].charts;
   const fmt = formatters(locale);
   const { result, resultScenario, loading, error } = preview;
 
@@ -101,12 +100,6 @@ export function ResultStage({ locale, settings, preview }: { locale: Locale; set
   const shown = result && resultScenario ? settingsForScenario(resultScenario) : settings;
   const asset = DEPLOYMENT.assets[shown.assetId];
   const facts = result ? resultFacts(result, shown) : null;
-  const timeline = useMemo(() => (result && resultScenario ? cascadeTimeline(result, resultScenario) : null), [result, resultScenario]);
-  const steps = timeline ? timeline.points.length - 1 : shown.steps;
-  const prices = useMemo(() => timeline?.points.map((p) => p.price), [timeline]);
-  const replay = useReplay(timeline, steps);
-  useReplayTick(timeline, replay.step);
-  const positions = usePositionMap(resultScenario, result);
   const narrative = result && asset ? consoleNarrative[locale](narrativeText(narrativeFacts(result, asset, shown, calibratedScale(shown, result)), fmt)) : null;
 
   const calibrated = isCalibratedRun(shown);
@@ -120,8 +113,6 @@ export function ResultStage({ locale, settings, preview }: { locale: Locale; set
       })
     : "";
   const status = error ? "error" : loading || !result ? "loading" : "ready";
-  const expectedTiles = resultScenario ?? null;
-  const tilesExpected = expectedTiles && canClassify(expectedTiles) ? expectedTiles.maxPositions : undefined;
   const shareCaption = (share: number | undefined) =>
     share === undefined ? undefined : `${t.share({ pct: fmt.pct(share) })}${facts?.scaled ? ` · ${t.scaled}` : ""}`;
   // `backwards`, not the token's `both`: a filled translate3d keeps the block on its own compositor
@@ -185,54 +176,7 @@ export function ResultStage({ locale, settings, preview }: { locale: Locale; set
         </div>
 
         <div key={`d-${ready ? "ready" : "wait"}`} className={cn("flex flex-col gap-10", beat("detail"))}>
-          <section aria-labelledby="stage-positions" className="flex flex-col gap-4">
-            <Label as="h3" id="stage-positions">
-              {t.positions}
-            </Label>
-            {result && !positions.eligible ? (
-              <p className="rounded-control border border-dashed border-line-2 px-4 py-3 text-body-sm text-fg-2">
-                {calibrated ? t.positionsCalibrated : t.positionsTooLarge}
-              </p>
-            ) : (
-              <PositionTiles
-                classification={positions.classification}
-                expectedCount={tilesExpected}
-                step={replay.step}
-                steps={steps}
-                prices={prices}
-                error={positions.error ?? undefined}
-                locale={INTL_LOCALE[locale]}
-                formatUsd={fmt.usd}
-                copy={charts.positions}
-              />
-            )}
-          </section>
-
-          <section aria-labelledby="stage-timeline" className="flex flex-col gap-4">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <Label as="h3" id="stage-timeline">
-                {t.timeline}
-              </Label>
-              <div className="flex items-center gap-1.5">
-                <Button size="sm" variant="secondary" disabled={!timeline} onClick={() => (replay.running ? replay.pause() : replay.play())}>
-                  {replay.running ? <Pause aria-hidden /> : <Play aria-hidden />}
-                  {replay.running ? t.pause : replay.step >= steps ? t.replay : t.play}
-                </Button>
-                <Button size="sm" variant="ghost" disabled={!timeline} onClick={() => replay.seek(0)}>
-                  <RotateCcw aria-hidden />
-                  {t.toStart}
-                </Button>
-              </div>
-            </div>
-            <WaveTimeline
-              timeline={timeline}
-              step={replay.step}
-              onStepChange={replay.seek}
-              locale={INTL_LOCALE[locale]}
-              formatUsd={fmt.usd}
-              copy={charts.timeline}
-            />
-          </section>
+          <CascadeReplay locale={locale} result={result} resultScenario={resultScenario} calibrated={calibrated} fallbackSteps={shown.steps} />
 
           <div className="grid gap-8 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
             <section aria-labelledby="stage-narrative" className="flex flex-col gap-3">
@@ -290,6 +234,90 @@ export function ResultStage({ locale, settings, preview }: { locale: Locale; set
     </section>
   );
 }
+
+/**
+ * Positions and the cascade timeline with their shared block playhead. The playhead state lives here,
+ * so a replay frame or a scrub re-renders these two charts only, not the whole stage; and it is a memo,
+ * so input edits that do not change the result on screen skip it.
+ */
+const CascadeReplay = memo(function CascadeReplay({
+  locale,
+  result,
+  resultScenario,
+  calibrated,
+  fallbackSteps,
+}: {
+  locale: Locale;
+  result: Result | null;
+  resultScenario: Scenario | null;
+  calibrated: boolean;
+  /** Blocks to draw while there is no result yet. */
+  fallbackSteps: number;
+}) {
+  const t = consoleMessages[locale].stage;
+  const charts = consoleMessages[locale].charts;
+  const fmt = formatters(locale);
+  const timeline = useMemo(() => (result && resultScenario ? cascadeTimeline(result, resultScenario) : null), [result, resultScenario]);
+  const steps = timeline ? timeline.points.length - 1 : fallbackSteps;
+  const prices = useMemo(() => timeline?.points.map((p) => p.price), [timeline]);
+  const replay = useReplay(timeline, steps);
+  useReplayTick(timeline, replay.step);
+  const positions = usePositionMap(resultScenario, result);
+  const tilesExpected = resultScenario && canClassify(resultScenario) ? resultScenario.maxPositions : undefined;
+
+  return (
+    <>
+    <section aria-labelledby="stage-positions" className="flex flex-col gap-4">
+      <Label as="h3" id="stage-positions">
+        {t.positions}
+      </Label>
+      {result && !positions.eligible ? (
+        <p className="rounded-control border border-dashed border-line-2 px-4 py-3 text-body-sm text-fg-2">
+          {calibrated ? t.positionsCalibrated : t.positionsTooLarge}
+        </p>
+      ) : (
+        <PositionTiles
+          classification={positions.classification}
+          expectedCount={tilesExpected}
+          step={replay.step}
+          steps={steps}
+          prices={prices}
+          error={positions.error ?? undefined}
+          locale={INTL_LOCALE[locale]}
+          formatUsd={fmt.usd}
+          copy={charts.positions}
+        />
+      )}
+    </section>
+
+    <section aria-labelledby="stage-timeline" className="flex flex-col gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Label as="h3" id="stage-timeline">
+          {t.timeline}
+        </Label>
+        <div className="flex items-center gap-1.5">
+          <Button size="sm" variant="secondary" disabled={!timeline} onClick={() => (replay.running ? replay.pause() : replay.play())}>
+            {replay.running ? <Pause aria-hidden /> : <Play aria-hidden />}
+            {replay.running ? t.pause : replay.step >= steps ? t.replay : t.play}
+          </Button>
+          <Button size="sm" variant="ghost" disabled={!timeline} onClick={() => replay.seek(0)}>
+            <RotateCcw aria-hidden />
+            {t.toStart}
+          </Button>
+        </div>
+      </div>
+      <WaveTimeline
+        timeline={timeline}
+        step={replay.step}
+        onStepChange={replay.seek}
+        locale={INTL_LOCALE[locale]}
+        formatUsd={fmt.usd}
+        copy={charts.timeline}
+      />
+    </section>
+    </>
+  );
+});
 
 /** "Prove on chain": the badge (free preview, then the tx), the cost line, the flow. */
 function ProvePanel({ locale, preview }: { locale: Locale; preview: PreviewState }) {
