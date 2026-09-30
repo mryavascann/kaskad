@@ -62,11 +62,11 @@ The "Instrument" language (stage 3 of `web/REDESIGN_PLAN.md`). Live reference: `
 | Base | `button` (+ `ButtonArrow`, `button-styles`), `button-link` (`ButtonLink`), `label` (`Label`, `Eyebrow`), `panel` (`Panel`, `PanelHeader`, `PanelBody`), `tone` |
 | Display | `badge`, `status-dot` (`StatusDot`, `LiveIndicator`), `honesty` (`HonestyTag`), `kbd`, `divider`, `logo` (`Logo`, `LogoMark`), `section-header` |
 | Data | `metric` (`Metric`, `MetricGroup`, `formatMetric`), `readout` (`Readout`, `ReadoutRow`), `tick-ruler` |
-| Feedback | `skeleton`, `callout`, `empty-state`, `steps`, `footnote`, `toaster` (`Toaster`, `notify`) |
+| Feedback | `skeleton`, `callout`, `empty-state`, `steps`, `footnote`, `toaster` (`Toaster`, `notify`), `toaster-slot` (`ToasterSlot`, `requestToaster`) |
 | Controls | `slider`, `segmented`, `tabs`, `switch`, `chip` (`Chip`, `ChipGroup`), `input` (`Input`, `InputAction`), `field` |
 | Overlays | `tooltip` (`TooltipProvider`, `Tooltip`), `popover`, `term`, `dialog` (+ `ConfirmDialog`), `disclosure` |
 
-Root providers (`app/layout.tsx`): `MotionProvider`, `TooltipProvider`, `Toaster`, `DemoModeAttribute`, `RevealNoScript`.
+Root providers (`shell/root-document.tsx`): `MotionProvider` (LazyMotion, features async), `ToasterSlot` (sonner loads when a page imports `toaster`), `DemoModeAttribute`, `RevealNoScript` (server). No root `TooltipProvider`: each `Tooltip` brings its own. Links: `ButtonLink` and the shell use `IntentLink` (prefetch on hover / focus / touch, not in view).
 
 ## Commands
 

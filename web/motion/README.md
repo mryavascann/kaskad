@@ -41,7 +41,7 @@ Live reference with demos: `/design#motion` (`/design?only=motion`).
 | `demo.ts` | `isDemoMode(search?)`: pure, server-safe. |
 | `demo-mode.ts` (client) | `useDemoMode()`, `<DemoModeAttribute />` (`<html data-demo="1">`), `useRandom()` (seeded with `DEMO_SEED` in demo mode). |
 | `hooks.ts` (client) | `useFinePointer()`, `usePrefersReducedMotion()`, `useShouldReduceMotion()`, `useForcedReducedMotion()`. |
-| `provider.tsx` (client) | `<MotionProvider>` (root), `<ReducedMotionScope reduce>` (previews, the /design switch). |
+| `provider.tsx` (client) | `<MotionProvider>` (root: `LazyMotion` with `features.ts` = `domMax` loaded async, + `MotionConfig`), `<ReducedMotionScope reduce>` (previews, the /design switch). Use `m.*` (not `motion.*`) in shared components: `motion.*` carries the full feature bundle into that page's initial JS. |
 | `reveal.tsx` (client) | `<Reveal as delay once amount>`, `<RevealNoScript />` (root layout). |
 | `stagger.tsx` (client) | `<Stagger as gap delay trigger once amount>`, `<StaggerItem as>`. |
 | `split-text.tsx` (server) | `<SplitText as text \| lines accent stagger delay>`. CSS in `split-text.module.css`. |
