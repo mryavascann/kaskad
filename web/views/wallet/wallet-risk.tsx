@@ -13,7 +13,7 @@ import { Field } from "@/design/ui/field";
 import { HonestyTag } from "@/design/ui/honesty";
 import { Input, addressInputProps } from "@/design/ui/input";
 import { Label } from "@/design/ui/label";
-import { Panel, PanelBody, PanelHeader } from "@/design/ui/panel";
+import { Panel, PanelBody } from "@/design/ui/panel";
 import { Skeleton } from "@/design/ui/skeleton";
 import { Slider } from "@/design/ui/slider";
 import { href, type Locale } from "@/i18n/config";
@@ -22,11 +22,12 @@ import { commonMessages } from "@/i18n/messages/common";
 import { walletMessages } from "@/i18n/messages/wallet";
 import { useWalletRisk } from "@/lib/chain/hooks/useWalletRisk";
 import { symbolParts } from "@/lib/chain/scenario";
-import { HEADLINE_CASCADE, SAMPLES, SURVIVE_HF_TARGET, SURVIVE_SHOCK_PCT, WALLET_CASCADE_SHOCK_BPS } from "@/lib/chain/wallet";
+import { HEADLINE_CASCADE, SAMPLES, SURVIVE_HF_TARGET, SURVIVE_SHOCK_PCT, WALLET_CASCADE_SHOCK_BPS, type SupplyLine } from "@/lib/chain/wallet";
 import { DEPLOYMENT } from "@/lib/kaskad/config";
 import { shortAddr } from "@/lib/kaskad/format";
 import { cn } from "@/lib/utils";
 import { HealthDial } from "@/viz/health-dial";
+import { PanelHeading } from "../shared/panel-heading";
 
 /** Legacy symbols carry a maturity suffix (PT-AUSD-8OCT2026); show the base symbol. */
 const base = (symbol: string) => symbolParts({ symbol }).base;
@@ -75,8 +76,9 @@ export function WalletRisk({ locale }: { locale: Locale }) {
   return (
     <div className="flex flex-col gap-8">
       <Panel as="section" aria-labelledby="wallet-search">
-        <PanelHeader
-          title={<span id="wallet-search">{t.search.title}</span>}
+        <PanelHeading
+          id="wallet-search"
+          title={t.search.title}
           actions={
             <Badge tone="neutral" variant="outline" size="sm" mono icon={ShieldCheck}>
               {t.search.readOnly}
@@ -166,8 +168,9 @@ export function WalletRisk({ locale }: { locale: Locale }) {
         {pos && risk && (
           <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
             <Panel as="section" aria-labelledby="borrow-title" className="flex flex-col">
-              <PanelHeader
-                title={<span id="borrow-title">{t.borrow.title}</span>}
+              <PanelHeading
+                id="borrow-title"
+                title={t.borrow.title}
                 actions={
                   <span className="font-mono text-caption text-fg-3">
                     {t.borrow.meta({ address: shortAddr(pos.address), block: fmt.block(pos.block), emode: pos.eMode ? String(pos.eMode) : t.borrow.emodeNone })}
@@ -276,18 +279,40 @@ export function WalletRisk({ locale }: { locale: Locale }) {
             </Panel>
 
             <Panel as="section" aria-labelledby="supply-title">
-              <PanelHeader title={<span id="supply-title">{t.supply.title}</span>} />
+              <PanelHeading id="supply-title" title={t.supply.title} />
               <PanelBody className="flex flex-col gap-5">
                 {risk.supplied.length === 0 ? (
                   <p className="text-body text-fg-2">{t.supply.none}</p>
                 ) : (
                   <>
-                    <div className="overflow-x-auto">
+                    {/* Under 640 px each asset is a stacked card (four columns don't fit at 360–390); a table above. */}
+                    <ul className="flex flex-col divide-y divide-line sm:hidden">
+                      {risk.supplied.map((r) => (
+                        <li key={r.id} className="flex flex-col gap-2 py-3 first:pt-0 last:pb-0">
+                          <p className="flex items-baseline justify-between gap-3">
+                            <span className="text-body-sm font-medium text-fg-1">{base(r.symbol)}</span>
+                            <span className="font-mono text-body-sm text-fg-1">
+                              <span className="sr-only">{t.supply.columns.supplied}: </span>
+                              {fmt.usd(r.suppliedUsd)}
+                            </span>
+                          </p>
+                          <dl className="grid grid-cols-[auto_minmax(0,1fr)] gap-x-3 gap-y-1 text-caption">
+                            <dt className="label-mono text-fg-3">{t.supply.columns.utilization}</dt>
+                            <dd className={cn("text-right font-mono", r.withdraw === "at-risk" ? "text-liq-hi" : "text-fg-2")}>{fmt.pct(r.utilization)}</dd>
+                            <dt className="label-mono text-fg-3">{t.supply.columns.withdraw}</dt>
+                            <dd className="text-right">
+                              <WithdrawState r={r} t={t} fmt={fmt} />
+                            </dd>
+                          </dl>
+                        </li>
+                      ))}
+                    </ul>
+                    <div className="hidden sm:block">
                       <table className="w-full text-left text-body-sm">
                         <thead>
                           <tr className="border-b border-line">
                             {Object.values(t.supply.columns).map((h) => (
-                              <th key={h} scope="col" className="label-mono py-2 pr-3 font-normal text-fg-3">
+                              <th key={h} scope="col" className="label-mono py-2 pr-3 font-normal text-fg-3 last:pr-0">
                                 {h}
                               </th>
                             ))}
@@ -300,13 +325,7 @@ export function WalletRisk({ locale }: { locale: Locale }) {
                               <td className="py-3 pr-3 font-mono text-fg-1">{fmt.usd(r.suppliedUsd)}</td>
                               <td className={cn("py-3 pr-3 font-mono", r.withdraw === "at-risk" ? "text-liq-hi" : "text-fg-2")}>{fmt.pct(r.utilization)}</td>
                               <td className="py-3 text-caption">
-                                {r.withdraw === "at-risk" ? (
-                                  <span className="text-liq-hi">{t.supply.atRisk({ liquidity: fmt.pct(r.liquidityShare) })}</span>
-                                ) : r.withdraw === "withdrawable" ? (
-                                  <span className="text-safe">{t.supply.withdrawable}</span>
-                                ) : (
-                                  <span className="text-fg-3">{t.supply.collateralOnly}</span>
-                                )}
+                                <WithdrawState r={r} t={t} fmt={fmt} />
                               </td>
                             </tr>
                           ))}
@@ -341,4 +360,11 @@ export function WalletRisk({ locale }: { locale: Locale }) {
       </div>
     </div>
   );
+}
+
+/** The withdrawal cell of a supplied asset (shared by the stacked list and the table). */
+function WithdrawState({ r, t, fmt }: { r: SupplyLine; t: (typeof walletMessages)[Locale]; fmt: ReturnType<typeof formatters> }) {
+  if (r.withdraw === "at-risk") return <span className="text-liq-hi">{t.supply.atRisk({ liquidity: fmt.pct(r.liquidityShare) })}</span>;
+  if (r.withdraw === "withdrawable") return <span className="text-safe">{t.supply.withdrawable}</span>;
+  return <span className="text-fg-3">{t.supply.collateralOnly}</span>;
 }

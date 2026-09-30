@@ -85,7 +85,8 @@ describe("WalletRisk", () => {
     expect(screen.getByText(/You get liquidated if syrupUSDC drops/)).toHaveTextContent("You get liquidated if syrupUSDC drops −2.18%.");
     expect(screen.getByText("In this scenario your position is liquidated.")).toBeInTheDocument();
     expect(screen.getByText("+$2.9M")).toBeInTheDocument();
-    expect(screen.getByText("collateral (not lent out)")).toBeInTheDocument();
+    // Once in the table (640 px and up) and once in the stacked list (narrow screens); CSS shows one.
+    expect(screen.getAllByText("collateral (not lent out)")).toHaveLength(2);
   });
 
   it("uses Turkish copy and number formats", () => {
