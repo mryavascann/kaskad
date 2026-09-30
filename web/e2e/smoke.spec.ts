@@ -37,7 +37,7 @@ test.describe("smoke", () => {
     const overflowing: string[] = [];
     for (const route of ROUTES) {
       await page.goto(route, { waitUntil: "load" });
-      await page.waitForLoadState("networkidle", { timeout: 10_000 }).catch(() => {});
+      await page.waitForLoadState("networkidle", { timeout: 5_000 }).catch(() => {});
       const { scrollWidth, clientWidth } = await page.evaluate(() => {
         const el = document.scrollingElement ?? document.documentElement;
         return { scrollWidth: el.scrollWidth, clientWidth: el.clientWidth };
