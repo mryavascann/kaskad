@@ -6,8 +6,12 @@ import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
 /** Headlines and UI copy. */
 export const fontSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"], display: "swap" });
 
-/** Every number and label. Tabular figures are switched on globally in design/base.css. */
-export const fontMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"], display: "swap" });
+/**
+ * Every number and label. Tabular figures are switched on globally in design/base.css. latin-ext is
+ * preloaded too (15 KB): the landing's Winner badge ("Monad Blitz İstanbul") is mono in both locales,
+ * and its İ loading late swapped glyph widths in the hero (CLS 0.135 in one mobile Lighthouse run).
+ */
+export const fontMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin", "latin-ext"], display: "swap" });
 
 /**
  * Accent only: one or two italic words in a headline. Still preloaded (15 KB woff2): measured without the
