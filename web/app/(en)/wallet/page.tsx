@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import { languageAlternates } from "@/i18n/config";
-import { commonMessages } from "@/i18n/messages/common";
-import { PagePlaceholder } from "@/shell/page-placeholder";
+import { walletMessages } from "@/i18n/messages/wallet";
+import { WalletPage } from "@/views/wallet/wallet-page";
 
-const title = commonMessages.en.nav.wallet;
+const t = walletMessages.en.meta;
 
-export const metadata: Metadata = { title, alternates: { languages: languageAlternates("wallet") } };
+export const metadata: Metadata = { title: t.title, description: t.description, alternates: { languages: languageAlternates("wallet") } };
 
 export default function Page() {
-  return <PagePlaceholder locale="en" title={title} />;
+  return <WalletPage locale="en" />;
 }
