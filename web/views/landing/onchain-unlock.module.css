@@ -1,9 +1,66 @@
 /*
- * --unlock: 0 → 1 as the section scrolls through (ScrollTrigger). Default 1, so the server render,
- * no-JS and reduced motion all show the final, linked state; the script sets 0 before first use.
+ * One-shot unlock, driven by `data-unlock` on the root (see onchain-unlock.tsx):
+ * - no attribute: linked, the final state (server render, no-JS, reduced motion, already seen);
+ * - `locked`: set after hydration while the section is below the viewport. The connector is
+ *   undrawn, the node small, the block an outline and its content at opacity 0 (fully hidden, never
+ *   half-transparent text);
+ * - `open`: transitions to linked once, in order: connector, node, block, content.
  */
-.root {
-  --unlock: 1;
+.root[data-unlock="locked"] .link {
+  transform: scaleY(0);
+}
+
+.root[data-unlock="locked"] .node {
+  opacity: 0;
+  transform: scale(0.6);
+}
+
+.root[data-unlock="locked"] .block {
+  border-color: var(--color-line-2);
+  box-shadow: none;
+  transform: translate3d(0, 1.5rem, 0);
+}
+
+.root[data-unlock="locked"] .blockBody {
+  opacity: 0;
+}
+
+.link {
+  transform-origin: top center;
+}
+
+@media (width >= 64rem) {
+  .link {
+    transform-origin: left center;
+  }
+
+  .root[data-unlock="locked"] .link {
+    transform: scaleX(0);
+  }
+}
+
+.root[data-unlock="open"] .link {
+  transition: transform var(--dur-slow) var(--ease-out-quart);
+}
+
+.root[data-unlock="open"] .node {
+  transition:
+    opacity var(--dur-base) var(--ease-out-quart),
+    transform var(--dur-base) var(--ease-out-quart);
+  transition-delay: calc(var(--dur-slow) * 0.8);
+}
+
+.root[data-unlock="open"] .block {
+  transition:
+    transform var(--dur-slow) var(--ease-out-quart),
+    border-color var(--dur-slow) var(--ease-out-quart),
+    box-shadow var(--dur-slow) var(--ease-out-quart);
+  transition-delay: var(--dur-slow);
+}
+
+.root[data-unlock="open"] .blockBody {
+  transition: opacity var(--dur-slow) var(--ease-out-quart);
+  transition-delay: calc(var(--dur-slow) * 1.4);
 }
 
 .blurred {
@@ -11,33 +68,13 @@
   opacity: 0.7;
 }
 
-.link {
-  transform-origin: top center;
-  transform: scaleY(clamp(0, calc(var(--unlock) * 1.6 - 0.2), 1));
-}
-
-@media (width >= 64rem) {
-  .link {
-    transform-origin: left center;
-    transform: scaleX(clamp(0, calc(var(--unlock) * 1.6 - 0.2), 1));
-  }
-}
-
-.node {
-  opacity: clamp(0, calc(var(--unlock) * 2.5 - 1), 1);
-  transform: scale(calc(0.6 + 0.4 * clamp(0, calc(var(--unlock) * 2.5 - 1), 1)));
-}
-
-.block {
-  opacity: calc(0.25 + 0.75 * clamp(0, calc(var(--unlock) * 1.5 - 0.5), 1));
-  transform: translate3d(0, calc((1 - clamp(0, calc(var(--unlock) * 1.5 - 0.5), 1)) * 1.5rem), 0);
-}
-
 @media (prefers-reduced-motion: reduce) {
-  .link,
-  .node,
-  .block {
+  .root[data-unlock] .link,
+  .root[data-unlock] .node,
+  .root[data-unlock] .block,
+  .root[data-unlock] .blockBody {
     opacity: 1;
     transform: none;
+    transition: none;
   }
 }

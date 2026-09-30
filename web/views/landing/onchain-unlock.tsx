@@ -2,16 +2,49 @@
 
 /**
  * "Why on-chain": a locked, blurred off-chain risk report next to the same analysis as an on-chain
- * block. Scrolling through the section links the two: the connector draws and the block settles in
- * from a ghost outline (scrubbed by ScrollTrigger through `--unlock`, no re-renders). Reduced motion
- * and no-JS: the final, linked state.
+ * block. When the section first comes into view the two link up once: the connector draws, then the
+ * block settles in from its outline. It stays linked afterwards (scrolling back never re-locks it).
+ *
+ * States (`data-unlock` on the root, CSS in the module): none = linked, the server render, no-JS,
+ * reduced motion and any section already on screen or scrolled past at hydration; `locked` = set
+ * after hydration only while the section is still below the viewport (block content at opacity 0,
+ * so nothing half-transparent is ever on screen); `open` = the one-shot transition to linked.
  */
 import { ArrowUpRight, Blocks, Lock } from "lucide-react";
-import { useMotionValueEvent } from "motion/react";
-import { useRef, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode, type RefObject } from "react";
 import { cn } from "@/lib/utils";
-import { useScrollProgress } from "@/motion/use-scroll-progress";
+import { useShouldReduceMotion } from "@/motion/hooks";
 import styles from "./onchain-unlock.module.css";
+
+/** Share of the section in view that plays the unlock. */
+export const UNLOCK_THRESHOLD = 0.35;
+
+/**
+ * One-shot unlock: locks a section that is still below the viewport, opens it the first time it
+ * is `UNLOCK_THRESHOLD` in view, then stops observing.
+ */
+export function useUnlockOnce(ref: RefObject<HTMLElement | null>, enabled: boolean) {
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || !enabled || typeof IntersectionObserver === "undefined") return;
+    if (el.getBoundingClientRect().top < window.innerHeight) return;
+    el.dataset.unlock = "locked";
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((e) => e.isIntersecting)) return;
+        io.disconnect();
+        el.dataset.unlock = "open";
+      },
+      { threshold: UNLOCK_THRESHOLD },
+    );
+    io.observe(el);
+    return () => {
+      io.disconnect();
+      // Never leave a section locked behind an unmounted observer.
+      if (el.dataset.unlock === "locked") delete el.dataset.unlock;
+    };
+  }, [ref, enabled]);
+}
 
 export type OnchainCopy = {
   report: { name: string; fee: string; tags: readonly string[]; locked: string; body: string; source: string; sourceHref: string };
@@ -21,11 +54,7 @@ export type OnchainCopy = {
 
 export function OnchainUnlock({ copy, missing }: { copy: OnchainCopy; missing: ReactNode }) {
   const root = useRef<HTMLDivElement>(null);
-  // Starts below 0 so the first real reading (often exactly 0) is still a change.
-  const progress = useScrollProgress(root, { start: "top 80%", end: "center 45%", initial: -1 });
-  useMotionValueEvent(progress, "change", (p) => {
-    if (p >= 0) root.current?.style.setProperty("--unlock", p.toFixed(4));
-  });
+  useUnlockOnce(root, !useShouldReduceMotion());
 
   return (
     <div ref={root} className={cn("grid items-stretch gap-4 lg:grid-cols-[minmax(0,1fr)_4rem_minmax(0,1fr)] lg:gap-0", styles.root)} data-landing-unlock="">
@@ -70,6 +99,7 @@ export function OnchainUnlock({ copy, missing }: { copy: OnchainCopy; missing: R
       </div>
 
       <article aria-labelledby="block-name" className={cn("relative overflow-hidden rounded-panel border border-monad/50 bg-elev-1 p-6 shadow-glow-monad", styles.block)}>
+        <div className={styles.blockBody}>
         <div className="flex items-center justify-between gap-4">
           <h3 id="block-name" className="label-mono text-monad-hi">
             {copy.block.name}
@@ -106,6 +136,7 @@ export function OnchainUnlock({ copy, missing }: { copy: OnchainCopy; missing: R
           <ArrowUpRight className="size-4 text-fg-3 group-hover:text-fg-1" aria-hidden />
           <span className="sr-only">({copy.external})</span>
         </a>
+        </div>
       </article>
     </div>
   );
