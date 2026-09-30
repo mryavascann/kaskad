@@ -12,7 +12,7 @@
  * a 330svh scroll scene, so they are always loaded before they are reached; the scene's own lazy
  * parts (stage, readouts) only change once the reader scrolls.
  */
-import { lazy, Suspense, type ComponentType } from "react";
+import { lazy, Suspense, type ComponentType, type ReactNode } from "react";
 import { openScrollIntent, whenScrollIntent } from "@/motion/scroll";
 
 /** Resolves once the reader engages with the page (see the module comment); at once on the server. */
@@ -41,3 +41,14 @@ export function deferred<P extends object>(load: () => Promise<ComponentType<P>>
   }
   return Deferred;
 }
+
+function Passthrough({ children }: { children: ReactNode }) {
+  return children;
+}
+
+/**
+ * Server content that React hydrates only after the reader's first intent: the landing's
+ * below-the-fold sections. Their HTML is on screen (and works: plain links, text) from the first
+ * paint; React leaves the boundary dehydrated until then, so the load pays nothing for walking it.
+ */
+export const HydrateOnIntent = deferred(() => Promise.resolve(Passthrough));

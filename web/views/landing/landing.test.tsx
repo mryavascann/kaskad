@@ -29,8 +29,10 @@ beforeAll(() => {
 });
 
 describe("Landing (EN)", () => {
-  it("has the headline as the page's only h1 and one h2 per section", () => {
+  it("has the headline as the page's only h1 and one h2 per section", async () => {
     render(<Landing locale="en" data={data} />);
+    // The sections below the scene hydrate after the first intent (a lazy boundary in the browser).
+    await screen.findByRole("heading", { level: 2, name: landingMessages.en.how.title }, LAZY);
     const h1 = screen.getByRole("heading", { level: 1 });
     expect(h1).toHaveTextContent("One transaction. Every liquidation wave.");
     const titles = screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent);
@@ -65,9 +67,9 @@ describe("Landing (EN)", () => {
     expect(within(section).getByText(`${data.positions!.belowThreshold} of ${data.positions!.total}`)).toBeInTheDocument();
   });
 
-  it("quotes the MIP-8 read costs from lib/chain/limits with the computed ratio", () => {
+  it("quotes the MIP-8 read costs from lib/chain/limits with the computed ratio", async () => {
     render(<Landing locale="en" data={data} />);
-    expect(screen.getByText("162.5 gas")).toBeInTheDocument();
+    expect(await screen.findByText("162.5 gas", {}, LAZY)).toBeInTheDocument();
     expect(screen.getByText("2,100 gas")).toBeInTheDocument();
     expect(screen.getByText("12.9× cheaper per position")).toBeInTheDocument();
   });
