@@ -10,8 +10,8 @@ import { Slider } from "@/design/ui/slider";
 import { INTL_LOCALE, type Locale } from "@/i18n/config";
 import { formatters } from "@/i18n/format";
 import { consoleMessages } from "@/i18n/messages/console";
-import { proveMonteCarlo, proveMonteCarloGasLimit, type ProveMonteCarloOutcome } from "@/lib/chain/actions/proveMonteCarlo";
-import { MC_DEFAULT_PATHS, MC_MAX_SHOCK_MULTIPLE, MC_SLIDER_MAX } from "@/lib/chain/engine";
+import { preloadAction, proveMonteCarlo, proveMonteCarloGasLimit, type ProveMonteCarloOutcome } from "@/lib/chain/actions/lazy";
+import { MC_DEFAULT_PATHS, MC_MAX_SHOCK_MULTIPLE, MC_SLIDER_MAX } from "@/lib/chain/engine-model";
 import { useMonteCarlo } from "@/lib/chain/hooks/useMonteCarlo";
 import { MONAD_MEMORY_LIMIT, MONAD_TX_GAS_LIMIT } from "@/lib/chain/limits";
 import { monteCarloBase } from "@/lib/chain/scenario";
@@ -34,6 +34,7 @@ export function MonteCarloTab({ locale, settings }: { locale: Locale; settings: 
 
   if (!mc.available) return <Callout tone="neutral" title={t.unavailable} />;
 
+  const preloadProve = () => preloadAction("proveMonteCarlo");
   const prove = async () => {
     if (!mc.result) return;
     flow.start(["send", "confirm"]);
@@ -102,7 +103,7 @@ export function MonteCarloTab({ locale, settings }: { locale: Locale; settings: 
         </dl>
         <p className="text-caption text-fg-3">{t.memoryNote}</p>
         <div className="flex flex-col gap-2 border-t border-line pt-5">
-          <Button variant="secondary" loading={flow.busy} disabled={!mc.result || mc.loading || flow.busy} onClick={prove} className="self-start">
+          <Button variant="secondary" loading={flow.busy} disabled={!mc.result || mc.loading || flow.busy} onClick={prove} onPointerEnter={preloadProve} onFocus={preloadProve} className="self-start">
             {t.prove}
             <ArrowUpRight aria-hidden />
           </Button>

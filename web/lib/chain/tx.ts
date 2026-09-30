@@ -2,10 +2,12 @@
 
 // Shared transaction flow for the proof actions: optional >= 1 MON confirmation, then the chain
 // layer's sendTx() unchanged, with its status strings and errors translated to typed events.
+// lib/kaskad/signer.ts is loaded on the first send (lib/chain/signer.ts), not with the page.
 
 import type { Address, Hex, TransactionReceipt } from "viem";
-import { sendTx, signerStore, type Sent, type SignerKind } from "@/lib/kaskad/signer";
+import type { Sent, SignerKind } from "@/lib/kaskad/signer";
 import { decideCost, type ConfirmCost } from "./cost";
+import { loadSigner, type SignerModule } from "./signer";
 import { toTxEvent, txError, type TxError, type TxEvent, type TxStep } from "./status";
 
 export type SendFn = (to: Address, data: Hex, gas: bigint, onStatus: (s: string) => void) => Promise<Sent>;
@@ -43,13 +45,22 @@ export async function runTx(
   opts: TxOptions = {},
 ): Promise<TxOutcome> {
   const emit = opts.onEvent ?? (() => {});
+  // The signer module only when something here needs it (tests inject `send` and `signerKind`).
+  let signer: SignerModule | null = null;
+  if (!opts.send || (req.confirmGate && !opts.signerKind)) {
+    try {
+      signer = await loadSigner();
+    } catch (e) {
+      return failBeforeSend(e, opts);
+    }
+  }
   if (req.confirmGate) {
-    const decision = await decideCost(req.gas, opts.signerKind ?? signerStore.get().kind, opts.confirm);
+    const decision = await decideCost(req.gas, opts.signerKind ?? signer!.signerStore.get().kind, opts.confirm);
     if (decision === "declined" || decision === "confirm-required") return { status: "cancelled", reason: decision };
   }
   let phase: TxStep | null = null;
   try {
-    const sent = await (opts.send ?? sendTx)(req.to, req.data, req.gas, (raw) => {
+    const sent = await (opts.send ?? signer!.sendTx)(req.to, req.data, req.gas, (raw) => {
       const ev = toTxEvent(raw);
       phase = ev.step;
       emit(ev);

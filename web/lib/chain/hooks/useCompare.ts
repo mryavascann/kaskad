@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { COMPARE_DEBOUNCE_MS, compareResultFacts, compareRows, compareScenario, type CompareParams } from "../compare";
-import { previewScenario } from "../engine";
 import type { Result } from "../types";
 
 /**
@@ -18,11 +17,16 @@ export function useCompare(p: CompareParams) {
     let live = true;
     const [shockBps, feedback, steps, rounds] = key.split(":").map(Number);
     const t = setTimeout(() => {
-      Promise.all(
-        rows.map((r) => previewScenario(compareScenario(r.assetId, { shockBps, feedback, steps, rounds })).catch(() => null)),
-      ).then((results) => {
-        if (live) setState({ key, results });
-      });
+      import("../engine")
+        .then(({ previewScenario }) =>
+          Promise.all(
+            rows.map((r) => previewScenario(compareScenario(r.assetId, { shockBps, feedback, steps, rounds })).catch(() => null)),
+          ),
+        )
+        .catch(() => rows.map(() => null))
+        .then((results) => {
+          if (live) setState({ key, results });
+        });
     }, COMPARE_DEBOUNCE_MS);
     return () => {
       live = false;

@@ -14,9 +14,9 @@ import { StatusDot } from "@/design/ui/status-dot";
 import { INTL_LOCALE, type Locale } from "@/i18n/config";
 import { formatters, usdParts } from "@/i18n/format";
 import { consoleMessages, consoleNarrative } from "@/i18n/messages/console";
-import { proveScenario, proveScenarioGasLimit, type ProveScenarioOutcome } from "@/lib/chain/actions/proveScenario";
+import { preloadAction, proveScenario, proveScenarioGasLimit, type ProveScenarioOutcome } from "@/lib/chain/actions/lazy";
 import { canClassify } from "@/lib/chain/book";
-import type { PreviewError } from "@/lib/chain/engine";
+import type { PreviewError } from "@/lib/chain/engine-model";
 import { usePositionMap } from "@/lib/chain/hooks/usePositionMap";
 import { MONAD_TX_GAS_LIMIT } from "@/lib/chain/limits";
 import { narrativeFacts } from "@/lib/chain/narrative";
@@ -115,10 +115,9 @@ export function ResultStage({ locale, settings, preview }: { locale: Locale; set
   const status = error ? "error" : loading || !result ? "loading" : "ready";
   const shareCaption = (share: number | undefined) =>
     share === undefined ? undefined : `${t.share({ pct: fmt.pct(share) })}${facts?.scaled ? ` · ${t.scaled}` : ""}`;
-  // `backwards`, not the token's `both`: a filled translate3d keeps the block on its own compositor
-  // layer after the rise, and Chromium then paints the timeline's non-scaling-stroke ticks at 1x DPR
-  // as viewBox-wide grey smears (the "blurred band" under the cascade chart).
-  const beat = (b: "context" | "hero" | "detail") => cn("motion-safe:animate-rise motion-safe:[animation-fill-mode:backwards]!", b === "hero" && "[animation-delay:var(--beat-hero)]", b === "detail" && "[animation-delay:var(--beat-detail)]");
+  // `animate-rise` fills backwards (motion/tokens.css): no translate3d layer is left after the rise,
+  // which at 1x DPR smeared the timeline's non-scaling-stroke ticks into a grey band.
+  const beat = (b: "context" | "hero" | "detail") => cn("motion-safe:animate-rise", b === "hero" && "[animation-delay:var(--beat-hero)]", b === "detail" && "[animation-delay:var(--beat-detail)]");
   const ready = result !== null;
 
   return (
@@ -329,6 +328,7 @@ function ProvePanel({ locale, preview }: { locale: Locale; preview: PreviewState
   const { result, resultScenario, loading, ms } = preview;
   const key = resultScenario ? JSON.stringify(resultScenario) : null;
 
+  const preloadProve = () => preloadAction("proveScenario");
   const prove = async () => {
     if (!result || !resultScenario) return;
     setProvedKey(key);
@@ -355,7 +355,7 @@ function ProvePanel({ locale, preview }: { locale: Locale; preview: PreviewState
           <p className="text-body-sm text-fg-2">{t.body}</p>
         </div>
         <div className="flex shrink-0 flex-col gap-2 md:items-end">
-          <Button variant="primary" size="lg" loading={flow.busy} disabled={!result || loading || flow.busy} onClick={prove}>
+          <Button variant="primary" size="lg" loading={flow.busy} disabled={!result || loading || flow.busy} onClick={prove} onPointerEnter={preloadProve} onFocus={preloadProve}>
             {t.cta}
             <ArrowUpRight aria-hidden />
           </Button>

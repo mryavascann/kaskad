@@ -1,14 +1,15 @@
 // "Is my money safe?" logic, copied from app/(legacy)/cuzdan/Wallet.tsx. Pure risk math plus two
 // reads: the Aave position (GET /api/position, Monad mainnet, server side) and a free cascade preview.
 
-import { isAddress, type Address } from "viem";
+import type { Address } from "viem";
 import type { ReserveLine, UserPosition } from "@/lib/kaskad/aave";
 import { DEPLOYMENT } from "@/lib/kaskad/config";
 import { wadToNum } from "@/lib/kaskad/format";
 import { collateralToSurvive, depegToLiquidation, repayToSurvive } from "@/lib/kaskad/math";
-import { previewScenario, type ReadOptions } from "./engine";
+import type { ReadOptions } from "./engine";
 import { BASE_SETTINGS } from "./scenario";
 import type { Result, Scenario } from "./types";
+import { isAddressLoose } from "./units";
 
 export type { ReserveLine, UserPosition };
 
@@ -68,7 +69,10 @@ export function walletCascadeScenario(assetId: number, shockBps = WALLET_CASCADE
 export async function cascadeFor(assetId: number, shockBps = WALLET_CASCADE_SHOCK_BPS, opts: ReadOptions = {}): Promise<Result | null> {
   const s = walletCascadeScenario(assetId, shockBps);
   if (!s) return null;
-  return previewScenario(s, opts).catch(() => null);
+  // The engine (viem encode/decode + read client) loads on the first cascade, not with the page.
+  return import("./engine")
+    .then(({ previewScenario }) => previewScenario(s, opts))
+    .catch(() => null);
 }
 
 export type PositionErrorCode = "invalid-address" | "rate-limited" | "unconfigured" | "upstream" | "failed";
@@ -81,7 +85,7 @@ export type PositionLookup =
  * (legacy: isAddress non-strict). Error codes follow app/api/position/route.ts statuses.
  */
 export async function fetchPosition(address: string, fetchImpl: typeof fetch = fetch, url = "/api/position"): Promise<PositionLookup> {
-  if (!isAddress(address, { strict: false })) return { ok: false, error: { code: "invalid-address" } };
+  if (!isAddressLoose(address)) return { ok: false, error: { code: "invalid-address" } };
   try {
     const res = await fetchImpl(`${url}?address=${encodeURIComponent(address)}`);
     const body = (await res.json().catch(() => null)) as (UserPosition & { error?: string }) | null;

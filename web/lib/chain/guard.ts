@@ -5,8 +5,8 @@ import type { Address } from "viem";
 import { guardAbi, mockMarketAbi } from "@/lib/kaskad/abi";
 import { DEPLOYMENT } from "@/lib/kaskad/config";
 import { simulateGasLimit } from "@/lib/kaskad/math";
-import { previewScenario, type ReadOptions } from "./engine";
-import { defaultReader, type ChainReader } from "./reader";
+import type { ReadOptions } from "./engine";
+import type { ChainReader } from "./reader";
 import type { MarketState, Result, Scenario } from "./types";
 
 /** Gas limit of a demo borrow() tx (GuardPanel.tsx:17). */
@@ -25,8 +25,15 @@ export const MARKETS = {
 } as const;
 export type MarketId = keyof typeof MARKETS;
 
+/**
+ * The read client (viem) and the engine load on the first read, not with the page: the Guard page's
+ * constants and pure helpers come from this module without them.
+ */
+const loadReader = async (reader?: ChainReader): Promise<ChainReader> => reader ?? (await import("./reader")).defaultReader();
+
 /** GuardPanel.tsx:19-27: three plain reads, JSON-RPC batched (no Multicall3 needed). */
-export async function readMarket(address: Address, reader: ChainReader = defaultReader()): Promise<MarketState> {
+export async function readMarket(address: Address, r?: ChainReader): Promise<MarketState> {
+  const reader = await loadReader(r);
   const [paused, ltv, borrowed] = await Promise.all([
     reader.readContract({ address, abi: mockMarketAbi, functionName: "borrowPaused" }),
     reader.readContract({ address, abi: mockMarketAbi, functionName: "maxLtvBps" }),
@@ -36,7 +43,8 @@ export async function readMarket(address: Address, reader: ChainReader = default
 }
 
 /** Both markets in one tick (GuardPanel.tsx:102-108): 6 calls, one HTTP batch. */
-export async function readMarkets(reader: ChainReader = defaultReader()): Promise<Record<MarketId, MarketState>> {
+export async function readMarkets(r?: ChainReader): Promise<Record<MarketId, MarketState>> {
+  const reader = await loadReader(r);
   const [a, b] = await Promise.all([readMarket(MARKETS.a.address, reader), readMarket(MARKETS.b.address, reader)]);
   return { a, b };
 }
@@ -58,7 +66,8 @@ export type GuardConfig = {
 };
 
 /** Everything the Guard section's copy needs, read from the Guard (6 calls, one HTTP batch). */
-export async function readGuardConfig(reader: ChainReader = defaultReader()): Promise<GuardConfig> {
+export async function readGuardConfig(r?: ChainReader): Promise<GuardConfig> {
+  const reader = await loadReader(r);
   const address = DEPLOYMENT.contracts.guard;
   const [scenario, badDebtThresholdBps, liquidationThresholdBps, safeLtvBps, engine, market] = await Promise.all([
     reader.readContract({ address, abi: guardAbi, functionName: "scenario" }),
@@ -80,7 +89,8 @@ export async function readGuardConfig(reader: ChainReader = defaultReader()): Pr
 }
 
 /** The Guard's stored scenario (GuardPanel.tsx:92, :124). */
-export async function readGuardScenario(reader: ChainReader = defaultReader()): Promise<Scenario> {
+export async function readGuardScenario(r?: ChainReader): Promise<Scenario> {
+  const reader = await loadReader(r);
   const s = await reader.readContract({ address: DEPLOYMENT.contracts.guard, abi: guardAbi, functionName: "scenario" });
   return { ...s };
 }
@@ -95,6 +105,7 @@ export const guardGasFromPreview = (p: Pick<Result, "gasUsed" | "rounds">): bigi
  */
 export async function guardGasLimit(opts: ReadOptions = {}): Promise<bigint> {
   const sc = await readGuardScenario(opts.reader);
+  const { previewScenario } = await import("./engine");
   return guardGasFromPreview(await previewScenario(sc, opts));
 }
 

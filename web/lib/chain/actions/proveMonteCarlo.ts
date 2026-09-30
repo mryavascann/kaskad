@@ -3,10 +3,10 @@
 import { encodeFunctionData } from "viem";
 import { kaskadMCAbi } from "@/lib/kaskad/abi";
 import { DEPLOYMENT } from "@/lib/kaskad/config";
-import { monteCarloGasLimit } from "@/lib/kaskad/math";
-import { MC_SEED } from "../engine";
+import { MC_SEED } from "../engine-model";
 import { findMonteCarloDone, type MonteCarloDone } from "../events";
 import { runTx, type TxOptions, type TxOutcome } from "../tx";
+import { proveMonteCarloGasLimit } from "./gas";
 import type { MonteCarloResult, Scenario } from "../types";
 
 export { findMonteCarloDone, type MonteCarloDone };
@@ -14,8 +14,7 @@ export { findMonteCarloDone, type MonteCarloDone };
 
 export type ProveMonteCarloOutcome = TxOutcome<{ paths: number; monteCarloDone: MonteCarloDone | null }>;
 
-/** simulateMC gas limit from the preview (MonteCarlo.tsx:105). */
-export const proveMonteCarloGasLimit = (preview: Pick<MonteCarloResult, "gasUsed">): bigint => monteCarloGasLimit(preview.gasUsed);
+export { proveMonteCarloGasLimit };
 
 /**
  * K paths in one on-chain tx (MonteCarlo.tsx:103-119): simulateMC(base, paths, seed 1) on KaskadMC,

@@ -63,8 +63,9 @@ vi.mock("@/lib/chain/hooks/useMonteCarlo", () => ({
 }));
 vi.mock("@/lib/chain/hooks/useStressCurve", () => ({ useStressCurve: () => ({ curve: null, shocksBps: [10, 50], loading: true }) }));
 vi.mock("@/lib/chain/hooks/useCompare", () => ({ useCompare: () => ({ rows: compareRows().map((r) => ({ ...r, result: null, facts: null })), loading: true }) }));
-vi.mock("@/lib/chain/actions/proveScenario", async (orig) => ({
-  ...(await orig<typeof import("@/lib/chain/actions/proveScenario")>()),
+// The console calls the lazy wrappers (lib/chain/actions/lazy.ts has its own test).
+vi.mock("@/lib/chain/actions/lazy", async (orig) => ({
+  ...(await orig<typeof import("@/lib/chain/actions/lazy")>()),
   proveScenario: (...args: unknown[]) => proveMock(...args),
 }));
 

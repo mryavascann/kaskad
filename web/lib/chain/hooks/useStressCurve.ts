@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { previewCurve } from "../engine";
 import { CURVE_SHOCKS_BPS, stressCurveScenarios } from "../scenario";
 import type { CurveResult } from "../types";
 
@@ -27,7 +26,8 @@ export function useStressCurve(assetId: number, steps: number, rounds: number, o
       } catch {
         return; // unknown asset
       }
-      Promise.all([previewCurve(sc.pool, CURVE_SHOCKS_BPS), previewCurve(sc.external, CURVE_SHOCKS_BPS)])
+      import("../engine")
+        .then(({ previewCurve }) => Promise.all([previewCurve(sc.pool, CURVE_SHOCKS_BPS), previewCurve(sc.external, CURVE_SHOCKS_BPS)]))
         .then(([pool, external]) => {
           if (live) setState({ key, pool, external });
         })

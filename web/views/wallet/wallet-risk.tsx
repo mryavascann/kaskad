@@ -2,7 +2,6 @@
 
 import { Activity, Fingerprint, Layers3, ScanSearch, ShieldCheck, Wallet as WalletIcon } from "lucide-react";
 import { useEffect, useState } from "react";
-import { isAddress } from "viem";
 import { Badge } from "@/design/ui/badge";
 import { Button, ButtonArrow } from "@/design/ui/button";
 import { ButtonLink } from "@/design/ui/button-link";
@@ -21,6 +20,7 @@ import { formatters } from "@/i18n/format";
 import { commonMessages } from "@/i18n/messages/common";
 import { walletMessages } from "@/i18n/messages/wallet";
 import { useWalletRisk } from "@/lib/chain/hooks/useWalletRisk";
+import { isAddressLoose } from "@/lib/chain/units";
 import { symbolParts } from "@/lib/chain/scenario";
 import { HEADLINE_CASCADE, SAMPLES, SURVIVE_HF_TARGET, SURVIVE_SHOCK_PCT, WALLET_CASCADE_SHOCK_BPS, type SupplyLine } from "@/lib/chain/wallet";
 import { DEPLOYMENT } from "@/lib/kaskad/config";
@@ -55,7 +55,7 @@ export function WalletRisk({ locale }: { locale: Locale }) {
   const { lookup } = w;
   useEffect(() => {
     const address = new URLSearchParams(window.location.search).get("address");
-    if (!address || !isAddress(address, { strict: false })) return;
+    if (!address || !isAddressLoose(address)) return;
     const id = window.setTimeout(() => {
       setInput(address);
       void lookup(address);

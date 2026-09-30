@@ -2,15 +2,16 @@
 
 import { useCallback, useEffect, useState } from "react";
 import type { Address } from "viem";
-import { getBurner } from "@/lib/kaskad/burner";
+import { onIdle } from "../idle";
 import { pollWhileVisible } from "../poll";
-import { defaultReader } from "../reader";
 import { BALANCE_POLL_MS, fetchSponsor, isSponsorLow, type SponsorStatus } from "../sponsor";
 
 /**
  * Connect page data (app/(legacy)/baglan/Connect.tsx:69-88): burner address, balances of the burner
  * and of the connected browser / Mera wallets (up to 3 eth_getBalance, one batch), and the sponsor
  * budget from GET /api/fund. Every 10 s while visible. A failed balance read shows 0 (legacy).
+ * Starts once the browser is idle after the first paint: the burner (viem accounts) and the read
+ * client are loaded with import() then, not with the page.
  */
 export function useSignerBalances(wallets: { injected?: Address | null; mera?: Address | null } = {}) {
   const injected = wallets.injected ?? null;
@@ -20,6 +21,7 @@ export function useSignerBalances(wallets: { injected?: Address | null; mera?: A
   const [sponsor, setSponsor] = useState<SponsorStatus | null>(null);
 
   const refresh = useCallback(async () => {
+    const [{ getBurner }, { defaultReader }] = await Promise.all([import("@/lib/kaskad/burner"), import("../reader")]);
     const b = getBurner().address;
     setBurner(b);
     const reader = defaultReader();
@@ -31,7 +33,16 @@ export function useSignerBalances(wallets: { injected?: Address | null; mera?: A
     setBalances(Object.fromEntries(addrs.map((a, i) => [a, vals[i]])));
   }, [injected, mera]);
 
-  useEffect(() => pollWhileVisible(refresh, BALANCE_POLL_MS), [refresh]);
+  useEffect(() => {
+    let stop: (() => void) | undefined;
+    const cancel = onIdle(() => {
+      stop = pollWhileVisible(refresh, BALANCE_POLL_MS);
+    });
+    return () => {
+      cancel();
+      stop?.();
+    };
+  }, [refresh]);
 
   const balanceOf = (a: Address | null): bigint | null => (a ? (balances[a] ?? null) : null);
   return {

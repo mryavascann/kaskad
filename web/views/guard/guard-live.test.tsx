@@ -37,8 +37,12 @@ vi.mock("@/lib/chain/hooks/useGuardConfig", () => ({
 }));
 
 vi.mock("@/lib/chain/hooks/useSigner", () => ({ useSigner: () => ({ kind: "burner", address: null }) }));
-vi.mock("@/lib/chain/actions/borrow", () => ({ borrow: (...args: unknown[]) => borrowMock(...args) }));
-vi.mock("@/lib/chain/actions/runGuard", () => ({ runGuard: (...args: unknown[]) => runGuardMock(...args) }));
+// The page calls the lazy wrappers (lib/chain/actions/lazy.ts has its own test).
+vi.mock("@/lib/chain/actions/lazy", async (orig) => ({
+  ...(await orig<typeof import("@/lib/chain/actions/lazy")>()),
+  borrow: (...args: unknown[]) => borrowMock(...args),
+  runGuard: (...args: unknown[]) => runGuardMock(...args),
+}));
 
 const { GuardLive } = await import("./guard-live");
 

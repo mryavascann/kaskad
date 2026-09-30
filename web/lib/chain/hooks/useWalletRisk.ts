@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { isAddress } from "viem";
 import type { Result } from "../types";
 import {
   HEADLINE_CASCADE,
@@ -14,6 +13,7 @@ import {
   type UserPosition,
 } from "../wallet";
 import { readInjectedAddress, readMeraAddress, type AddressLookup } from "../wallet-client";
+import { isAddressLoose } from "../units";
 
 type LookupState = {
   address: string;
@@ -49,7 +49,7 @@ export function useWalletRisk() {
 
   const lookup = useCallback(async (address: string) => {
     const id = ++seq.current;
-    if (!isAddress(address, { strict: false })) {
+    if (!isAddressLoose(address)) {
       // legacy keeps the previous result on screen and only shows the error (Wallet.tsx:50)
       setLookupState((s) => ({ ...s, address, error: { code: "invalid-address" }, loading: false }));
       return;

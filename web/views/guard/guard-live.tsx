@@ -11,8 +11,7 @@ import { Skeleton } from "@/design/ui/skeleton";
 import type { Locale } from "@/i18n/config";
 import { formatters } from "@/i18n/format";
 import { guardMessages } from "@/i18n/messages/guard";
-import { borrow, type BorrowOutcome } from "@/lib/chain/actions/borrow";
-import { runGuard, type RunGuardOutcome } from "@/lib/chain/actions/runGuard";
+import { borrow, preloadAction, runGuard, type BorrowOutcome, type RunGuardOutcome } from "@/lib/chain/actions/lazy";
 import { BORROW_AMOUNT, BORROW_GAS, MARKETS, type MarketId } from "@/lib/chain/guard";
 import { useGuardConfig } from "@/lib/chain/hooks/useGuardConfig";
 import { useGuardMarkets } from "@/lib/chain/hooks/useGuardMarkets";
@@ -35,6 +34,7 @@ function MarketCard({ id, market, locale, onChange }: { id: MarketId; market: Ma
   const paused = market?.paused ?? false;
   const blocked = flow.flow?.error === "borrow-paused";
 
+  const preloadBorrow = () => preloadAction("borrow");
   const tryBorrow = async () => {
     flow.start(["check", "send", "confirm"]);
     // The free pre-check fails with a "failed" event (borrow-paused); when it passes, the first send
@@ -77,7 +77,7 @@ function MarketCard({ id, market, locale, onChange }: { id: MarketId; market: Ma
         </Readout>
 
         <div className="mt-auto flex flex-col gap-3">
-          <Button variant={paused ? "alarm" : "secondary"} loading={flow.busy} onClick={tryBorrow} disabled={market === null}>
+          <Button variant={paused ? "alarm" : "secondary"} loading={flow.busy} onClick={tryBorrow} onPointerEnter={preloadBorrow} onFocus={preloadBorrow} disabled={market === null}>
             {t.tryBorrow({ amount: fmt.int(UNITS) })}
           </Button>
           {paused ? <CostLine free locale={locale} /> : <CostLine gasLimit={BORROW_GAS} locale={locale} />}
@@ -108,6 +108,7 @@ export function GuardLive({ locale }: { locale: Locale }) {
   const run = useTxFlow<RunGuardOutcome>();
   const { confirm, dialog } = useConfirmCost(locale);
 
+  const preloadRun = () => preloadAction("runGuard");
   const runIt = async () => {
     run.start(["prepare", "send", "confirm"]);
     const out = await runGuard({ onEvent: run.onEvent, confirm });
@@ -217,7 +218,7 @@ export function GuardLive({ locale }: { locale: Locale }) {
               <h3 className="text-title-3 text-fg-1">{t.run.title}</h3>
               <p className="text-body-sm text-fg-2">{t.run.body}</p>
             </div>
-            <Button variant="primary" loading={run.busy} onClick={runIt} disabled={!info}>
+            <Button variant="primary" loading={run.busy} onClick={runIt} onPointerEnter={preloadRun} onFocus={preloadRun} disabled={!info}>
               {t.run.cta}
             </Button>
           </div>

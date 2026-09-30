@@ -2,10 +2,10 @@
 
 import { encodeFunctionData } from "viem";
 import { kaskadAbi } from "@/lib/kaskad/abi";
-import { simulateGasLimit } from "@/lib/kaskad/math";
-import { engineFor } from "../engine";
+import { engineFor } from "../engine-model";
 import { findSimulationDone, type SimulationDone } from "../events";
 import { runTx, type TxOptions, type TxOutcome } from "../tx";
+import { proveScenarioGasLimit } from "./gas";
 import type { Result, Scenario } from "../types";
 
 export { findSimulationDone, type SimulationDone };
@@ -13,9 +13,7 @@ export { findSimulationDone, type SimulationDone };
 
 export type ProveScenarioOutcome = TxOutcome<{ rounds: number; simulationDone: SimulationDone | null }>;
 
-/** simulate() gas limit from the preview (Protocol.tsx:245). Monad charges the limit. */
-export const proveScenarioGasLimit = (preview: Pick<Result, "gasUsed" | "rounds">): bigint =>
-  simulateGasLimit(preview.gasUsed, preview.rounds);
+export { proveScenarioGasLimit };
 
 /**
  * "Prove on chain" (Protocol.tsx:247-274): simulate(scenario) on engineFor(assetId) with the limit

@@ -7,8 +7,8 @@ import { kaskadAbi, kaskadMCAbi } from "@/lib/kaskad/abi";
 import { CALIBRATED, DEPLOYMENT } from "@/lib/kaskad/config";
 import { wadToNum } from "@/lib/kaskad/format";
 import { unpackPosition, type PackedPosition } from "@/lib/kaskad/pack";
-import { engineFor } from "./engine";
-import { defaultReader, type ChainReader } from "./reader";
+import { engineFor } from "./engine-model";
+import type { ChainReader } from "./reader";
 import { replay, type PositionEnd, type ReplayResult } from "./replay";
 import type { Result, Scenario } from "./types";
 
@@ -48,7 +48,8 @@ export type Book = {
  * About 2 HTTP requests through the proxy (one small batch + one multicall).
  */
 export async function readBook(bookId: number, opts: { maxPositions?: number; reader?: ChainReader } = {}): Promise<Book> {
-  const reader = opts.reader ?? defaultReader();
+  // The read client (viem) loads on the first read, not with the console.
+  const reader = opts.reader ?? (await import("./reader")).defaultReader();
   const assetId = bookId & 0xff;
   const engine = engineFor(bookId);
   const onMC = engine !== DEPLOYMENT.contracts.kaskad;

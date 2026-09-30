@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { findMaxPaths, monteCarloAvailable, monteCarloFacts, previewMonteCarlo } from "../engine";
+import { monteCarloAvailable, monteCarloFacts } from "../engine-model";
 import type { MonteCarloResult, Scenario } from "../types";
 
 /** Debounce of the Monte Carlo preview (MonteCarlo.tsx:74). */
@@ -23,9 +23,12 @@ export function useMonteCarlo(base: Scenario | null, paths: number) {
     if (scKey === null) return;
     let live = true;
     const t = setTimeout(() => {
-      previewMonteCarlo(JSON.parse(scKey) as Scenario, paths).then((r) => {
-        if (live) setState({ key, r });
-      });
+      import("../engine")
+        .then(({ previewMonteCarlo }) => previewMonteCarlo(JSON.parse(scKey) as Scenario, paths))
+        .catch(() => null) // chunk load failed: same as a failed preview (legacy: any failure -> null)
+        .then((r) => {
+          if (live) setState({ key, r });
+        });
     }, MC_DEBOUNCE_MS);
     return () => {
       live = false;
@@ -37,6 +40,7 @@ export function useMonteCarlo(base: Scenario | null, paths: number) {
     if (scKey === null) return;
     setSearching(true);
     try {
+      const { findMaxPaths } = await import("../engine");
       const { k, result } = await findMaxPaths(JSON.parse(scKey) as Scenario);
       setLimit({ key: scKey, k, r: result });
     } finally {

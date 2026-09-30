@@ -2,7 +2,6 @@
 
 import { ArrowUpRight, ChevronDown, Fingerprint, KeyRound, Wallet, Zap } from "lucide-react";
 import { memo } from "react";
-import { formatEther } from "viem";
 import { buttonStyles } from "@/design/ui/button-styles";
 import { Button } from "@/design/ui/button";
 import { Callout } from "@/design/ui/callout";
@@ -17,12 +16,15 @@ import { consoleMessages } from "@/i18n/messages/console";
 import { useSigner } from "@/lib/chain/hooks/useSigner";
 import { useSignerBalances } from "@/lib/chain/hooks/useSignerBalances";
 import { useSignerConnect } from "@/lib/chain/hooks/useSignerConnect";
+import { loadSigner } from "@/lib/chain/signer";
 import { FAUCET_URL } from "@/lib/chain/sponsor";
+import { formatEther } from "@/lib/chain/units";
 import { addrUrl } from "@/lib/kaskad/config";
 import { shortAddr } from "@/lib/kaskad/format";
 import { cn } from "@/lib/utils";
 
 const mon = (wei: bigint) => Number(formatEther(wei));
+const preload = () => void loadSigner().catch(() => {});
 
 function Cell({ label, children, className }: { label: string; children: React.ReactNode; className?: string }) {
   return (
@@ -42,7 +44,9 @@ function Cell({ label, children, className }: { label: string; children: React.R
 export const SignerStrip = memo(function SignerStrip({ locale }: { locale: Locale }) {
   const t = consoleMessages[locale].signer;
   const fmt = formatters(locale);
-  const signer = useSigner();
+  // The signer module (burner key, viem accounts) loads when the browser is idle after the first
+  // paint, or as soon as the viewer reaches for the strip.
+  const signer = useSigner({ load: "idle" });
   const conn = useSignerConnect();
   const { burner, balances, sponsor, sponsorLow } = useSignerBalances({ injected: conn.injected, mera: conn.mera });
 
@@ -51,7 +55,7 @@ export const SignerStrip = memo(function SignerStrip({ locale }: { locale: Local
   const reserve = sponsor?.reserveWei != null ? fmt.mon(mon(sponsor.reserveWei)) : null;
 
   return (
-    <section aria-label={t.region} className="flex flex-col gap-3">
+    <section aria-label={t.region} className="flex flex-col gap-3" onPointerEnter={preload} onFocusCapture={preload}>
       {/* Phones: signer full width, balance | sponsor, actions full width. sm–lg: 2 × 2 (no empty cell). lg: one row. */}
       <div className="grid grid-cols-2 gap-px overflow-hidden rounded-panel border border-line-2 bg-line lg:grid-cols-[1.3fr_0.8fr_1.1fr_auto]">
         <Cell label={t.active} className="col-span-2 sm:col-span-1">

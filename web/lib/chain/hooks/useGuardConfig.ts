@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { engineFor, previewScenario } from "../engine";
+import { engineFor } from "../engine-model";
 import { guardGasFromPreview, guardVerdict, readGuardConfig, type GuardConfig, type GuardVerdict } from "../guard";
 import type { Result } from "../types";
 
@@ -29,6 +29,7 @@ export function useGuardConfig() {
     (async () => {
       try {
         const config = await readGuardConfig();
+        const { previewScenario } = await import("../engine");
         const sized = await previewScenario(config.scenario);
         const own =
           config.engine.toLowerCase() === engineFor(config.scenario.assetId).toLowerCase()

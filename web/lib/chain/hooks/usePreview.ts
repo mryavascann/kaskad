@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { previewError, previewScenario, type PreviewError } from "../engine";
+import { previewError, type PreviewError } from "../engine-model";
 import type { Result, Scenario } from "../types";
 
 /** Debounce of the free preview (useKaskad.ts:102): at most ~1 request/s while a control moves. */
@@ -26,6 +26,8 @@ export function usePreview(scenario: Scenario | null) {
     const t = setTimeout(async () => {
       const t0 = performance.now();
       try {
+        // engine.ts (viem encode/decode + read client) loads with the first preview, after hydration.
+        const { previewScenario } = await import("../engine");
         const result = await previewScenario(JSON.parse(key) as Scenario);
         if (id === seq.current) setState({ key, result, error: null, ms: performance.now() - t0 });
       } catch (e) {

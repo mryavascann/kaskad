@@ -2,9 +2,9 @@
 
 import { encodeFunctionData, type Address } from "viem";
 import { mockMarketAbi } from "@/lib/kaskad/abi";
-import { signerStore } from "@/lib/kaskad/signer";
 import { BORROW_AMOUNT, BORROW_GAS, readMarkets, type MarketId } from "../guard";
 import { defaultReader, type ChainReader } from "../reader";
+import { loadSigner } from "../signer";
 import { failBeforeSend, runTx, type TxOptions, type TxOutcome } from "../tx";
 import type { MarketState } from "../types";
 
@@ -19,8 +19,9 @@ export type BorrowOutcome = TxOutcome<{ amount: bigint } & Markets, Markets>;
 export async function borrow(market: Address, opts: TxOptions & { reader?: ChainReader; account?: Address } = {}): Promise<BorrowOutcome> {
   const reader = opts.reader ?? defaultReader();
   try {
+    const account = opts.account ?? (await loadSigner()).signerStore.get().address ?? undefined;
     await reader.simulateContract({
-      account: opts.account ?? signerStore.get().address ?? undefined,
+      account,
       address: market,
       abi: mockMarketAbi,
       functionName: "borrow",

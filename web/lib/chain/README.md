@@ -12,6 +12,9 @@ Rules it follows:
   with a source comment.
 - **No barrel.** Import per file. Pure modules have no directive and also run in Server Components.
   Modules that touch the signer have `"use client"`.
+- **viem after the first paint.** Client views import only viem-free modules (`engine-model`, `guard`,
+  `wallet`, `book`, `units`, `actions/lazy`); the read client, the ABI coder and the signer load with
+  `import()` inside the hooks' effects, the async reads, or on the first send.
 
 ## Modules
 
@@ -21,6 +24,7 @@ Rules it follows:
 | `deployment.ts` | re-exports `DEPLOYMENT`, `CALIBRATED`, `RESOLUTIONS`, `UI_ASSETS`, `txUrl`, `addrUrl`, `wadToNum`; `CONTRACTS`, `assetInfo(id)`, `allAssets()`, `marketOverview()` | `lib/kaskad/config.ts`, `Protocol.tsx:289-297` |
 | `reader.ts` | `ChainReader` (the read surface), `defaultReader()`, `MAX_BATCH_CALLS` | same config as `burner.ts:12-15` publicClient, but isomorphic and with batches split at 20 calls |
 | `engine.ts` | `engineFor`, `previewScenario`, `previewCurve`, `previewError`, `previewMonteCarlo`, `findMaxPaths`, `monteCarloFacts`, `PREVIEW_GAS`, `MC_*` constants | `useKaskad.ts:45-74, 96-99`, `MonteCarlo.tsx:34-48, 84-101, 122-125` |
+| `engine-model.ts` | the pure half of `engine.ts` (re-exported there): `engineFor`, `previewError`, `monteCarloFacts`, `monteCarloAvailable`, `PREVIEW_GAS`, `MC_*` | same; no viem, so client views import it without the read client |
 | `scenario.ts` | `BASE_SETTINGS`, `PRESETS`, `presetById`, `visiblePresets`, `matchPreset`, `presetFacts(id, now)`, `buildScenario`, `monteCarloBase`, `stressCurveScenarios`, `compareParams`, `calibratedScale`, `resultFacts`, `symbol`, `symbolParts`, `isEthereumBook`, `ETH_BOOKS`, `daysToMaturity`, `assetFacts`, `pickerAssets`, UI ranges | `Protocol.tsx:27-114, 195-245, 318-364` |
 | `narrative.ts` | `narrativeFacts(result, asset, settings, scale)` -> `NarrativeFacts` | `narrate()` `Protocol.tsx:117-143` |
 | `timeline.ts` | `cascadeTimeline(result, scenario)` (+ `stalled`) | `lib/kaskad/timeline.ts`, `DominoCascade.tsx:19` |
@@ -33,6 +37,10 @@ Rules it follows:
 | `sponsor.ts` | `fetchSponsor`, `isSponsorLow`, `SPONSOR_LOW_WEI`, `FAUCET_URL`, `BALANCE_POLL_MS` | `Connect.tsx:14, 69-103` |
 | `status.ts` | `toTxEvent`, `txError`, `fundingFailure`, `connectError`, verbatim `SIGNER_STATUS` / `SIGNER_ERRORS` / `FUND_ROUTE_ERRORS` | `burner.ts:44-62`, `signer.ts:47-157`, `api/fund/route.ts` |
 | `tx.ts` (client) | `runTx`, `TxOptions`, `TxOutcome` | `sendTx` `signer.ts:103-160` (called unchanged) |
+| `signer.ts` (client) | `loadSigner`, `loadSignerWhenIdle`, `lazySignerStore`, `signerIfLoaded`, `SIGNER_SERVER_SNAPSHOT` | lazy handle on `lib/kaskad/signer.ts` (burner, viem accounts, secp256k1): `import()` on first send, signer switch, strip interaction or idle |
+| `actions/lazy.ts` (client) | `proveScenario`, `proveMonteCarlo`, `runGuard`, `borrow` (same signatures), `preloadAction`, gas limits from `actions/gas.ts` | loads `actions/*.ts` on first use; a failed chunk load is a `failed` outcome |
+| `units.ts` | `formatEther`, `isAddressLoose` | viem-free copies of `formatEther` and `isAddress(a, { strict: false })` (tested against viem) |
+| `idle.ts` | `onIdle(fn)` | `requestIdleCallback` with a 2 s timeout (200 ms fallback) |
 | `actions/*.ts` (client) | `proveScenario`, `proveMonteCarlo`, `runGuard`, `borrow` (+ event decoders) | `Protocol.tsx:247-274`, `MonteCarlo.tsx:103-119`, `GuardPanel.tsx:119-163` |
 | `replay.ts` | `replay(book, scenario)`: exact off-chain mirror of the engine, per position | `contracts/src/Kaskad.sol:200-484`, `KaskadMC.sol:203-245` |
 | `book.ts` | `readBook`, `readBookCached`, `classifyPositions`, `compareWithEngine`, `canClassify`, `BOOK_READ_MAX` | `PositionBook.sol:135-147` views + `lib/kaskad/pack.ts` |
