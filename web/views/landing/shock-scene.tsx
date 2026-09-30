@@ -13,12 +13,14 @@
  * the CSS module stacks everything statically and the stage keeps the final poster.
  */
 import { useMotionValueEvent } from "motion/react";
-import { useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
+import { useCue, type Cue } from "@/audio/use-cue";
 import { Skeleton } from "@/design/ui/skeleton";
 import type { Locale } from "@/i18n/config";
 import { formatters } from "@/i18n/format";
 import { landingMessages, type LandingMessages } from "@/i18n/messages/landing";
 import { cn } from "@/lib/utils";
+import { useShouldReduceMotion } from "@/motion/hooks";
 import { segment } from "@/motion/scroll";
 import { useScrollProgress } from "@/motion/use-scroll-progress";
 import { blockAt, type HeroTimeline } from "@/three/data";
@@ -65,6 +67,46 @@ export function replayAt(finding: LandingFinding, positions: LandingPositions | 
   };
 }
 
+/**
+ * The cue for scrolling the replay from block `from` to block `to`: "boom" when it reaches the first
+ * liquidation block, "tick" when the wave counter advances past it, nothing going back or standing.
+ */
+export function waveCue(finding: LandingFinding, from: number, to: number): Cue | null {
+  if (to <= from) return null;
+  const before = finding.waves.filter((w) => w.step <= from).length;
+  const after = finding.waves.filter((w) => w.step <= to).length;
+  if (after === before) return null;
+  return before === 0 ? "boom" : "tick";
+}
+
+/** Minimum gap between two booms: scrolling back and forth over the first wave only ticks. */
+export const BOOM_GAP_MS = 6000;
+/** Block changes this soon after mount are a restored scroll position, not the viewer scrolling. */
+const SETTLE_MS = 800;
+
+/** Sound for the scroll replay (a no-op while sound is off, and under reduced motion). */
+export function useWaveCues(finding: LandingFinding | null, block: number, enabled = true) {
+  const cue = useCue();
+  const prev = useRef(block);
+  const since = useRef<number | null>(null);
+  const lastBoom = useRef(-Infinity);
+  useEffect(() => {
+    since.current = performance.now();
+  }, []);
+  useEffect(() => {
+    const from = prev.current;
+    prev.current = block;
+    const now = performance.now();
+    if (!enabled || !finding || since.current === null || now - since.current < SETTLE_MS) return;
+    let c = waveCue(finding, from, block);
+    if (c === "boom") {
+      if (now - lastBoom.current < BOOM_GAP_MS) c = "tick";
+      else lastBoom.current = now;
+    }
+    if (c) cue(c);
+  }, [finding, block, enabled, cue]);
+}
+
 function fallbackTimeline(f: LandingFinding): HeroTimeline {
   return { steps: f.steps, shockBps: Math.round(f.shock * 10_000), startBlock: 0, endBlock: f.steps };
 }
@@ -77,6 +119,7 @@ export function ShockScene({ locale, finding, positions, placeholderCount, intro
   const [block, setBlock] = useState(() => (timeline ? Math.floor(blockAt(timeline, 0) + 1e-9) : 0));
   const [introGone, setIntroGone] = useState(false);
   const [panelOn, setPanelOn] = useState(false);
+  useWaveCues(finding, block, !useShouldReduceMotion());
 
   useMotionValueEvent(progress, "change", (p) => {
     const node = track.current;

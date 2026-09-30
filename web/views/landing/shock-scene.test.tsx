@@ -1,4 +1,4 @@
-import { act, render, screen, within } from "@testing-library/react";
+import { act, render, renderHook, screen, within } from "@testing-library/react";
 import { describe, expect, it, vi } from "vitest";
 import { formatters } from "@/i18n/format";
 import { MotionProvider } from "@/motion/provider";
@@ -6,10 +6,12 @@ import { mockMatchMedia } from "@/motion/test-utils";
 
 const media = mockMatchMedia({ reduce: true });
 
+const cueMock = vi.fn<(cue: string, volume?: number) => boolean>(() => true);
+vi.mock("@/audio/use-cue", () => ({ useCue: () => cueMock }));
 vi.mock("@/three/hero-stage", () => ({ HeroStage: () => <div data-testid="hero-stage" /> }));
 vi.mock("@/motion/scroll", async (orig) => ({ ...(await orig<typeof import("@/motion/scroll")>()), loadScrollKit: () => new Promise(() => {}) }));
 
-const { ShockScene, replayAt } = await import("./shock-scene");
+const { ShockScene, replayAt, waveCue, useWaveCues, BOOM_GAP_MS } = await import("./shock-scene");
 const { recordedLanding } = await import("./__fixtures__/landing-data");
 
 const data = recordedLanding();
@@ -65,5 +67,56 @@ describe("ShockScene under reduced motion", () => {
     await flush();
     expect(screen.getByText(/The live preview could not be read right now/)).toBeInTheDocument();
     media.set({ reduce: false });
+  });
+});
+
+describe("wave cues", () => {
+  const first = f.waves[0].step;
+  const second = f.waves.find((w) => w.step > first)?.step;
+
+  it("booms at the first liquidation block, ticks as the counter advances, stays quiet going back", () => {
+    expect(waveCue(f, first - 1, first)).toBe("boom");
+    expect(waveCue(f, 0, f.steps)).toBe("boom");
+    expect(waveCue(f, first - 2, first - 1)).toBeNull();
+    if (second !== undefined) expect(waveCue(f, second - 1, second)).toBe("tick");
+    expect(waveCue(f, first, first - 1)).toBeNull();
+    expect(waveCue(f, f.steps, f.steps)).toBeNull();
+  });
+
+  it("plays on scroll after the page settles, and debounces the boom when scrolling back and forth", () => {
+    let now = 0;
+    const clock = vi.spyOn(performance, "now").mockImplementation(() => now);
+    cueMock.mockClear();
+    const { rerender } = renderHook(({ block }) => useWaveCues(f, block), { initialProps: { block: 0 } });
+    // A restored scroll position right after mount stays silent.
+    rerender({ block: first });
+    expect(cueMock).not.toHaveBeenCalled();
+    rerender({ block: 0 });
+
+    now = 2000;
+    rerender({ block: first });
+    expect(cueMock).toHaveBeenLastCalledWith("boom");
+    rerender({ block: first - 1 });
+    now = 3000;
+    rerender({ block: first });
+    expect(cueMock).toHaveBeenLastCalledWith("tick");
+    expect(cueMock.mock.calls.filter(([c]) => c === "boom")).toHaveLength(1);
+
+    rerender({ block: first - 1 });
+    now = 2000 + BOOM_GAP_MS + 1;
+    rerender({ block: first });
+    expect(cueMock.mock.calls.filter(([c]) => c === "boom")).toHaveLength(2);
+    clock.mockRestore();
+  });
+
+  it("stays silent when disabled (reduced motion)", () => {
+    let now = 0;
+    const clock = vi.spyOn(performance, "now").mockImplementation(() => now);
+    cueMock.mockClear();
+    const { rerender } = renderHook(({ block }) => useWaveCues(f, block, false), { initialProps: { block: 0 } });
+    now = 5000;
+    rerender({ block: f.steps });
+    expect(cueMock).not.toHaveBeenCalled();
+    clock.mockRestore();
   });
 });
