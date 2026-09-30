@@ -4,8 +4,8 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   resolve: { tsconfigPaths: true },
   test: {
-    // jsdom workers are memory-hungry; on a 16 GB machine the default pool crashed (exit 134 / 0xC0000409).
-    maxWorkers: 2,
+    // jsdom workers are memory-hungry: 2 on the old 16 GB machine (it crashed with more); 6 on the 48 GB server.
+    maxWorkers: 6,
     exclude: ["**/node_modules/**", "**/.next/**", "e2e/**"],
     projects: [
       { extends: true, test: { name: "unit", environment: "node", include: ["**/*.test.ts"] } },
