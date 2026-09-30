@@ -37,8 +37,12 @@ export function Pipeline({ label, nodes }: { label: string; nodes: [string, stri
         <Label>{label}</Label>
       </figcaption>
       <ol className="relative grid gap-3 lg:grid-cols-6 lg:gap-0">
-        {/* Connector: vertical on phones, horizontal from lg. */}
-        <span aria-hidden className="absolute top-3 bottom-3 left-[11px] w-px bg-line-3 lg:top-[11px] lg:right-[8%] lg:bottom-auto lg:left-[8%] lg:h-px lg:w-auto" />
+        {/* Connector: vertical on phones, horizontal from lg, centre of circle 1 to centre of circle 6
+            (circles sit at the start of each sixth, 12 px to their centre). */}
+        <span
+          aria-hidden
+          className="absolute top-3 bottom-3 left-[11px] w-px bg-line-3 lg:top-[11px] lg:right-[calc(100%/6-12px)] lg:bottom-auto lg:left-3 lg:h-px lg:w-auto"
+        />
         {nodes.map(([title, body], i) => (
           <li key={title} className="relative flex gap-4 lg:flex-col lg:items-start lg:gap-3 lg:pr-4">
             <span

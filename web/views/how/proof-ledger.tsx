@@ -105,9 +105,13 @@ function TxLink({ hash, label }: { hash: string; label: string }) {
       target="_blank"
       rel="noopener noreferrer"
       className="group inline-flex items-center gap-1.5 font-mono text-caption text-fg-2 transition-colors hover:text-fg-1"
-      aria-label={`${label}: ${hash}`}
     >
+      {/* The name starts with the visible text (label-content-name-mismatch), then says what it opens. */}
       {hash.slice(0, 6)}…{hash.slice(-4)}
+      <span className="sr-only">
+        {" "}
+        ({label}: {hash})
+      </span>
       <ArrowUpRight className="size-3.5 text-fg-3 group-hover:text-fg-1" aria-hidden />
     </a>
   );
