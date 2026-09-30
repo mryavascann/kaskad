@@ -14,6 +14,7 @@ import { howMessages } from "@/i18n/messages/how";
 import { landingMessages } from "@/i18n/messages/landing";
 import { walletMessages } from "@/i18n/messages/wallet";
 import { findingScenario } from "@/lib/chain/finding";
+import { MARKETS } from "@/lib/chain/guard";
 import { ETH_READ_GAS_PER_POSITION, MONAD_READ_GAS_PER_POSITION } from "@/lib/chain/limits";
 import { PROOF_TXS } from "@/lib/chain/proofs";
 import { symbolParts } from "@/lib/chain/scenario";
@@ -248,7 +249,7 @@ export function Landing({ locale, data }: { locale: Locale; data: LandingData })
       {/* 04 · Guard */}
       <Section id="guard" index={4} kicker={t.guard.kicker} title={t.guard.title} lead={t.guard.lead}>
         <div className="flex flex-col gap-5">
-          <GuardTeaser locale={locale} markets={markets} />
+          <GuardTeaser locale={locale} markets={markets} guarded={{ a: MARKETS.a.guarded, b: MARKETS.b.guarded }} />
           <div className="flex flex-wrap items-center justify-between gap-4">
             <p className="text-caption text-fg-3">{markets ? t.guard.read : t.guard.missing}</p>
             <ButtonLink href={href("guard", locale)} variant="secondary">

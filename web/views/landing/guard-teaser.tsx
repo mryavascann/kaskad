@@ -5,6 +5,8 @@
  * server render and no-JS show the real state. After hydration a tripped breaker is re-armed on
  * screen until the cards scroll into view, then drops to the state that was read (it never shows a
  * state the chain didn't report once in view). Reduced motion: the read state, no lever travel.
+ * Which market is guarded comes from the server (`MARKETS` of lib/chain/guard), so this chunk
+ * carries no viem.
  */
 import { Lock, LockOpen } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -14,13 +16,13 @@ import { Skeleton } from "@/design/ui/skeleton";
 import type { Locale } from "@/i18n/config";
 import { formatters } from "@/i18n/format";
 import { landingMessages, type LandingMessages } from "@/i18n/messages/landing";
-import { MARKETS, type MarketId } from "@/lib/chain/guard";
+import type { MarketId } from "@/lib/chain/guard";
 import { cn } from "@/lib/utils";
 import { useShouldReduceMotion } from "@/motion/hooks";
 import { Breaker, type BreakerState } from "../guard/breaker";
 import type { LandingMarkets } from "./data";
 
-export function GuardTeaser({ locale, markets }: { locale: Locale; markets: LandingMarkets | null }) {
+export function GuardTeaser({ locale, markets, guarded }: { locale: Locale; markets: LandingMarkets | null; guarded: Record<MarketId, boolean> }) {
   const t = landingMessages[locale].guard;
   const root = useRef<HTMLDivElement>(null);
   const reduce = useShouldReduceMotion();
@@ -54,11 +56,11 @@ export function GuardTeaser({ locale, markets }: { locale: Locale; markets: Land
     <div ref={root} className="grid gap-4 sm:grid-cols-2" data-landing-guard="">
       {(["a", "b"] as MarketId[]).map((id) => {
         const m = markets?.[id] ?? null;
-        const guarded = MARKETS[id].guarded;
+        const isGuarded = guarded[id];
         const paused = m?.paused ?? false;
         const shownPaused = paused && !(held && id === "b");
-        const breaker: BreakerState = !guarded ? "none" : m === null ? "unknown" : shownPaused ? "tripped" : "armed";
-        return <MarketCard key={id} id={id} locale={locale} t={t} market={m} breaker={breaker} paused={paused} shownPaused={shownPaused} />;
+        const breaker: BreakerState = !isGuarded ? "none" : m === null ? "unknown" : shownPaused ? "tripped" : "armed";
+        return <MarketCard key={id} id={id} locale={locale} t={t} market={m} guarded={isGuarded} breaker={breaker} paused={paused} shownPaused={shownPaused} />;
       })}
     </div>
   );
@@ -69,6 +71,7 @@ function MarketCard({
   locale,
   t,
   market,
+  guarded,
   breaker,
   paused,
   shownPaused,
@@ -77,12 +80,12 @@ function MarketCard({
   locale: Locale;
   t: LandingMessages["guard"];
   market: LandingMarkets["a"] | null;
+  guarded: boolean;
   breaker: BreakerState;
   paused: boolean;
   shownPaused: boolean;
 }) {
   const fmt = formatters(locale);
-  const guarded = MARKETS[id].guarded;
   return (
     <article
       aria-labelledby={`landing-market-${id}`}
