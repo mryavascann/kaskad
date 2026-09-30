@@ -119,3 +119,29 @@
     var(--tick-len, 10px) 1px, 1px var(--tick-len, 10px), var(--tick-len, 10px) 1px, 1px var(--tick-len, 10px);
   background-repeat: no-repeat;
 }
+
+/*
+ * Demo mode (?demo=1 sets html[data-demo]): a large, high-contrast cursor for screen recordings, so
+ * the pointer reads at 1080p after compression. White arrow with a dark outline; over links and
+ * buttons it turns monad-hi. Fine pointers only (touch has no cursor); text fields keep the I-beam.
+ * SVG data URIs are allowed by the CSP (img-src data:). Hotspot = arrow tip (5 3).
+ */
+@media (pointer: fine) {
+  html[data-demo],
+  html[data-demo] * {
+    cursor:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Cpath d='M5 3v34l9-9 6.5 14 6.5-3-6.5-13.5H33z' fill='%23f3f2f7' stroke='%2305050d' stroke-width='2.5' stroke-linejoin='round'/%3E%3C/svg%3E")
+        5 3,
+      auto;
+  }
+  html[data-demo] :is(a[href], button:not(:disabled), [role="button"], [role="tab"], [role="option"], [role="menuitem"], [role="switch"], [role="slider"], label, summary, select),
+  html[data-demo] :is(a[href], button:not(:disabled), [role="button"], [role="tab"], [role="option"], [role="menuitem"], [role="switch"], [role="slider"], label, summary) * {
+    cursor:
+      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='48' height='48' viewBox='0 0 48 48'%3E%3Cpath d='M5 3v34l9-9 6.5 14 6.5-3-6.5-13.5H33z' fill='%23ada4f9' stroke='%2305050d' stroke-width='2.5' stroke-linejoin='round'/%3E%3C/svg%3E")
+        5 3,
+      pointer;
+  }
+  html[data-demo] :is(input:not([type="range"], [type="checkbox"], [type="radio"], [type="button"], [type="submit"]), textarea, [contenteditable="true"]) {
+    cursor: text;
+  }
+}
