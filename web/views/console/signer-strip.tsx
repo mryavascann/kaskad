@@ -52,8 +52,9 @@ export const SignerStrip = memo(function SignerStrip({ locale }: { locale: Local
 
   return (
     <section aria-label={t.region} className="flex flex-col gap-3">
-      <div className="grid grid-cols-1 gap-px overflow-hidden rounded-panel border border-line-2 bg-line sm:grid-cols-2 lg:grid-cols-[1.3fr_0.8fr_1.1fr_auto]">
-        <Cell label={t.active}>
+      {/* Phones: signer full width, balance | sponsor, actions full width. sm–lg: 2 × 2 (no empty cell). lg: one row. */}
+      <div className="grid grid-cols-2 gap-px overflow-hidden rounded-panel border border-line-2 bg-line lg:grid-cols-[1.3fr_0.8fr_1.1fr_auto]">
+        <Cell label={t.active} className="col-span-2 sm:col-span-1">
           <StatusDot tone={signer.kind === "burner" ? "monad" : "safe"} />
           <span className="text-body-sm font-medium text-fg-1">{t.kinds[signer.kind]}</span>
           {address ? (
@@ -84,7 +85,7 @@ export const SignerStrip = memo(function SignerStrip({ locale }: { locale: Local
             <Skeleton className="h-4 w-28" />
           )}
         </Cell>
-        <div className="flex flex-wrap items-center gap-2 bg-elev-1 px-4 py-3 sm:col-span-2 lg:col-span-1 lg:justify-end">
+        <div className="col-span-2 flex flex-wrap items-center gap-2 bg-elev-1 px-4 py-3 sm:col-span-1 lg:justify-end">
           <Popover>
             <PopoverTrigger asChild>
               <Button size="sm" variant="secondary" loading={conn.busy}>
