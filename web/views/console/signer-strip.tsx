@@ -125,7 +125,7 @@ export function SignerStrip({ locale }: { locale: Locale }) {
       )}
       {conn.error && <Callout tone="liq" title={t.errors[conn.error.code]} className="py-2.5" />}
       <div className="flex flex-col gap-x-6 gap-y-1 sm:flex-row sm:items-start sm:justify-between">
-        <p className="text-caption text-fg-3">{t.free}</p>
+        <p className="text-caption text-fg-3 sm:flex sm:min-h-8 sm:items-center">{t.free}</p>
         <Disclosure summary={t.feesTitle} className="shrink-0 text-caption sm:max-w-md">
           <p className="text-caption text-fg-2">{t.fees}</p>
         </Disclosure>
