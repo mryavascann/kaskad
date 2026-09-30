@@ -41,30 +41,79 @@ Branch: `feat/metropolis-frontend` (never commit to `main`; open a PR at the end
    - Vitest projects: `*.test.ts` (node) and `*.test.tsx` (jsdom + Testing Library).
    - `/design` (noindex; `?only=<section>` renders one section): foundations, motion, display, data, feedback,
      controls, overlays. Root providers: MotionProvider, TooltipProvider, Toaster, DemoModeAttribute, RevealNoScript.
-   - Machine has 16 GB RAM: at most 2 agents at a time, vitest `maxWorkers: 2`, screenshots run sequentially.
-4. **Pages (next).** Old URLs keep working (redirects).
-   - Routing: English at the root, Turkish under `/tr` with Turkish slugs. Route groups with their own root layouts
-     (`app/(en)/layout.tsx` → `<html lang="en">`, `app/(tr)/tr/...` → `lang="tr"`); no proxy. Pages are thin files
-     that render shared views with a `locale`. Dictionaries in `web/i18n/{en,tr}.ts` (typed). EN `/`, `/app`,
-     `/wallet`, `/guard`, `/how-it-works`; TR `/tr`, `/tr/app`, `/tr/cuzdan`, `/tr/guard`, `/tr/nasil-calisir`.
-     Redirects: `/cuzdan` → `/tr/cuzdan`, `/baglan` → `/tr/app` (signer lives in the console's top strip).
-   - Order: (a) 3D hero (`web/three`) and viz (`web/viz`) agents in parallel while the orchestrator builds the shell
-     (i18n, routing, nav, footer, live network strip); (b) two page agents: landing + how-it-works, console + wallet +
-     guard. Legacy route group and its CSS are deleted when the new pages land.
-   - Hero headline: "One transaction. Every liquidation wave." (the brief's suggestion; the live finding sits under it).
-   - `web/lib/chain` is done (commit `9856c22`, see its README). Finding verified live at block 66,989,757:
-     `stuckDebt` $110.99M, `totalLiquidated` $133.9K, ratio 828.9×, bad debt $0. `classifyPositions` gives
-     per-position tiles only when its bigint replay matches the on-chain preview exactly (30 stuck / 27 safe).
+   - Working rule: at most 2 agents at a time with separate file ownership, vitest `maxWorkers: 2`, heavy commands
+     (tsc, vitest, screenshots) one at a time, one dev server. Earlier sessions stopped on the token limit, not RAM:
+     only run jobs in parallel that can finish within the session.
+4. **Pages: in progress, about half done.** Old URLs keep working (redirects land with step 3 below).
+   - **Done**
+     - `03264c1` Shell. English at the root, Turkish under `/tr` with Turkish slugs; route groups with their own root
+       layouts (`app/(en)/layout.tsx` → `<html lang="en">`, `app/(tr)/layout.tsx` → `lang="tr"`), no proxy. Pages are
+       thin files that render shared views from `web/views/*` with a `locale`. `web/i18n/config.ts` (`ROUTES`, `href`,
+       `switchLocalePath`, `languageAlternates`), `web/i18n/format.ts` (`formatters`, `usdParts` for NumberFlow),
+       per-page dictionaries in `web/i18n/messages/*` (TR `satisfies` the EN shape; `data-notes.ts` has the English
+       versions of the Turkish data strings `depthNote` and `RECOVERY_BPS[id].why`). `web/shell/*`: `RootDocument`,
+       `SiteShell`, nav with the live network status (one `useLiveBlock` poll), locale switch, footer, `WinnerBadge`.
+       `app/global-not-found.tsx` serves unmatched URLs. `ButtonLink` for link-buttons in Server Components.
+     - `4f71a04` `/how-it-works`, `/tr/nasil-calisir`: methodology, data, assumptions, and a proof ledger that decodes
+       the six README proof txs at build time (`lib/chain/proofs.ts`, `revalidate = 3600`).
+     - `e25e5b3` `/guard`, `/tr/guard`: the rule read from the Guard contract with the live verdict, markets A/B,
+       "try to borrow" (free pre-check shows the `BorrowIsPaused` revert on B) and "run the Guard". Shared tx UI in
+       `views/shared/tx` (`useTxFlow`, `CostLine`, `TxProgress`, `useConfirmCost`).
+     - `ac4250d` `/wallet`, `/tr/cuzdan`: position lookup (`?address=` is shareable), HealthDial, liquidation
+       threshold, cascade outcome, stay-safe slider, deposit side.
+     - `6a91791` `web/viz` (see its README; demos at `/design?only=viz`): WaveTimeline, PositionTiles,
+       PositionRings, GapBars, StressCurve, MonteCarloChart, GasGauge, HealthDial, BlockPulse. Pages pass
+       `formatUsd` from `formatters(locale)` so Turkish charts print `$111,0M` like the text (Intl default: `Mn`).
+     - `5028aa9` `web/three` (see its README; demo at `/design?only=three`): HeroStage (poster first, lazy R3F
+       scene, capability and frame-budget fallbacks), HeroPoster, HeroScene; `heroFromClassification` maps the
+       finding's positions to dominoes. `@react-three/drei` is installed but unused (removable).
+     - State at handoff: typecheck and lint clean, 101 test files / 682 tests pass; every route answers 200 on
+       the dev server (`/app`, `/tr`, `/tr/app` are still placeholders, `/` is still the legacy console).
+   - **Next, in this order**
+     1. Console `/app`, `/tr/app` (`views/console`, `i18n/messages/console.tsx`): preset cards (`PRESETS`,
+        `presetFacts` with a fixed `now` during SSR), asset picker (`pickerAssets`), shock slider + chips with the
+        free live preview (`usePreview`), oracle mode, advanced settings (`STEPS_RANGE`, `ROUNDS_RANGE`, real vs
+        calibrated book). Result choreography: metrics → PositionTiles (`usePositionMap`) → WaveTimeline with a
+        scrubber; `narrativeFacts` in both languages; "Prove on-chain" (`proveScenario` + `CostLine`, `TxProgress`,
+        `useConfirmCost`) with a "1 tx · ms · positions" badge and MonadScan link. Tabs: Monte Carlo
+        (`useMonteCarlo`, `proveMonteCarlo`), stress curve (`useStressCurve`), two networks (`useCompare`,
+        `limitFacts`, GasGauge). Signer strip (`useSigner`, `useSignerBalances`, sponsor budget, `useSignerConnect`)
+        and honesty labels (`assetFacts` + `data-notes`).
+     2. Landing `/`, `/tr`: HeroStage (poster first) with the SplitText headline "One transaction. Every liquidation
+        wave.", the live finding under it (`useFinding`), `WinnerBadge`, CTAs; a pinned GSAP ScrollTrigger shock scene
+        (wave counter, loop diagram), GapBars finding, why on-chain, why Monad (GasGauge, MIP-8, BlockPulse), Guard
+        and wallet teasers, architecture strip (`views/how/diagrams` Pipeline). Lenis off under reduced motion; keep
+        the LCP on the poster.
+     3. Delete `app/(legacy)`, `app/_components`, `components/*` and the legacy bridge in `app/globals.css`; redirects
+        in `next.config.ts`: `/cuzdan` → `/tr/cuzdan`, `/baglan` → `/tr/app` (the signer lives in the console strip).
+   - Finding verified live at block 66,989,757: `stuckDebt` $110.99M, `totalLiquidated` $133.9K, ratio 828.9×, bad
+     debt $0. `classifyPositions` gives per-position tiles only when its bigint replay matches the on-chain preview
+     exactly (30 stuck / 27 safe).
    - Copy to fix while writing pages: the "USDC pool is hundreds of times the debt" line (data: ~23.5×) and the
      root README's "~164 gas" per read (model: 162.5). Derive both from data instead of repeating them.
-   - English translations needed for the Turkish data strings `depthNote` and `RECOVERY_BPS[id].why` (key by asset id).
-   - `presetFacts(id, now)`: pass a fixed `now` during SSR. Don't import from `hooks/*` in Server Components.
+   - Don't import from `lib/chain/hooks/*` in Server Components; server-safe helpers live in `lib/chain/events.ts`,
+     `proofs.ts`, `protocol.ts`.
    - On-chain demo state: market B is already paused at 70% max LTV. Re-arming it needs the owner's reset script,
      which costs MON: ask the user first.
-5. Polish: micro-interactions, loading/empty/error states, mobile, optional sound (off by default), `?demo=1`.
+5. Polish: micro-interactions, loading/empty/error states, mobile, OG images (`opengraph-image.tsx` with live
+   numbers), CSP and security headers in `next.config.ts`, `?demo=1` large cursor (`html[data-demo]`), ⌘K (`cmdk` is
+   not installed yet), optional sound (off by default).
 6. QA gate: Lighthouse (mobile perf ≥ 90, a11y/BP/SEO ≥ 95), LCP < 2.5s, CLS < 0.05, INP < 200ms,
    360/390/768/1024/1440/1920 screenshots, Playwright e2e (scenario → result → prove; address → HF;
-   Guard: B rejects borrow), `rg` report of hardcoded numbers, `REDESIGN_REPORT.md`.
+   Guard: B rejects borrow), `rg` report of hardcoded numbers, `REDESIGN_REPORT.md`, PR and a Vercel preview.
+
+## Handoff (2026-09-30)
+
+The project moves to a server and continues in a new chat. What the new session needs that git doesn't carry:
+
+- The brief `KASKAD_METROPOLIS_FRONTEND_PROMPT.md` lives outside the repo (Claude desktop scratch workspace
+  `scratch-2026-09-24-434a54`). Copy it over or ask the user for it.
+- `web/.env.local` (gitignored) holds the server keys `MONAD_TESTNET_RPC`, `MONAD_MAINNET_RPC`,
+  `SPONSOR_PRIVATE_KEY`. Move it over a secure channel, never through a chat or a commit.
+- The repo root has untracked `docs/` and `demo-work/` folders that are not part of this work; git won't carry them.
+- Vercel MCP needs OAuth (`/mcp`) before a preview deploy.
+- Check before starting: `git log --oneline main..HEAD`, then `npm ci`, `npm run typecheck`, `npm run lint`,
+  `npm test` in `web/`.
 
 ## Tooling
 

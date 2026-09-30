@@ -97,7 +97,7 @@ Everything a page needs to translate is serializable, so it can be passed from a
 import { WAVE_TIMELINE_COPY } from "@/viz/wave-timeline"; // every key, English defaults
 <WaveTimeline
   timeline={timeline}
-  locale="tr-TR" // Intl formats: 1,1848 $ · %3,0 · 66.990.055
+  locale="tr-TR" // Intl formats: $1,1848 · %3,0 · 66.990.055 · compact $111,0 Mn
   copy={{ stalled: "Tasfiyeler {block}. blokta durdu: havuzda kârlı satış kalmadı", blockKey: "Blok", … }}
 />
 ```
@@ -110,6 +110,9 @@ import { WAVE_TIMELINE_COPY } from "@/viz/wave-timeline"; // every key, English 
 - `format*` props (`formatUsd`, `formatPrice`, `formatPct`, `formatHf`, …) replace one format with a
   function, e.g. the legacy `fmtUsd` of `lib/kaskad/format`. Functions cannot cross the server → client
   boundary, so pass them from a client component (or wrap the chart in one).
+- The site's pages write compact dollars as `$111.0M` / `$111,0M` (`formatters(locale)` in `@/i18n/format`),
+  while the Intl default for `tr-TR` is `$111,0 Mn`. Pages pass `formatUsd` from `formatters(locale)` so
+  charts and text agree.
 - Charts that put labels on a surface other than `elev-1` can set `--viz-surface` on an ancestor (the
   label patches that keep lines off the text use it).
 
