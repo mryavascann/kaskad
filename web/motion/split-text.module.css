@@ -20,7 +20,8 @@
 
 .word {
   display: inline-block;
-  animation: split-rise var(--dur-scene-short) var(--ease-out-expo) both;
+  /* `backwards`: holds the start frame through the stagger delay, leaves no layer behind at the end. */
+  animation: split-rise var(--dur-scene-short) var(--ease-out-expo) backwards;
 }
 
 /* Start fully below the mask (box height + both margins), so no ascender peeks out before its turn. */
