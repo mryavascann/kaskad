@@ -1,0 +1,43 @@
+/*
+ * --unlock: 0 → 1 as the section scrolls through (ScrollTrigger). Default 1, so the server render,
+ * no-JS and reduced motion all show the final, linked state; the script sets 0 before first use.
+ */
+.root {
+  --unlock: 1;
+}
+
+.blurred {
+  filter: blur(5px);
+  opacity: 0.7;
+}
+
+.link {
+  transform-origin: top center;
+  transform: scaleY(clamp(0, calc(var(--unlock) * 1.6 - 0.2), 1));
+}
+
+@media (width >= 64rem) {
+  .link {
+    transform-origin: left center;
+    transform: scaleX(clamp(0, calc(var(--unlock) * 1.6 - 0.2), 1));
+  }
+}
+
+.node {
+  opacity: clamp(0, calc(var(--unlock) * 2.5 - 1), 1);
+  transform: scale(calc(0.6 + 0.4 * clamp(0, calc(var(--unlock) * 2.5 - 1), 1)));
+}
+
+.block {
+  opacity: calc(0.25 + 0.75 * clamp(0, calc(var(--unlock) * 1.5 - 0.5), 1));
+  transform: translate3d(0, calc((1 - clamp(0, calc(var(--unlock) * 1.5 - 0.5), 1)) * 1.5rem), 0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .link,
+  .node,
+  .block {
+    opacity: 1;
+    transform: none;
+  }
+}
