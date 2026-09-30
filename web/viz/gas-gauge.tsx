@@ -1,7 +1,7 @@
 "use client";
 
 import { CircleCheck, OctagonAlert } from "lucide-react";
-import { animate, motion, useMotionValue, useTransform, type MotionValue } from "motion/react";
+import { animate, m, useMotionValue, useTransform, type MotionValue } from "motion/react";
 import { useEffect, useRef, type ReactNode } from "react";
 import { HonestyTag } from "@/design/ui/honesty";
 import { cn } from "@/lib/utils";
@@ -258,12 +258,12 @@ function GasRow({
         </p>
         <div aria-hidden className="relative h-7">
           <span className="absolute inset-x-0 bottom-0 h-2 rounded-[2px] bg-line/70" />
-          <motion.span
+          <m.span
             className={cn("absolute bottom-0 left-0 h-2 origin-left rounded-l-[2px]", fillClass, over === 0 && "rounded-r-[2px]")}
             style={{ width: pct(at(under)), scaleX: underScale }}
           />
           {over > 0 && (
-            <motion.span
+            <m.span
               data-slot="overflow"
               className={cn("absolute bottom-0 h-2 origin-left rounded-r-[2px] bg-liq", styles.overflow)}
               style={{ left: pct(at(ceiling)), width: pct(at(value) - at(ceiling)), scaleX: overScale }}
@@ -286,7 +286,7 @@ function GasRow({
 function Bar({ share, progress, className }: { share: number; progress: MotionValue<number>; className: string }) {
   return (
     <span aria-hidden className="relative block h-1.5 w-full rounded-[2px] bg-line/70">
-      <motion.span
+      <m.span
         className={cn("absolute inset-y-0 left-0 block origin-left rounded-[2px]", className)}
         style={{ width: `max(1px, ${pct(Math.min(1, Math.max(0, share)))})`, scaleX: progress }}
       />

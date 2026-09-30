@@ -3,7 +3,7 @@
 import {
   AnimatePresence,
   animate,
-  motion,
+  m,
   useInView,
   useMotionValue,
   useMotionValueEvent,
@@ -245,11 +245,11 @@ function TimelineChart({ id, timeline, variant, step, onStepChange, entrance, sh
   const prevHeights = useRef<Map<number, number> | null>(null);
   useEffect(() => {
     const prev = prevHeights.current;
-    prevHeights.current = new Map(geo.marks.map((m) => [m.step, m.height]));
+    prevHeights.current = new Map(geo.marks.map((mk) => [mk.step, mk.height]));
     if (!prev || reduce) return;
-    const running = geo.marks.flatMap((m) => {
-      const el = markRefs.current.get(m.step);
-      const from = (prev.get(m.step) ?? 0) / m.height;
+    const running = geo.marks.flatMap((mk) => {
+      const el = markRefs.current.get(mk.step);
+      const from = (prev.get(mk.step) ?? 0) / mk.height;
       return el && Math.abs(from - 1) > 0.001 ? [animate(el, { scaleY: [from, 1] }, spring.soft)] : [];
     });
     return () => running.forEach((c) => c.stop());
@@ -290,7 +290,7 @@ function TimelineChart({ id, timeline, variant, step, onStepChange, entrance, sh
     facts.firstStep === null
       ? null
       : fill(copy.firstLiquidation, { block: f.int(facts.firstStep) }) + (!isConsole && facts.stalled ? ` · ${copy.stalledTag}` : "");
-  const peakMark = facts.peak ? geo.marks.find((m) => m.step === facts.peak?.step) : undefined;
+  const peakMark = facts.peak ? geo.marks.find((mk) => mk.step === facts.peak?.step) : undefined;
   const trace = `url(#${uid}-trace)`;
 
   return (
@@ -373,43 +373,43 @@ function TimelineChart({ id, timeline, variant, step, onStepChange, entrance, sh
                   shapeRendering="crispEdges"
                 />
               ))}
-              {geo.marks.map((m) =>
+              {geo.marks.map((mk) =>
                 isConsole ? (
                   <rect
-                    key={m.step}
-                    ref={markRef(m.step)}
-                    data-step={m.step}
-                    x={round(m.x - m.width / 2)}
-                    y={m.y}
-                    width={m.width}
-                    height={m.height}
-                    fill={SEV[m.sev]}
+                    key={mk.step}
+                    ref={markRef(mk.step)}
+                    data-step={mk.step}
+                    x={round(mk.x - mk.width / 2)}
+                    y={mk.y}
+                    width={mk.width}
+                    height={mk.height}
+                    fill={SEV[mk.sev]}
                     shapeRendering="crispEdges"
                     style={{ transformBox: "fill-box", transformOrigin: "50% 100%" }}
                   />
                 ) : (
                   <line
-                    key={m.step}
-                    ref={markRef(m.step)}
-                    data-step={m.step}
-                    x1={m.x}
-                    x2={m.x}
-                    y1={m.y}
-                    y2={round(m.y + m.height)}
-                    stroke={SEV[m.sev]}
+                    key={mk.step}
+                    ref={markRef(mk.step)}
+                    data-step={mk.step}
+                    x1={mk.x}
+                    x2={mk.x}
+                    y1={mk.y}
+                    y2={round(mk.y + mk.height)}
+                    stroke={SEV[mk.sev]}
                     strokeWidth={2}
                     strokeLinecap="round"
                     vectorEffect="non-scaling-stroke"
                     style={{
                       transformBox: "fill-box",
                       transformOrigin: "50% 50%",
-                      filter: m.sev === 4 ? "drop-shadow(0 0 6px color-mix(in oklch, var(--color-liq) 70%, transparent))" : undefined,
+                      filter: mk.sev === 4 ? "drop-shadow(0 0 6px color-mix(in oklch, var(--color-liq) 70%, transparent))" : undefined,
                     }}
                   />
                 ),
               )}
               <AnimatePresence initial={false}>
-                <motion.path
+                <m.path
                   key={geo.pricePath}
                   data-slot="price-path"
                   d={geo.pricePath}
@@ -596,9 +596,9 @@ function RevealOn({
 }) {
   const opacity = useTransform(progress, (p) => (p >= Math.min(at, 0.999) ? 1 : 0));
   return (
-    <motion.div aria-hidden data-reveal="" className={cn("transition-opacity duration-(--dur-base) ease-out-quart", className)} style={{ ...style, opacity }}>
+    <m.div aria-hidden data-reveal="" className={cn("transition-opacity duration-(--dur-base) ease-out-quart", className)} style={{ ...style, opacity }}>
       {children}
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -613,10 +613,10 @@ function Playhead({ at }: { at: number }) {
   }, [target, reduce, x]);
   const translate = useTransform(x, (v) => `${round(v, 3)}%`);
   return (
-    <motion.div aria-hidden data-slot="playhead" className="pointer-events-none absolute inset-0" style={{ x: translate }}>
+    <m.div aria-hidden data-slot="playhead" className="pointer-events-none absolute inset-0" style={{ x: translate }}>
       <div className="absolute inset-y-0 left-0 w-full bg-bg/55" />
       <div className="absolute inset-y-0 left-0 w-px -translate-x-1/2 bg-fg-1" />
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -625,11 +625,11 @@ function Pen({ progress, points }: { progress: MotionValue<number>; points: read
   const x = useTransform(progress, (p) => `${round(p * 100, 3)}%`);
   const y = useTransform(progress, (p) => `${round(penY(points, p) * 100, 3)}%`);
   return (
-    <motion.div aria-hidden data-slot="pen" className="pointer-events-none absolute inset-0" style={{ x }}>
+    <m.div aria-hidden data-slot="pen" className="pointer-events-none absolute inset-0" style={{ x }}>
       <div className="absolute inset-y-0 left-0 w-px bg-fg-1/45" />
-      <motion.div className="absolute inset-0" style={{ y }}>
+      <m.div className="absolute inset-0" style={{ y }}>
         <span className="absolute top-0 left-0 size-2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-fg-1 shadow-[0_0_12px_2px_var(--color-fg-3)]" />
-      </motion.div>
-    </motion.div>
+      </m.div>
+    </m.div>
   );
 }

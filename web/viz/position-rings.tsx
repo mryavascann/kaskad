@@ -1,6 +1,6 @@
 "use client";
 
-import { animate, motion, useMotionValue } from "motion/react";
+import { animate, m, useMotionValue } from "motion/react";
 import { useEffect, useId, useMemo, useRef, type CSSProperties, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { useShouldReduceMotion } from "@/motion/hooks";
@@ -185,10 +185,10 @@ export function PositionRings({
           <circle cx={C} cy={C} r={shockR} fill="none" stroke="var(--color-liq)" strokeOpacity={0.55} strokeDasharray="4 4" vectorEffect="non-scaling-stroke" />
 
           {/* The shock front. */}
-          <motion.g style={{ scale, transformBox: "fill-box", transformOrigin: "50% 50%" }}>
+          <m.g style={{ scale, transformBox: "fill-box", transformOrigin: "50% 50%" }}>
             <circle cx={C} cy={C} r={R_MAX} style={{ fill: `url(#${uid}-glow)` }} />
             <circle cx={C} cy={C} r={R_MAX} fill="none" stroke="var(--color-liq)" strokeWidth={1.5} vectorEffect="non-scaling-stroke" />
-          </motion.g>
+          </m.g>
 
           {geo.dots.map((dot) => {
             const state = stateOf.get(dot.index) ?? "pending";
