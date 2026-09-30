@@ -5,7 +5,7 @@ import type { Locale } from "@/i18n/config";
 import { cn } from "@/lib/utils";
 import { DemoModeAttribute } from "@/motion/demo-mode";
 import { MotionProvider } from "@/motion/provider";
-import { RevealNoScript } from "@/motion/reveal";
+import { RevealNoScript } from "@/motion/reveal-noscript";
 
 /**
  * <html> + <body> with fonts and the app-wide providers. Every root layout (one per locale, and

@@ -44,11 +44,5 @@ export function Reveal({ as = "div", delay = 0, once = true, amount = "some", ..
   );
 }
 
-/** Makes `[data-reveal]` content visible when JavaScript is off. Mount once, in the root layout. */
-export function RevealNoScript() {
-  return (
-    <noscript>
-      <style>{"[data-reveal]{opacity:1!important;transform:none!important}"}</style>
-    </noscript>
-  );
-}
+/** Re-exported for existing imports; the root layout imports `./reveal-noscript` (server) directly. */
+export { RevealNoScript } from "./reveal-noscript";

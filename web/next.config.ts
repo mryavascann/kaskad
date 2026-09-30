@@ -13,6 +13,9 @@ const nextConfig: NextConfig = {
   experimental: {
     // Several root layouts (one per locale, app/design): one 404 for unmatched URLs.
     globalNotFound: true,
+    // `motion/react` re-exports all of framer-motion; load only the modules a file imports
+    // (lucide-react is already on Next's default list).
+    optimizePackageImports: ["motion", "framer-motion"],
   },
   headers() {
     return [{ source: "/:path*", headers: securityHeaders(headerEnv) }];
