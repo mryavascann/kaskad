@@ -1,6 +1,7 @@
 "use client";
 
 import { TriangleAlert } from "lucide-react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { Badge } from "@/design/ui/badge";
 import { HonestyTag } from "@/design/ui/honesty";
 import { Skeleton } from "@/design/ui/skeleton";
@@ -25,33 +26,60 @@ import { MonteCarloTab } from "./monte-carlo-tab";
 
 /**
  * Monte Carlo, stress curve and the two-network table. Inactive tabs are unmounted (Radix), so only
- * the open tab's previews hit the RPC.
+ * the open tab's previews hit the RPC. The open tab itself mounts (and runs its first preview) only
+ * once the section is about to scroll into view or a tab is picked: on load the RPC, the main thread
+ * and the DOM belong to the scenario and its result.
  */
 export function AnalysisTabs({ locale, settings, result }: { locale: Locale; settings: Settings; result: Result | null }) {
   const t = consoleMessages[locale].tabs;
+  const [ref, armed, arm] = useArmOnApproach<HTMLElement>();
+  const panel = (content: ReactNode) => (armed ? content : <div aria-hidden className="min-h-[32rem]" />);
   return (
-    <section aria-labelledby="analysis-title" className="flex min-w-0 flex-col gap-2">
+    <section ref={ref} aria-labelledby="analysis-title" className="flex min-w-0 flex-col gap-2">
       <h2 id="analysis-title" className="sr-only">
         {t.label}
       </h2>
-      <Tabs defaultValue="mc">
+      <Tabs defaultValue="mc" onValueChange={arm}>
         <TabsList aria-label={t.label}>
           <TabsTrigger value="mc">{t.mc}</TabsTrigger>
           <TabsTrigger value="stress">{t.stress}</TabsTrigger>
           <TabsTrigger value="networks">{t.networks}</TabsTrigger>
         </TabsList>
         <TabsContent value="mc" className="mt-8">
-          <MonteCarloTab locale={locale} settings={settings} />
+          {panel(<MonteCarloTab locale={locale} settings={settings} />)}
         </TabsContent>
         <TabsContent value="stress" className="mt-8">
-          <StressTab locale={locale} settings={settings} />
+          {panel(<StressTab locale={locale} settings={settings} />)}
         </TabsContent>
         <TabsContent value="networks" className="mt-8">
-          <NetworksTab locale={locale} settings={settings} result={result} />
+          {panel(<NetworksTab locale={locale} settings={settings} result={result} />)}
         </TabsContent>
       </Tabs>
     </section>
   );
+}
+
+/** How far below the viewport the section may still be when its tab mounts (it is ready on arrival). */
+const APPROACH_MARGIN = "400px 0px";
+
+/** `armed` turns true (once) when the element comes within `APPROACH_MARGIN` of the viewport, or on `arm()`. */
+function useArmOnApproach<T extends Element>() {
+  const ref = useRef<T>(null);
+  const [armed, setArmed] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (armed || !el || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) setArmed(true);
+      },
+      { rootMargin: APPROACH_MARGIN },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [armed]);
+  const arm = useCallback(() => setArmed(true), []);
+  return [ref, armed, arm] as const;
 }
 
 function StressTab({ locale, settings }: { locale: Locale; settings: Settings }) {

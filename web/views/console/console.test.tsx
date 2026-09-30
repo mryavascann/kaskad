@@ -282,11 +282,33 @@ describe("Console signer and tabs", () => {
     expect(connect.connectMera).toHaveBeenCalledWith("login");
   });
 
+  it("mounts the open analysis tab only when the section approaches the viewport", () => {
+    let seen: IntersectionObserverCallback | null = null;
+    vi.stubGlobal(
+      "IntersectionObserver",
+      class {
+        constructor(cb: IntersectionObserverCallback) {
+          seen = cb;
+        }
+        observe() {}
+        disconnect() {}
+      },
+    );
+    try {
+      renderConsole();
+      expect(screen.getByRole("tab", { name: "Monte Carlo" })).toHaveAttribute("aria-selected", "true");
+      expect(screen.queryByRole("slider", { name: "Paths (K)" })).toBeNull();
+      act(() => seen?.([{ isIntersecting: true } as IntersectionObserverEntry], {} as IntersectionObserver));
+      expect(screen.getByRole("slider", { name: "Paths (K)" })).toBeInTheDocument();
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
   it("opens Monte Carlo by default and the two-network table on demand", async () => {
     const user = userEvent.setup();
     renderConsole();
     expect(screen.getByRole("tab", { name: "Monte Carlo" })).toHaveAttribute("aria-selected", "true");
-    expect(screen.getByRole("slider", { name: "Paths (K)" })).toBeInTheDocument();
     await user.click(screen.getByRole("tab", { name: "Two networks" }));
     const table = screen.getByRole("table", { name: "The same shock on books from both chains" });
     expect(within(table).getAllByRole("row")).toHaveLength(compareRows().length + 1);
