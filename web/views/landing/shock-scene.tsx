@@ -9,7 +9,8 @@
  * - `ShockDriver` (the only eager client code, renders nothing): after the reader's first intent it
  *   follows the track's scroll progress and writes CSS variables, the panel's visibility and the
  *   scene state (`scene-state.ts`), with no React render per frame.
- * - Lazy islands (`scene-islands.tsx`), hydrated after that same intent: the stage (`HeroStage`:
+ * - Islands (`scene-islands.tsx`): until that same intent they show the server's first frame (the
+ *   static poster, the readouts at the first block); then they load the live stage (`HeroStage`:
  *   poster, then the WebGL scene) and the readouts that re-render per whole block.
  * The headline block (`intro`), the panel's title and the loop diagram are server HTML only.
  *
@@ -22,11 +23,13 @@ import { formatters } from "@/i18n/format";
 import { landingMessages, type LandingMessages } from "@/i18n/messages/landing";
 import { cn } from "@/lib/utils";
 import type { HeroTimeline } from "@/three/data";
+import { HeroPoster } from "@/three/hero-poster";
 import type { LandingFinding, LandingPositions } from "./data";
 import { replayBook } from "./replay";
 import { LivePriceLine, LiveReplayStrip, LiveStage, LiveWaveCounter } from "./scene-islands";
 import { blockAtProgress } from "./scene-state";
 import { ShockDriver } from "./shock-driver";
+import { PriceLineView, ReplayStripView, WaveCounterView } from "./shock-readouts";
 import styles from "./shock-scene.module.css";
 
 export { BEATS, replayAt, waveCue } from "./replay";
@@ -58,6 +61,10 @@ export function ShockScene({ locale, finding, positions, placeholderCount, intro
       <ShockDriver trackId={SHOCK_TRACK_ID} timeline={timeline} />
       <div className={styles.viewport}>
         <div className={styles.stage}>
+          {/* The first frame as static server HTML; the live stage replaces it after the first intent. */}
+          <div aria-hidden data-stage-poster="" className="absolute inset-0 isolate overflow-hidden bg-void">
+            <HeroPoster positions={positions?.hero.positions} progress={0} placeholderCount={placeholderCount} />
+          </div>
           <LiveStage positions={positions?.hero.positions} placeholderCount={placeholderCount} />
         </div>
         <div aria-hidden className={styles.scrim} />
@@ -67,7 +74,9 @@ export function ShockScene({ locale, finding, positions, placeholderCount, intro
           <ShockPanel locale={locale} t={t} finding={finding} book={book} initialBlock={initialBlock} />
         </section>
         <div className={styles.strip}>
-          <LiveReplayStrip locale={locale} finding={finding} book={book} initialBlock={initialBlock} />
+          <LiveReplayStrip locale={locale} finding={finding} book={book} initialBlock={initialBlock}>
+            <ReplayStripView locale={locale} finding={finding} book={book} block={initialBlock} />
+          </LiveReplayStrip>
         </div>
       </div>
     </div>
@@ -98,8 +107,12 @@ function ShockPanel({
         </h2>
         {finding ? (
           <>
-            <LiveWaveCounter locale={locale} finding={finding} book={book} initialBlock={initialBlock} />
-            <LivePriceLine locale={locale} finding={finding} initialBlock={initialBlock} />
+            <LiveWaveCounter locale={locale} finding={finding} book={book} initialBlock={initialBlock}>
+              <WaveCounterView locale={locale} finding={finding} book={book} block={initialBlock} />
+            </LiveWaveCounter>
+            <LivePriceLine locale={locale} finding={finding} initialBlock={initialBlock}>
+              <PriceLineView locale={locale} finding={finding} block={initialBlock} />
+            </LivePriceLine>
             <LoopDiagram t={t} />
           </>
         ) : (

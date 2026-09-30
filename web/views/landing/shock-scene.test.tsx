@@ -121,6 +121,12 @@ describe("ShockScene driven by scroll", () => {
     expect(panel).toHaveAttribute("inert");
     expect(panel).toHaveAttribute("aria-hidden", "true");
     expect(sceneBlock.get()).toBeNull();
+    // Before the first intent: the static first frame (poster, readouts at the first block), no live stage.
+    const first = blockAtProgress(p.hero.timeline, 0);
+    expect(track.querySelector("[data-stage-poster] [data-hero-poster]")).not.toBeNull();
+    expect(screen.queryByTestId("hero-stage")).toBeNull();
+    const strip = track.querySelector<HTMLElement>("dl[aria-label='Replay of the live preview']")!;
+    expect(within(strip).getByText(`${String(first).padStart(2, "0")}/${f.steps}`)).toBeInTheDocument();
 
     // First scroll: the gate opens and the driver measures the track (3,000 − 768 px of travel).
     const travel = 3000 - window.innerHeight;
@@ -136,6 +142,11 @@ describe("ShockScene driven by scroll", () => {
     expect(panel).not.toHaveAttribute("inert");
     expect(panel).not.toHaveAttribute("aria-hidden");
     expect(sceneBlock.get()).toBe(blockAtProgress(p.hero.timeline, sceneProgress.get()));
+    // The live islands took over: the stage is mounted over the (now hidden) static poster, the strip follows the block.
+    expect(await screen.findByTestId("hero-stage", {}, LAZY)).toBeInTheDocument();
+    expect(track.querySelector("[data-stage-poster]")).toHaveAttribute("hidden");
+    const now = String(sceneBlock.get()).padStart(2, "0");
+    expect(await within(track.querySelector<HTMLElement>("dl[aria-label='Replay of the live preview']")!).findByText(`${now}/${f.steps}`, {}, LAZY)).toBeInTheDocument();
 
     // Back to the top: the panel leaves the tab order again.
     layout(0);
