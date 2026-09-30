@@ -8,6 +8,7 @@ import { depthNote, recoveryWhy, splitNote } from "@/i18n/messages/data-notes";
 import { assetFacts, daysToMaturity, effectiveResolution, isCalibratedRun, oracleMode } from "@/lib/chain/scenario";
 import type { Settings } from "@/lib/chain/types";
 import { DEPLOYMENT } from "@/lib/kaskad/config";
+import { memo } from "react";
 
 function Row({ label, value, tag, children }: { label: string; value?: string; tag?: React.ReactNode; children?: React.ReactNode }) {
   return (
@@ -30,7 +31,7 @@ function Row({ label, value, tag, children }: { label: string; value?: string; t
  * assumed, with its source), the arbitrage recovery assumption, Ethereum data and PT maturity.
  * `nowMs` is fixed by the server so the markup is deterministic.
  */
-export function RunAssumptions({ locale, settings, nowMs }: { locale: Locale; settings: Settings; nowMs: number }) {
+export const RunAssumptions = memo(function RunAssumptions({ locale, settings, nowMs }: { locale: Locale; settings: Settings; nowMs: number }) {
   const t = consoleMessages[locale].honesty;
   const fmt = formatters(locale);
   const a = assetFacts(settings.assetId);
@@ -107,4 +108,4 @@ export function RunAssumptions({ locale, settings, nowMs }: { locale: Locale; se
       </ul>
     </section>
   );
-}
+});

@@ -43,6 +43,9 @@ export function Console({ locale, presets, nowMs }: Props) {
     touched.current = true;
     setSettings(next);
   }, []);
+  // Stable callbacks: the inputs are a memo, so a preview landing does not re-render them.
+  const onPreset = useCallback((p: ConsolePreset) => edit({ ...p.settings }), [edit]);
+  const onChange = useCallback((patch: Partial<Settings>) => edit((s) => ({ ...s, ...patch })), [edit]);
   useSettledBoom(scenario, preview, touched);
   const fromUrl = useCallback(
     (id: string) => {
@@ -69,8 +72,8 @@ export function Console({ locale, presets, nowMs }: Props) {
                 presets={presets}
                 settings={settings}
                 presetId={presetId}
-                onPreset={(p) => edit({ ...p.settings })}
-                onChange={(patch) => edit((s) => ({ ...s, ...patch }))}
+                onPreset={onPreset}
+                onChange={onChange}
               />
             </PanelBody>
           </Panel>

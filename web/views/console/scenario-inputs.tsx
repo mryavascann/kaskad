@@ -1,7 +1,7 @@
 "use client";
 
 import { Activity, Check, ChevronDown, Droplets, Flame, Layers3, Timer, TrendingDown, Waves, Zap, type LucideIcon } from "lucide-react";
-import { useId } from "react";
+import { memo, useId } from "react";
 import { Chip, ChipGroup } from "@/design/ui/chip";
 import { Disclosure } from "@/design/ui/disclosure";
 import { Label } from "@/design/ui/label";
@@ -53,7 +53,7 @@ type Props = {
 };
 
 /** Left panel: presets, asset, shock, oracle and the advanced path settings. */
-export function ScenarioInputs({ locale, presets, settings, presetId, onPreset, onChange }: Props) {
+export const ScenarioInputs = memo(function ScenarioInputs({ locale, presets, settings, presetId, onPreset, onChange }: Props) {
   const t = consoleMessages[locale].inputs;
   const fmt = formatters(locale);
   const ids = { presets: useId(), asset: useId(), others: useId(), chips: useId(), oracle: useId() };
@@ -259,4 +259,4 @@ export function ScenarioInputs({ locale, presets, settings, presetId, onPreset, 
       </Disclosure>
     </div>
   );
-}
+});
