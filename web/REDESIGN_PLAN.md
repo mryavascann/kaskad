@@ -128,9 +128,14 @@ Branch: `feat/metropolis-frontend` (never commit to `main`; open a PR at the end
   `8597a83` sound off by default, `8e9e4ea` description from data). Static CSP (`shell/security-headers.ts`): 0
   violations on all routes. OG cards live (finding, Guard rule) with title-only fallback.
 - Checkpoint: typecheck + lint clean, 117 files / 778 unit tests, e2e 54 pass / 10 by-design skips.
-- Open: wire `useCue()` (console result / landing waves), `metadataBase` + twitter card, the 390 px landing readout
-  strip overlaps the second CTA on the first screen; then stage 6 (prod build, bundle, Lighthouse, 6-width
-  screenshots, report, PR; Vercel preview needs the user's OAuth).
+- Wiring done (`24c3367` metadataBase + twitter/openGraph, `8fc0140`/`f69bd7b` sound cues, `ea44d28` mobile first
+  screen, `971a034`, `d865daf` GasGauge tags).
+- **Stage 6 measurement** (`e1f966a`, `design-review/metropolis/MEASUREMENTS.md`, prod build of `e00ef63`): a11y 96–100,
+  BP 100, CLS ≤ 0.024, no horizontal scroll at 360–1920: pass. Fail: landing initial JS 398.5 KB gz (target ~250),
+  mobile perf 41–81, LCP 3.7–5.3 s (JS weight), landing TBT 22 s (3D scene on software WebGL), SEO 90 (metadataBase,
+  fixed since). Fix round running with three agents: core perf (3D poster on software GPUs, viem-free nav block poll,
+  lazy motion/sonner, fonts, accessible names), landing (bundle, unlock card, loop diagram, 768/360 hero, teaser HF
+  consistency, stale client data), pages (/app lazy tabs + DOM, heading order, /wallet table at 390, timeline band).
 
 ## Handoff (2026-09-30)
 
