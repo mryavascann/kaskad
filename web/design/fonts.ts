@@ -10,8 +10,9 @@ export const fontSans = Geist({ variable: "--font-geist-sans", subsets: ["latin"
 export const fontMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"], display: "swap" });
 
 /**
- * Accent only: one or two italic words in a headline. Not preloaded: a preload would compete with
- * the render-critical requests for one word; `swap` shows the metric-adjusted fallback until it lands.
+ * Accent only: one or two italic words in a headline. Still preloaded (15 KB woff2): measured without the
+ * preload, the late swap of the hero's italic word reflowed the landing hero (CLS 0.074 on mobile
+ * Lighthouse, target < 0.05).
  */
 export const fontSerif = Instrument_Serif({
   variable: "--font-instrument-serif",
@@ -19,7 +20,6 @@ export const fontSerif = Instrument_Serif({
   style: "italic",
   subsets: ["latin"],
   display: "swap",
-  preload: false,
 });
 
 /** Class names that define the three font variables; put them on <html>. */
