@@ -26,6 +26,28 @@ export const LANDING_KEEP_MS = 60 * 60_000;
 /** Attempts at the per-position read (the public RPC drops a request now and then). */
 export const POSITION_ATTEMPTS = 2;
 const POSITION_RETRY_DELAY_MS = 1500;
+/**
+ * Waits before the extra whole-read attempts made while building. A build that fails to read the
+ * chain would publish a page without the finding until the first regeneration (600 s later), and the
+ * public RPC drops requests when many pages and OG images prerender at once. Runtime reads don't wait:
+ * ISR keeps the last page instead (`keepLastPageOnPartialRead`).
+ */
+export const BUILD_RETRY_DELAYS_MS: readonly number[] = [3_000, 8_000];
+
+const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+
+/** Runs `read` until `done` holds, waiting `delays[i]` before extra attempt i + 1; returns the last read. */
+export async function readUntil<T>(read: () => Promise<T>, done: (v: T) => boolean, delays: readonly number[], wait = sleep): Promise<T> {
+  let value = await read();
+  for (const ms of delays) {
+    if (done(value)) break;
+    await wait(ms);
+    value = await read();
+  }
+  return value;
+}
+
+const isBuildPhase = () => process.env.NEXT_PHASE === "phase-production-build";
 
 export type LandingWave = {
   /** 1-based wave number across the run. */
@@ -249,7 +271,7 @@ export function loadLanding(): Promise<LandingData> {
   const entry = {
     at: now,
     ttl: LANDING_TTL_MS,
-    data: build().then((fresh) => {
+    data: readUntil(build, isComplete, isBuildPhase() ? BUILD_RETRY_DELAYS_MS : []).then((fresh) => {
       const merged = mergeLanding(lastGood, fresh);
       if (isComplete(merged)) lastGood = merged;
       if (!isComplete(fresh)) entry.ttl = LANDING_RETRY_MS;

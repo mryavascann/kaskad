@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { recordedLanding } from "./__fixtures__/landing-data";
-import { crossBlock, isComplete, keepLastPageOnPartialRead, LANDING_KEEP_MS, mergeLanding, type LandingData } from "./data";
+import { crossBlock, isComplete, keepLastPageOnPartialRead, LANDING_KEEP_MS, mergeLanding, readUntil, type LandingData } from "./data";
 
 describe("landing data from the recorded syrupUSDC −3 % preview", () => {
   const d = recordedLanding();
@@ -98,5 +98,29 @@ describe("a failed or older read never replaces a better one", () => {
     // The build must produce a page; dev never throws.
     expect(keepLastPageOnPartialRead(partial, { nodeEnv: "production", phase: "phase-production-build" })).toBe(partial);
     expect(keepLastPageOnPartialRead(partial, { nodeEnv: "development" })).toBe(partial);
+  });
+});
+
+describe("readUntil (build-time retries)", () => {
+  it("stops at the first complete read and waits only between attempts", async () => {
+    const reads = [false, true, true];
+    const waits: number[] = [];
+    let i = 0;
+    const out = await readUntil(async () => reads[i++], (v) => v, [3, 8], async (ms) => void waits.push(ms));
+    expect(out).toBe(true);
+    expect(i).toBe(2);
+    expect(waits).toEqual([3]);
+  });
+
+  it("returns the last read when every attempt is incomplete", async () => {
+    let i = 0;
+    const out = await readUntil(async () => ++i, () => false, [1, 1], async () => {});
+    expect(out).toBe(3);
+  });
+
+  it("makes a single read without delays (runtime)", async () => {
+    let i = 0;
+    await readUntil(async () => ++i, () => false, [], async () => {});
+    expect(i).toBe(1);
   });
 });
