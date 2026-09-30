@@ -117,8 +117,20 @@ Branch: `feat/metropolis-frontend` (never commit to `main`; open a PR at the end
   a safety fixture aborts any raw tx, `POST /api/fund` and external RPC. Guard B rejects, wallet HF, smoke (200, one
   h1, no errors, no 360 px scroll, redirects, 404), console up to the send, keyboard checks: 54 pass, 10 by-design
   skips. The real prove send stays a manual step (costs MON; ask first).
-- `scripts/hardcoded-numbers.sh` (`c25a6ee`, `--summary`): rg report; the typed "3%" in meta/landing copy is being
-  derived from the preset.
+- `scripts/hardcoded-numbers.sh` (`c25a6ee`, `--summary`): rg report; the typed "3%" in meta/landing copy is now
+  derived from the finding's scenario (`866f18f`, `8e9e4ea`).
+- **Landing done** (`fc84e6f`, `41f6d59`, `72f1cee`, `866f18f`): hero (poster first, live finding in the server HTML,
+  WinnerBadge, CTAs), sticky shock scene driven by ScrollTrigger (block/price/waves readout, loop diagram), GapBars
+  finding + footnote, why on-chain unlock, why Monad (GasGauge from the 10k proof tx, MIP-8 162.5 vs 2,100 from
+  `limits.ts`, BlockPulse), Guard and wallet teasers, Pipeline. Lenis + GSAP load after hydration; reduced motion is
+  a static stack. Server data cached 10 min (`revalidate = 600`).
+- **Stage 5 infrastructure done** (`9a80783` CSP + headers, `d9ea0e7` OG images, `717233f` demo cursor, `9f46f24` ⌘K,
+  `8597a83` sound off by default, `8e9e4ea` description from data). Static CSP (`shell/security-headers.ts`): 0
+  violations on all routes. OG cards live (finding, Guard rule) with title-only fallback.
+- Checkpoint: typecheck + lint clean, 117 files / 778 unit tests, e2e 54 pass / 10 by-design skips.
+- Open: wire `useCue()` (console result / landing waves), `metadataBase` + twitter card, the 390 px landing readout
+  strip overlaps the second CTA on the first screen; then stage 6 (prod build, bundle, Lighthouse, 6-width
+  screenshots, report, PR; Vercel preview needs the user's OAuth).
 
 ## Handoff (2026-09-30)
 
