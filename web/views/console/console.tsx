@@ -3,12 +3,13 @@
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useCue } from "@/audio/use-cue";
 import { Footnote } from "@/design/ui/footnote";
-import { Panel, PanelBody, PanelHeader } from "@/design/ui/panel";
+import { Panel, PanelBody } from "@/design/ui/panel";
 import type { Locale } from "@/i18n/config";
 import { consoleMessages } from "@/i18n/messages/console";
 import { usePreview } from "@/lib/chain/hooks/usePreview";
 import { BASE_SETTINGS, buildScenario, DEFAULT_PRESET_ID, matchPreset } from "@/lib/chain/scenario";
 import type { Scenario, Settings } from "@/lib/chain/types";
+import { PanelHeading } from "../shared/panel-heading";
 import { AnalysisTabs } from "./analysis-tabs";
 import type { ConsolePreset } from "./model";
 import { PresetFromUrl } from "./preset-from-url";
@@ -61,7 +62,7 @@ export function Console({ locale, presets, nowMs }: Props) {
       <div className="grid-page items-start gap-y-12">
         <aside aria-label={t.inputs.title} className="col-span-full flex flex-col gap-6 md:col-span-8 lg:col-span-4">
           <Panel>
-            <PanelHeader title={t.inputs.title} />
+            <PanelHeading title={t.inputs.title} />
             <PanelBody>
               <ScenarioInputs
                 locale={locale}

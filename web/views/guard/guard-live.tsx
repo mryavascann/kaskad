@@ -21,6 +21,7 @@ import type { MarketState } from "@/lib/chain/types";
 import { addrUrl, DEPLOYMENT } from "@/lib/kaskad/config";
 import { shortAddr } from "@/lib/kaskad/format";
 import { cn } from "@/lib/utils";
+import { PanelHeading } from "../shared/panel-heading";
 import { CostLine, TxProgress, useConfirmCost, useTxFlow } from "../shared/tx/tx-parts";
 import { Breaker } from "./breaker";
 
@@ -121,7 +122,7 @@ export function GuardLive({ locale }: { locale: Locale }) {
   return (
     <div className="grid-page gap-y-6">
       <Panel as="section" aria-labelledby="guard-rule" className="col-span-full lg:col-span-5">
-        <PanelHeader title={<span id="guard-rule">{t.rule.title}</span>} actions={<ShieldAlert className="size-4 text-fg-3" aria-hidden />} />
+        <PanelHeading id="guard-rule" title={t.rule.title} actions={<ShieldAlert className="size-4 text-fg-3" aria-hidden />} />
         <PanelBody className="flex flex-col gap-5">
           {error ? (
             <Callout tone="liq" title={t.rule.error} />
