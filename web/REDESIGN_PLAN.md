@@ -84,8 +84,9 @@ Branch: `feat/metropolis-frontend` (never commit to `main`; open a PR at the end
         (wave counter, loop diagram), GapBars finding, why on-chain, why Monad (GasGauge, MIP-8, BlockPulse), Guard
         and wallet teasers, architecture strip (`views/how/diagrams` Pipeline). Lenis off under reduced motion; keep
         the LCP on the poster.
-     3. Delete `app/(legacy)`, `app/_components`, `components/*` and the legacy bridge in `app/globals.css`; redirects
-        in `next.config.ts`: `/cuzdan` → `/tr/cuzdan`, `/baglan` → `/tr/app` (the signer lives in the console strip).
+     3. **Done** (`ea1f278`): `app/(legacy)`, `app/_components`, `components/*` and the `globals.css` bridge deleted;
+        `/cuzdan` → `/tr/cuzdan`, `/baglan` → `/tr/app` (308, query kept); recharts, drei and
+        `@react-three/postprocessing` removed (unused). Root README now says 162.5 gas per MIP-8 read (`99fb1af`).
    - Finding verified live at block 66,989,757: `stuckDebt` $110.99M, `totalLiquidated` $133.9K, ratio 828.9×, bad
      debt $0. `classifyPositions` gives per-position tiles only when its bigint replay matches the on-chain preview
      exactly (30 stuck / 27 safe).
@@ -101,6 +102,14 @@ Branch: `feat/metropolis-frontend` (never commit to `main`; open a PR at the end
 6. QA gate: Lighthouse (mobile perf ≥ 90, a11y/BP/SEO ≥ 95), LCP < 2.5s, CLS < 0.05, INP < 200ms,
    360/390/768/1024/1440/1920 screenshots, Playwright e2e (scenario → result → prove; address → HF;
    Guard: B rejects borrow), `rg` report of hardcoded numbers, `REDESIGN_REPORT.md`, PR and a Vercel preview.
+
+## Session 2 (2026-09-30, server with 48 GB RAM)
+
+- Handoff checks passed: `4a6dad7` on top, `npm ci`, typecheck, lint, 101 files / 682 tests, every route 200.
+- The 2-agent cap was a 16 GB RAM limit; on this server up to 3 agents run in parallel with disjoint files:
+  console (`views/console`, `messages/console.tsx`, `/app` pages), landing (`views/landing`, `messages/landing.tsx`,
+  `/` and `/tr`, `motion/**`), polish (`next.config.ts` headers/CSP, `shell/**`, `messages/common.ts`, `design/**`,
+  `command/` ⌘K, `audio/` sound off by default, `og/` + `opengraph-image.tsx`). The orchestrator owns this file.
 
 ## Handoff (2026-09-30)
 
