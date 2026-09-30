@@ -15,8 +15,8 @@ const code = (s: string) => <code className="font-mono text-[0.92em] text-fg-1">
 
 const en = {
   meta: {
-    description:
-      "What happens to Aave on Monad if syrupUSDC drops 3%? Kaskad replays every liquidation wave on the real book, in one transaction anyone can verify.",
+    description: (v: { asset: string; shock: Stat }) =>
+      `What happens to Aave on Monad if ${v.asset} drops ${v.shock}? Kaskad replays every liquidation wave on the real book, in one transaction anyone can verify.`,
   },
   hero: {
     /** Headline lines for SplitText; `accent` = word indices set in the serif italic. */
@@ -97,7 +97,7 @@ const en = {
       tags: ["off-chain", "unverifiable"],
       locked: "Locked",
       body: "Recommended parameters, stress scenarios and a methodology you can't rerun.",
-      source: "Aave's yearly fee to Gauntlet, its risk manager until 2024 (CoinDesk)",
+      source: "What Aave paid Gauntlet, its risk manager, per year (CoinDesk)",
     },
     block: {
       name: "Kaskad result",
@@ -192,7 +192,7 @@ const en = {
     field: "Wallet address",
     placeholder: "0x…",
     submit: "Check",
-    invalid: "Enter a valid address: 0x followed by 40 hex characters.",
+    invalid: "Enter a valid address: 0x followed by its hex characters.",
     samples: "Or try a real borrower",
     sampleNames: {
       "largest-syrupusdc-borrower": "Largest syrupUSDC borrower",
@@ -217,8 +217,8 @@ export type LandingMessages = typeof en;
 
 const tr = {
   meta: {
-    description:
-      "syrupUSDC %3 düşerse Monad'daki Aave'ye ne olur? Kaskad, gerçek defterde her likidasyon dalgasını herkesin doğrulayabileceği tek bir işlemde yeniden oynatır.",
+    description: (v: { asset: string; shock: Stat }) =>
+      `${v.asset} ${v.shock} düşerse Monad'daki Aave'ye ne olur? Kaskad, gerçek defterde her likidasyon dalgasını herkesin doğrulayabileceği tek bir işlemde yeniden oynatır.`,
   },
   hero: {
     lines: ["Tek işlem.", "Tüm likidasyon dalgaları."],
@@ -298,7 +298,7 @@ const tr = {
       tags: ["zincir dışı", "doğrulanamaz"],
       locked: "Kilitli",
       body: "Önerilen parametreler, stres senaryoları ve yeniden çalıştıramayacağın bir metodoloji.",
-      source: "Aave'nin 2024'e kadar risk yöneticisi olan Gauntlet'e yıllık ödemesi (CoinDesk)",
+      source: "Aave'nin risk yöneticisi Gauntlet'e yıllık ödemesi (CoinDesk)",
     },
     block: {
       name: "Kaskad sonucu",
@@ -393,7 +393,7 @@ const tr = {
     field: "Cüzdan adresi",
     placeholder: "0x…",
     submit: "Kontrol et",
-    invalid: "Geçerli bir adres gir: 0x ve ardından 40 onaltılık karakter.",
+    invalid: "Geçerli bir adres gir: 0x ve ardından onaltılık karakterleri.",
     samples: "Ya da gerçek bir borçluyu dene",
     sampleNames: {
       "largest-syrupusdc-borrower": "En büyük syrupUSDC borçlusu",

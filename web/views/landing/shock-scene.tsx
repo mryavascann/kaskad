@@ -243,12 +243,12 @@ function LoopDiagram({ t }: { t: LandingMessages }) {
     <figure className="flex flex-col gap-3">
       <figcaption className="label-mono text-fg-3">{t.shock.loopLabel}</figcaption>
       <div className="relative">
-        <ol className="grid grid-cols-[1fr_auto_1fr_auto_1fr] items-center gap-1.5 sm:gap-2">
+        <ol className="grid grid-cols-[1fr_auto_1fr_auto_1fr] items-stretch gap-1.5 sm:gap-2">
           {steps.map((step, i) => (
             <li key={step} className="contents">
               <span
                 className={cn(
-                  "rounded-control border px-2 py-2 text-center text-caption leading-tight sm:px-3 sm:text-body-sm",
+                  "flex items-center justify-center rounded-control border px-2 py-2 text-center text-caption leading-tight sm:px-3 sm:text-body-sm",
                   i === 2 ? "border-liq/55 bg-liq/10 text-liq-hi" : "border-line-3 bg-elev-1/80 text-fg-1",
                   styles.loopStep,
                 )}
