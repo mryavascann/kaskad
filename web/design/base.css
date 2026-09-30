@@ -1,0 +1,113 @@
+/*
+ * Base element styles and layout utilities of the design system.
+ * Imported by app/globals.css after the token files.
+ */
+
+@layer base {
+  html {
+    color-scheme: dark;
+    background-color: var(--color-bg);
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    font-family: var(--font-sans);
+    font-variant-numeric: tabular-nums;
+    background-color: var(--color-bg);
+    color: var(--color-fg-1);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  :where(h1, h2, h3, h4) {
+    text-wrap: balance;
+  }
+
+  :where(p, li, figcaption, dd) {
+    text-wrap: pretty;
+  }
+
+  :where(code, kbd, samp, pre) {
+    font-family: var(--font-mono);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-monad-hi);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background-color: oklch(0.629 0.199 286 / 0.45);
+    color: var(--color-fg-1);
+  }
+
+  /* Instrument look: thin strokes on every lucide icon. */
+  svg.lucide {
+    stroke-width: 1.5;
+  }
+}
+
+/* Centered page container with the responsive gutter (16 / 24 / 40 / 60 px). */
+@utility page-shell {
+  width: 100%;
+  max-width: var(--container-page);
+  margin-inline: auto;
+  padding-inline: var(--page-gutter);
+}
+
+/* The layout grid: 4 columns on phones, 8 on tablets, 12 from 1024px. */
+@utility grid-page {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  column-gap: var(--grid-gap);
+
+  @media (width >= 48rem) {
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+  }
+
+  @media (width >= 64rem) {
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+  }
+}
+
+/* Vertical rhythm between landing sections. */
+@utility section-y {
+  padding-block: var(--section-y);
+}
+
+/* Mono uppercase label: eyebrows, axis titles, readout keys, coordinates. */
+@utility label-mono {
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  line-height: var(--text-label--line-height);
+  letter-spacing: var(--text-label--letter-spacing);
+  font-weight: 450;
+  text-transform: uppercase;
+}
+
+/* Instrument grid lines. Set --grid-cell to change the pitch. */
+@utility bg-grid {
+  background-image:
+    linear-gradient(var(--color-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--color-line) 1px, transparent 1px);
+  background-size: var(--grid-cell, 120px) var(--grid-cell, 120px);
+}
+
+/* Instrument corner marks: four L-shaped ticks drawn inside the box. Tune with --tick / --tick-len. */
+@utility corner-ticks {
+  --tick: var(--color-line-strong);
+  --tick-len: 10px;
+  background-image:
+    linear-gradient(var(--tick), var(--tick)), linear-gradient(var(--tick), var(--tick)),
+    linear-gradient(var(--tick), var(--tick)), linear-gradient(var(--tick), var(--tick)),
+    linear-gradient(var(--tick), var(--tick)), linear-gradient(var(--tick), var(--tick)),
+    linear-gradient(var(--tick), var(--tick)), linear-gradient(var(--tick), var(--tick));
+  background-position:
+    top left, top left, top right, top right,
+    bottom left, bottom left, bottom right, bottom right;
+  background-size:
+    var(--tick-len) 1px, 1px var(--tick-len), var(--tick-len) 1px, 1px var(--tick-len),
+    var(--tick-len) 1px, 1px var(--tick-len), var(--tick-len) 1px, 1px var(--tick-len);
+  background-repeat: no-repeat;
+}

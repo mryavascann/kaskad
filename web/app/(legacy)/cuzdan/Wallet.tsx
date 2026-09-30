@@ -7,7 +7,7 @@ import type { UserPosition } from "@/lib/kaskad/aave";
 import { DEPLOYMENT } from "@/lib/kaskad/config";
 import { fmtNum, fmtPct, fmtUsd, shortAddr, wadToNum } from "@/lib/kaskad/format";
 import { collateralToSurvive, depegToLiquidation, repayToSurvive } from "@/lib/kaskad/math";
-import { previewScenario, type Result } from "../_components/useKaskad";
+import { previewScenario, type Result } from "@/app/_components/useKaskad";
 
 import { Details, Help } from "@/components/ui/disclosure";
 import { ShieldCheck, ScanLine, Activity, Layers3 } from "lucide-react";

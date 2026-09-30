@@ -1,0 +1,82 @@
+/*
+ * Motion tokens as CSS. Mirror of motion/tokens.ts (checked by motion/tokens.test.ts).
+ * Springs live in TS only; CSS gets durations, easings, stagger, beats and travel distances.
+ */
+
+@theme static {
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-in-out-quart: cubic-bezier(0.76, 0, 0.24, 1);
+  --ease-in-quart: cubic-bezier(0.5, 0, 0.75, 0);
+
+  /* Entrances that must not wait for hydration (hero copy, above-the-fold metrics). */
+  --animate-rise: rise var(--dur-slow) var(--ease-out-expo) both;
+  --animate-fade-in: fade-in var(--dur-base) var(--ease-out-quart) both;
+  /* Live indicator breathing. Use with `motion-safe:` so reduced motion shows a still dot. */
+  --animate-live: live 2.4s var(--ease-in-out-quart) infinite;
+  /* Skeleton sweep. Use with `motion-safe:`. */
+  --animate-shimmer: shimmer 1.6s linear infinite;
+
+  @keyframes rise {
+    from {
+      opacity: 0;
+      transform: translate3d(0, var(--rise), 0);
+    }
+  }
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+  }
+
+  @keyframes live {
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.35;
+    }
+  }
+
+  @keyframes shimmer {
+    from {
+      background-position: 150% 0;
+    }
+    to {
+      background-position: -50% 0;
+    }
+  }
+}
+
+:root {
+  --dur-instant: 80ms;
+  --dur-fast: 160ms;
+  --dur-base: 240ms;
+  --dur-slow: 420ms;
+  --dur-scene: 1100ms;
+  --dur-scene-short: 800ms;
+  --dur-scene-long: 1400ms;
+
+  --stagger-tight: 20ms;
+  --stagger-base: 40ms;
+  --stagger-loose: 60ms;
+
+  --beat-context: 0ms;
+  --beat-hero: 160ms;
+  --beat-detail: 420ms;
+
+  --nudge: 4px;
+  --rise: 12px;
+  --enter: 24px;
+}
+
+/* Reduced motion: nothing travels. Fades keep their (short) durations. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --nudge: 0px;
+    --rise: 0px;
+    --enter: 0px;
+  }
+}
