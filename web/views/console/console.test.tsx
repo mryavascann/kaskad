@@ -5,6 +5,7 @@ import { fixtureRun } from "@/lib/chain/__fixtures__/load";
 import { canClassify, classifyPositions } from "@/lib/chain/book";
 import { compareRows } from "@/lib/chain/compare";
 import { monteCarloFacts } from "@/lib/chain/engine";
+import { cascadeTimeline } from "@/lib/chain/timeline";
 import type { Scenario } from "@/lib/chain/types";
 import { DEPLOYMENT } from "@/lib/kaskad/config";
 import { vizMonteCarlo } from "@/viz/__fixtures__/load";
@@ -18,6 +19,9 @@ const previewCalls: Scenario[] = [];
 let preview: PreviewState;
 const proveMock = vi.fn();
 const connect = { busy: false, error: null as null | { code: string; raw: string }, injected: null, mera: null, connectInjected: vi.fn(), connectMera: vi.fn(), selectBurner: vi.fn() };
+
+const cueMock = vi.fn<(cue: string, volume?: number) => boolean>(() => true);
+vi.mock("@/audio/use-cue", () => ({ useCue: () => cueMock }));
 
 let search = new URLSearchParams();
 vi.mock("next/navigation", () => ({ useSearchParams: () => search }));
@@ -77,6 +81,7 @@ beforeEach(() => {
   previewCalls.length = 0;
   preview = ready();
   proveMock.mockReset();
+  cueMock.mockClear();
   connect.error = null;
   search = new URLSearchParams();
 });
@@ -203,6 +208,57 @@ describe("Console result stage", () => {
     expect(await screen.findByText("1 tx · 412 ms · 57 positions")).toBeInTheDocument();
     const link = screen.getByRole("link", { name: /MonadScan · 0xabab/ });
     expect(link).toHaveAttribute("rel", "noopener noreferrer");
+  });
+});
+
+describe("Console sound cues", () => {
+  const cues = (name: string) => cueMock.mock.calls.filter(([c]) => c === name).length;
+
+  it("stays silent on the first automatic preview and on ?preset=", () => {
+    search = new URLSearchParams("preset=eth");
+    const { rerender } = renderConsole();
+    preview = { ...ready(), resultScenario: lastCall() };
+    rerender(<Console locale="en" presets={presets} nowMs={NOW.getTime()} />);
+    expect(cueMock).not.toHaveBeenCalled();
+  });
+
+  it("booms once when the result of a scenario the viewer picked settles, not while it loads", async () => {
+    const user = userEvent.setup();
+    const { rerender } = renderConsole();
+    const again = () => rerender(<Console locale="en" presets={presets} nowMs={NOW.getTime()} />);
+    await user.click(within(screen.getByRole("group", { name: "Quick shocks" })).getByRole("button", { name: "−5%" }));
+    expect(cues("boom")).toBe(0); // the old result is still on screen
+    preview = { ...ready(), resultScenario: lastCall(), loading: true };
+    again();
+    expect(cues("boom")).toBe(0);
+    preview = { ...ready(), resultScenario: lastCall() };
+    again();
+    expect(cues("boom")).toBe(1);
+    again();
+    expect(cues("boom")).toBe(1);
+  });
+
+  it("ticks when the scrubber crosses a block with liquidations, and when a proof confirms", async () => {
+    const points = cascadeTimeline(sali.result, sali.scenario).points;
+    const first = points.findIndex((p) => p.liquidations > 0);
+    expect(first).toBeGreaterThan(1);
+    renderConsole();
+    expect(cueMock).not.toHaveBeenCalled();
+    const scrubber = screen.getByRole("slider", { name: "Block" });
+    act(() => scrubber.focus());
+    fireEvent.keyDown(scrubber, { key: "Home" });
+    cueMock.mockClear();
+    for (let i = 1; i < first; i++) fireEvent.keyDown(scrubber, { key: "ArrowRight" });
+    expect(cues("tick")).toBe(0);
+    fireEvent.keyDown(scrubber, { key: "ArrowRight" });
+    expect(cues("tick")).toBe(1);
+
+    cueMock.mockClear();
+    proveMock.mockResolvedValue({ status: "confirmed", hash: `0x${"cd".repeat(32)}`, ms: 400, sync: true, receipt: {}, rounds: 1, simulationDone: null });
+    await userEvent.setup().click(screen.getByRole("button", { name: "Prove on chain" }));
+    await screen.findByText("1 tx · 400 ms · 57 positions");
+    expect(cueMock).toHaveBeenCalledWith("tick");
+    expect(cues("boom")).toBe(0);
   });
 });
 

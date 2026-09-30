@@ -1,7 +1,8 @@
 "use client";
 
 import { ArrowUpRight, Pause, Play, RotateCcw } from "lucide-react";
-import { useEffect, useMemo, useState, type ComponentProps } from "react";
+import { useEffect, useMemo, useRef, useState, type ComponentProps } from "react";
+import { useCue } from "@/audio/use-cue";
 import { Badge } from "@/design/ui/badge";
 import { Button } from "@/design/ui/button";
 import { Callout } from "@/design/ui/callout";
@@ -20,7 +21,7 @@ import { usePositionMap } from "@/lib/chain/hooks/usePositionMap";
 import { MONAD_TX_GAS_LIMIT } from "@/lib/chain/limits";
 import { narrativeFacts } from "@/lib/chain/narrative";
 import { calibratedScale, effectiveResolution, isCalibratedRun, oracleMode, resultFacts, symbolParts } from "@/lib/chain/scenario";
-import { cascadeTimeline } from "@/lib/chain/timeline";
+import { cascadeTimeline, type CascadeTimeline } from "@/lib/chain/timeline";
 import type { Result, Scenario, Settings } from "@/lib/chain/types";
 import { DEPLOYMENT, txUrl } from "@/lib/kaskad/config";
 import { cn } from "@/lib/utils";
@@ -28,7 +29,7 @@ import { duration } from "@/motion/tokens";
 import { PositionTiles } from "@/viz/position-tiles";
 import { WaveTimeline } from "@/viz/wave-timeline";
 import { CostLine, TxProgress, useConfirmCost, useTxFlow } from "../shared/tx/tx-parts";
-import { narrativeText, priceLabel, settingsForScenario, shockLabel } from "./model";
+import { crossesLiquidation, narrativeText, priceLabel, settingsForScenario, shockLabel } from "./model";
 
 export type PreviewState = {
   result: Result | null;
@@ -78,6 +79,17 @@ function useReplay(timeline: object | null, steps: number) {
   };
 }
 
+/** `cue("tick")` when the playhead (playing or scrubbed) passes a block with liquidations; silent on a new result. */
+function useReplayTick(timeline: CascadeTimeline | null, step: number) {
+  const cue = useCue();
+  const prev = useRef<{ of: CascadeTimeline | null; step: number }>({ of: timeline, step });
+  useEffect(() => {
+    const from = prev.current;
+    prev.current = { of: timeline, step };
+    if (timeline && from.of === timeline && crossesLiquidation(timeline.points, from.step, step)) cue("tick");
+  }, [timeline, step, cue]);
+}
+
 /** The main stage: context line, the two hero numbers, positions, the cascade, the story, the proof. */
 export function ResultStage({ locale, settings, preview }: { locale: Locale; settings: Settings; preview: PreviewState }) {
   const t = consoleMessages[locale].stage;
@@ -93,6 +105,7 @@ export function ResultStage({ locale, settings, preview }: { locale: Locale; set
   const steps = timeline ? timeline.points.length - 1 : shown.steps;
   const prices = useMemo(() => timeline?.points.map((p) => p.price), [timeline]);
   const replay = useReplay(timeline, steps);
+  useReplayTick(timeline, replay.step);
   const positions = usePositionMap(resultScenario, result);
   const narrative = result && asset ? consoleNarrative[locale](narrativeText(narrativeFacts(result, asset, shown, calibratedScale(shown, result)), fmt)) : null;
 
@@ -294,6 +307,10 @@ function ProvePanel({ locale, preview }: { locale: Locale; preview: PreviewState
   };
 
   const out = flow.outcome;
+  const cue = useCue();
+  useEffect(() => {
+    if (out?.status === "confirmed") cue("tick");
+  }, [out, cue]);
   const proved = out?.status === "confirmed" && provedKey === key ? out : null;
   const positions = proved?.simulationDone ? Number(proved.simulationDone.positionsUsed) : result?.positionsUsed;
 

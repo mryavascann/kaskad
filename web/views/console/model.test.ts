@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { formatters } from "@/i18n/format";
 import { buildScenario, PRESETS, presetFacts } from "@/lib/chain/scenario";
 import { DEPLOYMENT } from "@/lib/kaskad/config";
-import { consolePresets, presetText, settingsForScenario, shockLabel } from "./model";
+import { consolePresets, crossesLiquidation, presetText, settingsForScenario, shockLabel } from "./model";
 
 const en = formatters("en");
 const tr = formatters("tr");
@@ -32,5 +32,17 @@ describe("console model", () => {
   it("gives the client plain, serializable presets", () => {
     const list = consolePresets(new Date("2026-09-30T00:00:00Z"));
     expect(JSON.parse(JSON.stringify(list))).toEqual(list);
+  });
+});
+
+describe("crossesLiquidation", () => {
+  const pts = [0, 0, 3, 0, 1].map((liquidations) => ({ liquidations }));
+  it("checks the blocks passed going forward and back", () => {
+    expect(crossesLiquidation(pts, 0, 1)).toBe(false);
+    expect(crossesLiquidation(pts, 1, 2)).toBe(true);
+    expect(crossesLiquidation(pts, 0, 4)).toBe(true);
+    expect(crossesLiquidation(pts, 3, 3)).toBe(false);
+    expect(crossesLiquidation(pts, 4, 3)).toBe(false);
+    expect(crossesLiquidation(pts, 3, 2)).toBe(true);
   });
 });

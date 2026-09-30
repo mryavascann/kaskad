@@ -81,3 +81,14 @@ export function narrativeText(n: NarrativeFacts, fmt: Formatters): NarrativeText
     stuck: n.stuck ? fmt.usd(n.stuck.stuckDebtUsd) : null,
   };
 }
+
+/**
+ * Whether moving the replay playhead from `from` to `to` passes a block with liquidations: the
+ * blocks after `from` up to `to` going forward, `to` up to the one before `from` going back.
+ */
+export function crossesLiquidation(points: readonly { liquidations: number }[], from: number, to: number): boolean {
+  if (from === to) return false;
+  const [lo, hi] = to > from ? [from + 1, to] : [to, from - 1];
+  for (let i = Math.max(0, lo); i <= Math.min(points.length - 1, hi); i++) if (points[i].liquidations > 0) return true;
+  return false;
+}

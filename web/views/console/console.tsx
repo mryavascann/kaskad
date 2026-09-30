@@ -1,17 +1,18 @@
 "use client";
 
-import { Suspense, useCallback, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCue } from "@/audio/use-cue";
 import { Footnote } from "@/design/ui/footnote";
 import { Panel, PanelBody, PanelHeader } from "@/design/ui/panel";
 import type { Locale } from "@/i18n/config";
 import { consoleMessages } from "@/i18n/messages/console";
 import { usePreview } from "@/lib/chain/hooks/usePreview";
 import { BASE_SETTINGS, buildScenario, DEFAULT_PRESET_ID, matchPreset } from "@/lib/chain/scenario";
-import type { Settings } from "@/lib/chain/types";
+import type { Scenario, Settings } from "@/lib/chain/types";
 import { AnalysisTabs } from "./analysis-tabs";
 import type { ConsolePreset } from "./model";
 import { PresetFromUrl } from "./preset-from-url";
-import { ResultStage } from "./result-stage";
+import { ResultStage, type PreviewState } from "./result-stage";
 import { RunAssumptions } from "./run-assumptions";
 import { ScenarioInputs } from "./scenario-inputs";
 import { SignerStrip } from "./signer-strip";
@@ -35,6 +36,13 @@ export function Console({ locale, presets, nowMs }: Props) {
   const presetId = matchPreset(settings);
   const scenario = useMemo(() => buildScenario(settings), [settings]);
   const preview = usePreview(scenario);
+  // Only scenarios the viewer picked sound the boom: not the first preview, not the ?preset= jump.
+  const touched = useRef(false);
+  const edit = useCallback((next: Settings | ((s: Settings) => Settings)) => {
+    touched.current = true;
+    setSettings(next);
+  }, []);
+  useSettledBoom(scenario, preview, touched);
   const fromUrl = useCallback(
     (id: string) => {
       const p = presets.find((x) => x.id === id);
@@ -60,8 +68,8 @@ export function Console({ locale, presets, nowMs }: Props) {
                 presets={presets}
                 settings={settings}
                 presetId={presetId}
-                onPreset={(p) => setSettings({ ...p.settings })}
-                onChange={(patch) => setSettings((s) => ({ ...s, ...patch }))}
+                onPreset={(p) => edit({ ...p.settings })}
+                onChange={(patch) => edit((s) => ({ ...s, ...patch }))}
               />
             </PanelBody>
           </Panel>
@@ -79,4 +87,23 @@ export function Console({ locale, presets, nowMs }: Props) {
       </Footnote>
     </div>
   );
+}
+
+/**
+ * `cue("boom")` once per settled result: the preview for the scenario now on screen has landed (not
+ * loading, no error, not a stale result), it differs from the last one that landed, and the viewer
+ * changed the inputs at least once. Slider drags only re-run the preview after its debounce, so a
+ * drag sounds once, when its result settles.
+ */
+function useSettledBoom(scenario: Scenario, preview: PreviewState, touched: { readonly current: boolean }) {
+  const cue = useCue();
+  const last = useRef<string | null>(null);
+  const { result, resultScenario, loading, error } = preview;
+  useEffect(() => {
+    if (loading || error || !result || !resultScenario) return;
+    const key = JSON.stringify(resultScenario);
+    if (key !== JSON.stringify(scenario) || key === last.current) return;
+    last.current = key;
+    if (touched.current) cue("boom");
+  }, [scenario, result, resultScenario, loading, error, touched, cue]);
 }
