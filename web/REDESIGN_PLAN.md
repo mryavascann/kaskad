@@ -137,6 +137,15 @@ Branch: `feat/metropolis-frontend` (never commit to `main`; open a PR at the end
   lazy motion/sonner, fonts, accessible names), landing (bundle, unlock card, loop diagram, 768/360 hero, teaser HF
   consistency, stale client data), pages (/app lazy tabs + DOM, heading order, /wallet table at 390, timeline band).
 
+- **Fix round 1 done** (28 commits after `5522a57`). Initial JS gz: `/` 402.8 → 206.9 (target met), shared root
+  339.5 → 185.6, `/guard` 315, `/wallet` 343, `/app` 444. 3D hero → poster on software WebGL and deferred on touch
+  screens; viem-free nav block poll (`lib/chain/block-number.ts`); LazyMotion root; lazy sonner; intent prefetch
+  (`design/ui/intent-link.tsx`); entrance animations fill `backwards` (fixed the timeline band); landing deferred
+  sections; `/app` DOM 1,746 → 906, lazy tabs/tables; heading order; `/wallet` cards at 390; a11y 100, BP/SEO 100,
+  CLS 0. Mobile perf still 52–79 on `/` (noisy machine), LCP 2.8–4 s. 855 unit tests, e2e 54/10.
+- Git rule for parallel agents: commit with `git commit -m ... -- <paths>` (a shared index swept a staged deletion into
+  `182bbf6`), own pid/scratch files, stop servers by PID only.
+
 ## Handoff (2026-09-30)
 
 The project moves to a server and continues in a new chat. What the new session needs that git doesn't carry:
