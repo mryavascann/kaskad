@@ -2,6 +2,7 @@ import { render, screen, within } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 import { positionsOf, vizRun } from "./__fixtures__/data";
 import { PositionTiles } from "./position-tiles";
+import { openDataTables } from "./__fixtures__/open-tables";
 
 const sali = vizRun("sali");
 const usde = vizRun("usde-eth-5-pool");
@@ -64,8 +65,17 @@ describe("PositionTiles", () => {
     expect(screen.getByText(/Width is proportional to debt\./)).toBeInTheDocument();
   });
 
+  it("mounts the table rows only once its disclosure is opened", () => {
+    render(<PositionTiles classification={sali.positions} />);
+    expect(screen.getByText("Positions table")).toBeInTheDocument();
+    expect(screen.queryByRole("table")).toBeNull();
+    openDataTables();
+    expect(screen.getByRole("table")).toBeInTheDocument();
+  });
+
   it("lists every position in a table", () => {
     render(<PositionTiles classification={sali.positions} />);
+    openDataTables();
     const table = screen.getByRole("table");
     expect(within(table).getAllByRole("row")).toHaveLength(58);
     expect(within(table).getByText("#12")).toBeInTheDocument();

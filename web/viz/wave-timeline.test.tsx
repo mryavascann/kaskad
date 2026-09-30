@@ -6,6 +6,7 @@ import { describe, expect, it, vi } from "vitest";
 import { vizRun } from "./__fixtures__/data";
 import { vizFormats } from "./format";
 import { WaveTimeline } from "./wave-timeline";
+import { openDataTables } from "./__fixtures__/open-tables";
 
 const sali = vizRun("sali");
 const worst = vizRun("worst");
@@ -56,6 +57,7 @@ describe("WaveTimeline", () => {
 
   it("has a data table with one row per block", () => {
     render(<WaveTimeline timeline={sali.timeline} />);
+    openDataTables();
     const table = screen.getByRole("table");
     expect(within(table).getAllByRole("row")).toHaveLength(22);
     expect(within(table).getByRole("columnheader", { name: "Liquidated" })).toBeInTheDocument();
@@ -103,6 +105,7 @@ describe("WaveTimeline", () => {
     expect(screen.getByText("Tasfiyeler 7. blokta durdu")).toBeInTheDocument();
     expect(screen.getByRole("figure", { name: "Kaskad zaman çizelgesi" })).toBeInTheDocument();
     expect(screen.getAllByText(`USD ${Math.round(sali.timeline.points[7].liquidated)}`).length).toBeGreaterThan(0);
+    openDataTables();
     expect(screen.getByRole("columnheader", { name: "Tasfiye" })).toBeInTheDocument();
   });
 

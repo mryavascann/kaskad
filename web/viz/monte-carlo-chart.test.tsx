@@ -4,6 +4,7 @@ import { monteCarloFacts } from "@/lib/chain/engine";
 import { vizMonteCarlo } from "./__fixtures__/load";
 import { vizFormats } from "./format";
 import { MonteCarloChart } from "./monte-carlo-chart";
+import { openDataTables } from "./__fixtures__/open-tables";
 
 const worst = monteCarloFacts(vizMonteCarlo("worst").result);
 const sali = monteCarloFacts(vizMonteCarlo("sali").result);
@@ -31,6 +32,7 @@ describe("MonteCarloChart", () => {
 
   it("says so when no path loses money, without inventing ticks", () => {
     render(<MonteCarloChart facts={sali} />);
+    openDataTables();
     expect(screen.getByRole("img").getAttribute("aria-label")).toContain("none ends with bad debt");
     expect(screen.getByText("0 of 100")).toBeInTheDocument();
     expect(screen.queryByText("Mean")).toBeNull();
@@ -39,6 +41,7 @@ describe("MonteCarloChart", () => {
 
   it("lists every path in a table", () => {
     render(<MonteCarloChart facts={worst} />);
+    openDataTables();
     expect(within(screen.getByRole("table")).getAllByRole("row")).toHaveLength(31);
   });
 

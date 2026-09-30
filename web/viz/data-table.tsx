@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
-import { Disclosure } from "@/design/ui/disclosure";
 import { cn } from "@/lib/utils";
+import { LazyDisclosure } from "./lazy-disclosure";
 
 export type TableColumn<Row> = {
   label: string;
@@ -23,10 +23,11 @@ type DataTableProps<Row> = {
 /**
  * The chart's numbers as a table, folded in a native `<details>`: every value the chart draws, for
  * screen readers, keyboard users and anyone who wants the exact figure. Scrolls inside its own box.
+ * The rows mount when the disclosure is first opened (`LazyDisclosure`), not with the chart.
  */
 export function DataTable<Row>({ summary, caption, columns, rows, rowKey, className }: DataTableProps<Row>) {
   return (
-    <Disclosure mono summary={summary} className={className} data-slot="data-table">
+    <LazyDisclosure mono summary={summary} className={className} data-slot="data-table">
       <div role="region" aria-label={caption} tabIndex={0} className="max-h-80 overflow-auto rounded-control border border-line">
         <table className="w-full border-collapse font-mono text-caption tabular-nums">
           <caption className="sr-only">{caption}</caption>
@@ -56,6 +57,6 @@ export function DataTable<Row>({ summary, caption, columns, rows, rowKey, classN
           </tbody>
         </table>
       </div>
-    </Disclosure>
+    </LazyDisclosure>
   );
 }

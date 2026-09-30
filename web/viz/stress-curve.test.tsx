@@ -5,6 +5,7 @@ import { VIZ_CURVE } from "./__fixtures__/load";
 import { curveFromChain } from "./curve-model";
 import { vizFormats } from "./format";
 import { StressCurve } from "./stress-curve";
+import { openDataTables } from "./__fixtures__/open-tables";
 
 const data = curveFromChain(VIZ_CURVE, VIZ_CURVE.shocksBps);
 const f = vizFormats();
@@ -51,6 +52,7 @@ describe("StressCurve", () => {
 
   it("describes both curves in a summary and lists every level in a table", () => {
     render(<StressCurve data={data} />);
+    openDataTables();
     const summary = screen.getByRole("slider").getAttribute("aria-describedby") ?? "";
     const text = document.getElementById(summary)?.textContent ?? "";
     expect(text).toContain("Bad debt at 8 shock levels, 0.1% to 30.0%.");
