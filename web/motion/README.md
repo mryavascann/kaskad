@@ -28,7 +28,7 @@ Live reference with demos: `/design#motion` (`/design?only=motion`).
 | Hover / press / focus | CSS transitions: `duration-(--dur-fast) ease-out-quart`. `Magnetic` / `Spotlight` for desktop pointers. |
 | Loops (live dot, skeleton) | `motion-safe:animate-live`, `motion-safe:animate-shimmer`. |
 | Canvas, WebGL, SVG plots | `ease.*` (`easing.ts`), `springStep` (`spring.ts`), seeded `mulberry32` (`random.ts`). |
-| Scroll scenes (stage 4 landing) | GSAP + ScrollTrigger, reserved for scrubbed, pinned scenes. **Not installed yet.** |
+| Scroll scenes (landing) | `useScrollProgress` (GSAP ScrollTrigger → MotionValue, loaded after hydration) + CSS sticky for pinning; `SmoothScroll` (Lenis) on the page that wants it. |
 
 ## API
 
@@ -47,6 +47,9 @@ Live reference with demos: `/design#motion` (`/design?only=motion`).
 | `split-text.tsx` (server) | `<SplitText as text \| lines accent stagger delay>`. CSS in `split-text.module.css`. |
 | `magnetic.tsx` (client) | `<Magnetic strength={6}>` around one control. |
 | `spotlight.tsx` (client) | `<Spotlight as size={260} intensity={0.06}>`. |
+| `scroll.ts` | `loadScrollKit()` (GSAP + ScrollTrigger, one shared dynamic import, plugin registered once), `segment(p, from, to)` (a beat of a 0–1 progress), `resetScrollKit()` (tests). |
+| `use-scroll-progress.ts` (client) | `useScrollProgress(ref, { start, end, initial = 0, reducedValue = 1, enabled })` → `MotionValue<number>`: a ScrollTrigger's progress without re-renders. Reduced motion: no trigger, jumps to `reducedValue` (the final state). |
+| `smooth-scroll.tsx` (client) | `<SmoothScroll lerp={0.1} />`: Lenis on the GSAP ticker, synced with ScrollTrigger; mount it inside one page (the landing). Off under reduced motion. |
 
 ## Setup (root layout)
 
@@ -57,6 +60,15 @@ Live reference with demos: `/design#motion` (`/design?only=motion`).
   <MotionProvider>{children}</MotionProvider>
 </body>
 ```
+
+## Scroll scenes
+
+Pin with CSS (`position: sticky` in a tall track), not with ScrollTrigger's `pin`: the layout is final
+at first paint, so nothing shifts when scripts arrive (CLS) and no-JS readers get a normal page. Drive
+the scene from one progress value: `useScrollProgress(track)` → pass the MotionValue to three.js,
+write `segment()` beats to CSS variables in a `useMotionValueEvent` handler (no re-render per frame),
+and keep React state for discrete steps only (e.g. the whole block number). GSAP, ScrollTrigger and
+Lenis are separate chunks requested after hydration; they never block first paint.
 
 ## Notes
 
