@@ -1,6 +1,6 @@
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { commonMessages } from "@/i18n/messages/common";
 
 const push = vi.fn();
@@ -29,6 +29,10 @@ function Harness({ locale = "en" as const }: { locale?: "en" | "tr" }) {
   );
 }
 
+// The palette is a lazy chunk; load it once up front so the tests don't race the import.
+beforeAll(async () => {
+  await import("./palette");
+});
 beforeEach(() => push.mockReset());
 
 describe("isCommandMenuShortcut", () => {

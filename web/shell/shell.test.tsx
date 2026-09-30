@@ -57,6 +57,12 @@ describe("SiteNav", () => {
     await user.click(screen.getByRole("button", { name: "Menu" }));
     const dialog = await screen.findByRole("dialog");
     expect(within(dialog).getByRole("button", { name: /Search pages, scenarios and addresses/ })).toBeInTheDocument();
+    expect(within(dialog).getByRole("button", { name: "Sound effects" })).toHaveAttribute("aria-pressed", "false");
+  });
+
+  it("has a sound toggle that starts off", () => {
+    render(<SiteNav locale="tr" t={commonMessages.tr} />);
+    expect(screen.getByRole("button", { name: "Ses efektleri" })).toHaveAttribute("aria-pressed", "false");
   });
 });
 

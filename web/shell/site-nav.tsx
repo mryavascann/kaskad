@@ -8,6 +8,7 @@ import { Button, ButtonArrow } from "@/design/ui/button";
 import { ButtonLink } from "@/design/ui/button-link";
 import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/design/ui/dialog";
 import { Logo } from "@/design/ui/logo";
+import { SoundToggle } from "@/audio/sound-toggle";
 import { CommandMenu, CommandMenuButton, preloadCommandMenu, ShortcutHint, useCommandMenu } from "@/command/command-menu";
 import { href, matchRoute, type Locale, type RouteId } from "@/i18n/config";
 import type { CommonMessages } from "@/i18n/messages/common";
@@ -61,6 +62,7 @@ export function SiteNav({ locale, t }: { locale: Locale; t: CommonMessages }) {
         <div className="ml-auto flex items-center gap-3">
           <NetworkStatus live={live} locale={locale} t={t.network} className="hidden xl:inline-flex" />
           <CommandMenuButton t={t.command} onOpen={command.openMenu} />
+          <SoundToggle t={t.sound} className="hidden md:inline-flex" />
           <LocaleSwitch locale={locale} t={t.locale} />
           <ButtonLink href={href("app", locale)} variant="secondary" size="sm" className="hidden sm:inline-flex">
             {t.nav.cta}
@@ -109,6 +111,7 @@ export function SiteNav({ locale, t }: { locale: Locale; t: CommonMessages }) {
                 <span className="flex-1 text-left">{t.command.open}</span>
                 <ShortcutHint t={t.command} className="hidden sm:inline-flex" />
               </button>
+              <SoundToggle t={t.sound} showLabel className="mt-2 h-12 w-full justify-start gap-3 px-3 text-fg-2 [&_svg]:size-4" />
               <div className="mt-6 flex flex-col gap-4">
                 <ButtonLink href={href("app", locale)} variant="primary" size="lg" onClick={() => setOpen(false)}>
                   {t.nav.cta}
