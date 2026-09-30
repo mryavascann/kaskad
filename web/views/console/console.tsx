@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Suspense, useCallback, useMemo, useState } from "react";
 import { Footnote } from "@/design/ui/footnote";
 import { Panel, PanelBody, PanelHeader } from "@/design/ui/panel";
 import type { Locale } from "@/i18n/config";
@@ -10,6 +10,7 @@ import { BASE_SETTINGS, buildScenario, DEFAULT_PRESET_ID, matchPreset } from "@/
 import type { Settings } from "@/lib/chain/types";
 import { AnalysisTabs } from "./analysis-tabs";
 import type { ConsolePreset } from "./model";
+import { PresetFromUrl } from "./preset-from-url";
 import { ResultStage } from "./result-stage";
 import { RunAssumptions } from "./run-assumptions";
 import { ScenarioInputs } from "./scenario-inputs";
@@ -34,9 +35,19 @@ export function Console({ locale, presets, nowMs }: Props) {
   const presetId = matchPreset(settings);
   const scenario = useMemo(() => buildScenario(settings), [settings]);
   const preview = usePreview(scenario);
+  const fromUrl = useCallback(
+    (id: string) => {
+      const p = presets.find((x) => x.id === id);
+      if (p) setSettings({ ...p.settings });
+    },
+    [presets],
+  );
 
   return (
     <div className="flex flex-col gap-14">
+      <Suspense fallback={null}>
+        <PresetFromUrl onPreset={fromUrl} />
+      </Suspense>
       <SignerStrip locale={locale} />
 
       <div className="grid-page items-start gap-y-12">

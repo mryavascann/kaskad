@@ -19,6 +19,8 @@ let preview: PreviewState;
 const proveMock = vi.fn();
 const connect = { busy: false, error: null as null | { code: string; raw: string }, injected: null, mera: null, connectInjected: vi.fn(), connectMera: vi.fn(), selectBurner: vi.fn() };
 
+let search = new URLSearchParams();
+vi.mock("next/navigation", () => ({ useSearchParams: () => search }));
 vi.mock("@/lib/chain/hooks/usePreview", () => ({
   PREVIEW_DEBOUNCE_MS: 600,
   usePreview: (s: Scenario) => {
@@ -76,6 +78,7 @@ beforeEach(() => {
   preview = ready();
   proveMock.mockReset();
   connect.error = null;
+  search = new URLSearchParams();
 });
 
 describe("Console inputs", () => {
@@ -117,6 +120,13 @@ describe("Console inputs", () => {
 
     await user.click(screen.getByRole("radio", { name: "External price" }));
     expect(within(group).getByRole("button", { name: /Tuesday depeg/ })).toHaveAttribute("aria-pressed", "true");
+  });
+
+  it("applies ?preset= from the command menu", () => {
+    search = new URLSearchParams("preset=eth");
+    renderConsole();
+    expect(screen.getByRole("button", { name: /ETH drops 20%/ })).toHaveAttribute("aria-pressed", "true");
+    expect(lastCall()).toMatchObject({ assetId: 7, shockBps: 2000 });
   });
 
   it("shows the honesty labels of the run: real book, measured depth, recovery assumption", () => {
