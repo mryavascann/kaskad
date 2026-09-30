@@ -1,0 +1,1159 @@
+{
+ "note": "Recorded from Monad testnet (chainId 10143) with eth_call only, for offline tests of lib/chain/replay.ts. Books: rawSlot(bookId, i), assets(), bookStats() on Kaskad and recoveryBps() on KaskadMC; results: preview() on engineFor(bookId). Bigint fields are hex strings.",
+ "blocks": {
+  "book9": "0x3fe2fe7",
+  "book14": "0x3fe303e"
+ },
+ "recordedAt": [
+  "2026-09-30T14:02:35.749Z",
+  "2026-09-30T14:02:57.646Z"
+ ],
+ "books": {
+  "9": {
+   "bookId": 9,
+   "engine": "0x94f27456bBAfe2a8A69ADE8D4C98eB958abB1E6d",
+   "source": "0xdC2D3A2F4cffBf6a0d7945f6505399e2e474b661",
+   "priceWad": "0x10711b36ff444800",
+   "depthUsdWad": "0x5d1f96215a17c19300000",
+   "bookDebt1e6": "0x707dd252baa0",
+   "count": 57,
+   "recoveryBps": 0,
+   "slots": [
+    "0x1019023f0090000000000000000001be399f7097000000000001a30ad8b75bc",
+    "0x1019023f00900000000000000000011dff17c14a0000000000010c6a0f2edee",
+    "0x1019023f0090000000000000000001163aa8494900000000000104ee944e4ad",
+    "0x1019023f0090000000000000000000a9e442cb09000000000000a07dddd2245",
+    "0x1019023f00900000000000000000004be53494c9000000000000476e0861121",
+    "0x1019023f0090000000000000000000494f6ca16300000000000044dcea47f90",
+    "0x1019023f00900000000000000000003a298e96d600000000000036bacfadf13",
+    "0x1019023f009000000000000000000033b8ce40eb00000000000031f3febc8b2",
+    "0x1019023f009000000000000000000028ad3ed59d000000000000262547467c9",
+    "0x1019023f009000000000000000000027b49b4f9300000000000026121b2635b",
+    "0x1019023f00900000000000000000002569265d430000000000002336d47a700",
+    "0x1019023f00900000000000000000001e0657ddf10000000000001c3073f5ae1",
+    "0x1019023f00900000000000000000001c0bc0a24d00000000000019fda6b608f",
+    "0x1019023f009000000000000000000014b75c91f500000000000013b0e0e031e",
+    "0x1019023f0090000000000000000000145900d9360000000000001314cecfd97",
+    "0x1019023f00900000000000000000000f475575d40000000000000ec688e00dc",
+    "0x1019023f00900000000000000000000f0bdca1ad0000000000000e1dbd4db80",
+    "0x1019023f00900000000000000000000cfd6cb7bd0000000000000c7dc92071a",
+    "0x1019023f009000000000000000000007be0f107f00000000000007406f4a70f",
+    "0x1019023f00900000000000000000000707822be400000000000006ae71432d5",
+    "0x1019023f009000000000000000000006f11469c1000000000000068e8e802eb",
+    "0x1019023f0090000000000000000000069c32296b0000000000000632e9c637c",
+    "0x1019023f009000000000000000000006583e686e0000000000000626990d0c2",
+    "0x1019023f00900000000000000000000628fc24ab00000000000005d21dba000",
+    "0x1019023f009000000000000000000004e3e3527800000000000004971fbfc69",
+    "0x1019023f009000000000000000000004b5f02b480000000000000469a2570a6",
+    "0x1019023f009000000000000000000004817300bb000000000000046ccd60238",
+    "0x1019023f0090000000000000000000047e621e8e0000000000000436fc28a45",
+    "0x1019023f00900000000000000000000448ce3b77000000000000040eeb75262",
+    "0x1019023f009000000000000000000003e6dbe24300000000000004038052166",
+    "0x1019023f009000000000000000000003ca325a0f00000000000003952b25f02",
+    "0x1019023f009000000000000000000003866d73b30000000000000354011a1df",
+    "0x1019023f0090000000000000000000036dc66f95000000000000034497dee8c",
+    "0x1019023f00900000000000000000000332fab2f400000000000003002464a11",
+    "0x1019023f009000000000000000000002faa227d900000000000002d4a109bfb",
+    "0x1019023f009000000000000000000002aacf984a0000000000000286dbc9ab8",
+    "0x1019023f0090000000000000000000029ea57ed100000000000002a87dc1525",
+    "0x1019023f0090000000000000000000021da37c9d00000000000001fe4af0229",
+    "0x1019023f009000000000000000000001aad1ba5e000000000000019bf029aa0",
+    "0x1019023f0090000000000000000000015204adb9000000000000013d4bd7005",
+    "0x1019023f009000000000000000000000f94b37ba00000000000000e9ef17602",
+    "0x1019023f009000000000000000000000e6849d0100000000000000da25ea010",
+    "0x1019023f009000000000000000000000bb3c7b5500000000000000cabbfe9ee",
+    "0x1019023f009000000000000000000000903967e200000000000000881a2f13f",
+    "0x1019023f009000000000000000000000706e3230000000000000007eb3eea1f",
+    "0x1019023f0090000000000000000000006e81209a00000000000000681b788e9",
+    "0x1019023f0090000000000000000000005a26f9c600000000000000587f4bcd4",
+    "0x1019023f00900000000000000000000046344ea50000000000000044adfeb3a",
+    "0x1019023f0090000000000000000000003c4e58cc0000000000000038f6f470a",
+    "0x1019023f00900000000000000000000026a28bfb00000000000000273021bba",
+    "0x1019023f009000000000000000000000168cf66b000000000000004b65c34b2",
+    "0x1019023f00900000000000000000000010a8b794000000000000000fad9d122",
+    "0x1019023f0090000000000000000000000be7ccd100000000000000141ba6bad",
+    "0x1019023f009000000000000000000000022d2a4700000000000000020fc7a72",
+    "0x1019023f009000000000000000000000004b8cd200000000000000004791667",
+    "0x1019023f0090000000000000000000000000e57e000000000000000000f4240",
+    "0x1019023f00900000000000000000000000001fbd000000000000003fce82b2a"
+   ]
+  },
+  "14": {
+   "bookId": 14,
+   "engine": "0x94f27456bBAfe2a8A69ADE8D4C98eB958abB1E6d",
+   "source": "0xdC2D3A2F4cffBf6a0d7945f6505399e2e474b661",
+   "priceWad": "0xddfb5c057261000",
+   "depthUsdWad": "0x2780bf87f64e3e58bc0000",
+   "bookDebt1e6": "0x1d4e67e94fad0",
+   "count": 63,
+   "recoveryBps": 5000,
+   "slots": [
+    "0x1d00c824540e0000000000000000007ed092d91e8000000000008c0883cf4324",
+    "0x22010e24540e00000000000000000062ebc85e74700000000000707a50bbb939",
+    "0xa00d224540e0000000000000000005f630582f6f0000000000069ec80fa85d3",
+    "0xa00d224540e0000000000000000002aa01b78de4000000000002f2f3fce6a50",
+    "0xa00d224540e0000000000000000001fc147691c20000000000022d973e654ba",
+    "0xa00d224540e000000000000000000193a77e16de000000000001bf7ffed53d2",
+    "0xa00d224540e0000000000000000000f9832ec90d000000000001143b94de391",
+    "0xa00d224540e0000000000000000000d00a518152000000000000e4a6b016378",
+    "0xb00c824540e0000000000000000000972d8ab80c000000000000c55fc6b6d45",
+    "0xb00c824540e00000000000000000003c5386258d000000000000511fea50dc4",
+    "0xb00c824540e000000000000000000027b361a82a00000000000041c77623ed8",
+    "0xb00c824540e0000000000000000000267a10e0e600000000000051523f4a883",
+    "0x2019023f00e00025c7f00000000000040450b5ec000000000000024137e8298",
+    "0x2019023f00e000296e40000000000003f77dcaad000000000000027bbcdb9b3",
+    "0x2019023f00e0001cae10000000000002e579ecac00000000000001ba1b25609",
+    "0xb00c824540e0000000000000000000022ffe58540000000000000272ab73929",
+    "0x2019023f00e00011bda0000000000001dcd478cf000000000000011045f2ef6",
+    "0x2019023f00e000013d40000000000001d8a323dc0000000000000205161a16f",
+    "0x3521d4c0e00027cf20000000000001bc599116000000000000010ff35976e",
+    "0x2019023f00e0000ca4d0000000000001403245a600000000000000c1aa3e7c3",
+    "0x2019023f00e0000a7650000000000000f545cfe500000000000000a1e435382",
+    "0x2019023f00e00008b6b0000000000000eb289d6c0000000000000086889b9f0",
+    "0x2019023f00e000103650000000000000938cbdc700000000000000d6ab4d707",
+    "0x3521d4c0e0000000000000000000005cd5954200000000000000803545649",
+    "0xb00c824540e00001d8e0000000000000403af28800000000000000555d92d4d",
+    "0xb00c824540e0000000000000000000002db2e4fe00000000000000328431ed3",
+    "0xb00c824540e0000000000000000000001a80b253000000000000006a36e0f73",
+    "0xa00d224540e0000000300000000000000f12a4800000000000000028b899467",
+    "0x2019023f00e0000099200000000000000e508a8f000000000000000927362eb",
+    "0x2019023f00e0000083200000000000000e4b7c9d000000000000000889c4610",
+    "0x2019023f00e00000000000000000000008c4b8700000000000000009ccb7562",
+    "0x3521d4c0e00000a310000000000000047aa40a00000000000000180c53c93",
+    "0x3521d4c0e0000003c000000000000002c32d990000000000000003c5b2326",
+    "0x3521d4c0e000000e0000000000000002ac084e0000000000000003c3010a9",
+    "0x3521d4c0e000002330000000000000029e9fb00000000000000002f6ec5c4",
+    "0x3521d4c0e00000000000000000000001f40f230000000000000003a2b821d",
+    "0x3521d4c0e00000208000000000000001f16fc000000000000000033a411d9",
+    "0x2019023f00e00000000000000000000001c514c50000000000000002014b169",
+    "0x3521d4c0e00000000000000000000001c1a84e000000000000000266e9b60",
+    "0xb00c824540e0000007b00000000000000197184f00000000000000018abd6e8",
+    "0x3521d4c0e000000000000000000000018957cd00000000000000048a80a38",
+    "0x3521d4c0e000000000000000000000012af05200000000000000056245c72",
+    "0x3521d4c0e000000ca0000000000000011dc24c0000000000000001f5a3e7d",
+    "0xb00c824540e00000000000000000000000e4653d00000000000000010941341",
+    "0x3521d4c0e00000000000000000000000e2473f000000000000000193b9f7f",
+    "0x3521d4c0e00000000000000000000000cff2dd0000000000000001bc29019",
+    "0x3521d4c0e00000000000000000000000c764ec0000000000000002277ddb6",
+    "0x3521d4c0e00000000000000000000000c2a038000000000000000120e4b5a",
+    "0x3521d4c0e00000000000000000000000c2102d000000000000000120f40ef",
+    "0x3521d4c0e00000000000000000000000c1ff16000000000000000120e201c",
+    "0x3521d4c0e00000000000000000000000c1e91d000000000000000120e417a",
+    "0x3521d4c0e00000000000000000000000c151bf0000000000000001151f76e",
+    "0x3521d4c0e00000000000000000000000c05166000000000000000120e1d6e",
+    "0x3521d4c0e000000ba000000000000000be691e0000000000000000924b7df",
+    "0xb00c824540e00000001000000000000000b9eb370000000000000000d195081",
+    "0x3521d4c0e00000000000000000000000b9209400000000000000011e5a522",
+    "0x2019023f00e00000076000000000000000af728d00000000000000007a6b6e2",
+    "0x3521d4c0e00000000000000000000000ad8f2700000000000000010d9087f",
+    "0x3521d4c0e000000000000000000000008cb2110000000000000000bc310c0",
+    "0x3521d4c0e00000000000000000000000766fd3000000000000000122c4a28",
+    "0x3521d4c0e0000000000000000000000075ebfd0000000000000000d4b8e17",
+    "0x3521d4c0e0000000000000000000000075c75e0000000000000001462243e",
+    "0x3521d4c0e000000000000000000000006d74050000000000000000dbeae92"
+   ]
+  }
+ },
+ "runs": [
+  {
+   "name": "sali",
+   "scenario": {
+    "assetId": 9,
+    "shockBps": 300,
+    "steps": 20,
+    "maxRoundsPerStep": 3,
+    "maxPositions": 57,
+    "oracleFeedbackBps": 0
+   },
+   "counts": {
+    "bad-debt": 0,
+    "stuck": 30,
+    "liquidated": 0,
+    "safe": 27
+   },
+   "result": {
+    "totalDebt": "0x664f7755461003f4ca0000",
+    "totalCollateral": "0x6063c909ec3b57b5223000",
+    "totalLiquidated": "0x1c5a3cb6e5327a25f13a",
+    "totalSeized": "0x192702375f71a686b5e3",
+    "badDebt": "0x0",
+    "stuckDebt": "0x5bce8bea846a05f6160ec6",
+    "startPrice": "0x10711b36ff444800",
+    "finalPrice": "0xff2d5474468a200",
+    "rounds": 1,
+    "liquidations": 1,
+    "positionsUsed": 57,
+    "gasUsed": "0x5e9e2",
+    "memoryBytes": "0x73c0",
+    "log": [
+     {
+      "step": 7,
+      "round": 0,
+      "liquidations": 1,
+      "priceWad": "0x1044e92317776780",
+      "liquidatedDebt": "0x1c5a3cb6e5327a25f13a",
+      "seized": "0x192702375f71a686b5e3",
+      "deficit": "0x0"
+     }
+    ]
+   }
+  },
+  {
+   "name": "worst",
+   "scenario": {
+    "assetId": 9,
+    "shockBps": 300,
+    "steps": 20,
+    "maxRoundsPerStep": 3,
+    "maxPositions": 57,
+    "oracleFeedbackBps": 10000
+   },
+   "counts": {
+    "bad-debt": 56,
+    "stuck": 0,
+    "liquidated": 0,
+    "safe": 1
+   },
+   "result": {
+    "totalDebt": "0x664f7755461003f4ca0000",
+    "totalCollateral": "0x6063c909ec3b57b5223000",
+    "totalLiquidated": "0x245ed1ffbc06af5b81c14",
+    "totalSeized": "0x992499178b0da96f56f67",
+    "badDebt": "0x5fe07b3a75a95c89bba8eb",
+    "stuckDebt": "0x0",
+    "startPrice": "0x10711b36ff444800",
+    "finalPrice": "0xaa469dcaa2c23b",
+    "rounds": 42,
+    "liquidations": 46,
+    "positionsUsed": 57,
+    "gasUsed": "0xda911",
+    "memoryBytes": "0x97a0",
+    "log": [
+     {
+      "step": 7,
+      "round": 0,
+      "liquidations": 1,
+      "priceWad": "0x1044e92317776780",
+      "liquidatedDebt": "0x1c5a3cb6e5327a25f13a",
+      "seized": "0x192702375f71a686b5e3",
+      "deficit": "0x0"
+     },
+     {
+      "step": 7,
+      "round": 1,
+      "liquidations": 1,
+      "priceWad": "0xf0ab1adb2db1516",
+      "liquidatedDebt": "0x1b4312fea14e130e41e2",
+      "seized": "0x1a2891aa3a4d3c9d7d4d",
+      "deficit": "0x0"
+     },
+     {
+      "step": 7,
+      "round": 2,
+      "liquidations": 1,
+      "priceWad": "0xde82ee0981b986a",
+      "liquidatedDebt": "0x1a36a5f4d62d8889e228",
+      "seized": "0x1b346e8813ac7c8d5fa2",
+      "deficit": "0x0"
+     },
+     {
+      "step": 8,
+      "round": 0,
+      "liquidations": 1,
+      "priceWad": "0xcd69982169f96e5",
+      "liquidatedDebt": "0x192ac3cf82788dfdae28",
+      "seized": "0x1c4b02501475f23af074",
+      "deficit": "0x0"
+     },
+     {
+      "step": 8,
+      "round": 1,
+      "liquidations": 1,
+      "priceWad": "0xbdea567fd6ff3a5",
+      "liquidatedDebt": "0x1832f75b38879c2e26b9",
+      "seized": "0x1d6cbab9aee1105e4d3f",
+      "deficit": "0x0"
+     },
+     {
+      "step": 8,
+      "round": 2,
+      "liquidations": 1,
+      "priceWad": "0xaf9662e88fdd94f",
+      "liquidatedDebt": "0x1744b2c4051feea9e754",
+      "seized": "0x1e9a09dfd4982557fc32",
+      "deficit": "0x0"
+     },
+     {
+      "step": 9,
+      "round": 0,
+      "liquidations": 1,
+      "priceWad": "0xa21810273a415f7",
+      "liquidatedDebt": "0x1656e61692ee968576bd",
+      "seized": "0x1fd3666de7568d52a0f9",
+      "deficit": "0x0"
+     },
+     {
+      "step": 9,
+      "round": 1,
+      "liquidations": 1,
+      "priceWad": "0x95dd71656778466",
+      "liquidatedDebt": "0x157af0ee52342e468e3c",
+      "seized": "0x21194bce75b62c98f8a7",
+      "deficit": "0x0"
+     },
+     {
+      "step": 9,
+      "round": 2,
+      "liquidations": 1,
+      "priceWad": "0x8a8f0236bf796d0",
+      "liquidatedDebt": "0x14a77182b180f162b2aa",
+      "seized": "0x226c3a5bd694803e9d70",
+      "deficit": "0x0"
+     },
+     {
+      "step": 10,
+      "round": 0,
+      "liquidations": 1,
+      "priceWad": "0x7fe91369934384b",
+      "liquidatedDebt": "0x13d45986a875f9e1b930",
+      "seized": "0x23ccb792b6340a767730",
+      "deficit": "0x0"
+     },
+     {
+      "step": 10,
+      "round": 1,
+      "liquidations": 1,
+      "priceWad": "0x7642a9ce4bf0ca9",
+      "liquidatedDebt": "0x13111b017a98d2bb5fc4",
+      "seized": "0x253b4e46a902ec2aa251",
+      "deficit": "0x0"
+     },
+     {
+      "step": 10,
+      "round": 2,
+      "liquidations": 1,
+      "priceWad": "0x6d56a0c83346c46",
+      "liquidatedDebt": "0x12555ee3e2307bea16e0",
+      "seized": "0x26b88ed8d8bb5c218e01",
+      "deficit": "0x0"
+     },
+     {
+      "step": 11,
+      "round": 0,
+      "liquidations": 2,
+      "priceWad": "0x64ef7fe3b2a3680",
+      "liquidatedDebt": "0x11793a9b4f7f0a11bd3d",
+      "seized": "0x27fa1f0867cb4713f65c",
+      "deficit": "0x83d525a570997eeeba5f"
+     },
+     {
+      "step": 11,
+      "round": 1,
+      "liquidations": 1,
+      "priceWad": "0x5d5f6f244e4b4a4",
+      "liquidatedDebt": "0x10ede37ef6e132d942f2",
+      "seized": "0x29de6cd79ddf77466f84",
+      "deficit": "0x83d525a570997eeeba5f"
+     },
+     {
+      "step": 11,
+      "round": 2,
+      "liquidations": 1,
+      "priceWad": "0x5654118cbd06bef",
+      "liquidatedDebt": "0x8f52f012e8c6e8b381f",
+      "seized": "0x17f6361e37e0ee65ced7",
+      "deficit": "0xc9431a2d5924b1cc0ec2"
+     },
+     {
+      "step": 12,
+      "round": 0,
+      "liquidations": 1,
+      "priceWad": "0x52861525822a7ad",
+      "liquidatedDebt": "0xfe73ae78a46e2c810bc",
+      "seized": "0x2c8087d735c87117185b",
+      "deficit": "0xc9431a2d5924b1cc0ec2"
+     },
+     {
+      "step": 12,
+      "round": 1,
+      "liquidations": 2,
+      "priceWad": "0x4c4c403ccf114f7",
+      "liquidatedDebt": "0x8a1de778fb938820c8a",
+      "seized": "0x1a207c32beb2957fc2ff",
+      "deficit": "0xf7657390ddb26162badc"
+     },
+     {
+      "step": 12,
+      "round": 2,
+      "liquidations": 1,
+      "priceWad": "0x48f727f89ef8eef",
+      "liquidatedDebt": "0xef43394b018d680ab59",
+      "seized": "0x2f53c57135527c29ee70",
+      "deficit": "0xf7657390ddb26162badc"
+     },
+     {
+      "step": 13,
+      "round": 0,
+      "liquidations": 1,
+      "priceWad": "0x435b8cd55fe04d9",
+      "liquidatedDebt": "0xe5b571efd26156d6b7b",
+      "seized": "0x313866f09ddae7601d59",
+      "deficit": "0xf7657390ddb26162badc"
+     },
+     {
+      "step": 13,
+      "round": 1,
+      "liquidations": 1,
+      "priceWad": "0x3e46a1a3f387ce7",
+      "liquidatedDebt": "0xdcdfb27a4a49e82cc13",
+      "seized": "0x33306b0eb8a6389cc5fa",
+      "deficit": "0xf7657390ddb26162badc"
+     },
+     {
+      "step": 13,
+      "round": 2,
+      "liquidations": 1,
+      "priceWad": "0x3993dbe22f8c546",
+      "liquidatedDebt": "0xd460f089476e70e7809",
+      "seized": "0x353c984cc009073c4ee2",
+      "deficit": "0xf7657390ddb26162badc"
+     },
+     {
+      "step": 14,
+      "round": 0,
+      "liquidations": 1,
+      "priceWad": "0x3526fad817a52cf",
+      "liquidatedDebt": "0xcbe5d9aa63701eaf143",
+      "seized": "0x375dbd1c9ec1b5e7dbc3",
+      "deficit": "0xf7657390ddb26162badc"
+     },
+     {
+      "step": 14,
+      "round": 1,
+      "liquidations": 2,
+      "priceWad": "0x31246af2f60cf96",
+      "liquidatedDebt": "0x8fca1189ca7c4cb90ab",
+      "seized": "0x2a3afb2c1bb6632e98b7",
+      "deficit": "0x1d511503aaeba1c157f51"
+     },
+     {
+      "step": 14,
+      "round": 2,
+      "liquidations": 1,
+      "priceWad": "0x2e618b4e7ffa5c6",
+      "liquidatedDebt": "0xbe77cd470172d681ebd",
+      "seized": "0x3b4520a4a63726e93d11",
+      "deficit": "0x1d511503aaeba1c157f51"
+     },
+     {
+      "step": 15,
+      "round": 0,
+      "liquidations": 1,
+      "priceWad": "0x2ad0f06db8dd2e4",
+      "liquidatedDebt": "0xb6dc96f62e26aadd09f",
+      "seized": "0x3da40d78090629447cbb",
+      "deficit": "0x1d511503aaeba1c157f51"
+     },
+     {
+      "step": 15,
+      "round": 1,
+      "liquidations": 1,
+      "priceWad": "0x279601214751cbb",
+      "liquidatedDebt": "0xafd41b006773f054995",
+      "seized": "0x401b4135281ae2466849",
+      "deficit": "0x1d511503aaeba1c157f51"
+     },
+     {
+      "step": 15,
+      "round": 2,
+      "liquidations": 1,
+      "priceWad": "0x249974ed2890ed2",
+      "liquidatedDebt": "0xa910dee2d9a0bae8f30",
+      "seized": "0x42abb474b911ba34a892",
+      "deficit": "0x1d511503aaeba1c157f51"
+     },
+     {
+      "step": 16,
+      "round": 0,
+      "liquidations": 1,
+      "priceWad": "0x21c94be562dd717",
+      "liquidatedDebt": "0xa2505c4e2e7658a22bb",
+      "seized": "0x455669c112645add0586",
+      "deficit": "0x1d511503aaeba1c157f51"
+     },
+     {
+      "step": 16,
+      "round": 1,
+      "liquidations": 1,
+      "priceWad": "0x1f3cc2c309fc73d",
+      "liquidatedDebt": "0x9c12315edde7efe90d2",
+      "seized": "0x481c6dfbfea5cdeee742",
+      "deficit": "0x1d511503aaeba1c157f51"
+     },
+     {
+      "step": 16,
+      "round": 2,
+      "liquidations": 1,
+      "priceWad": "0x1ce174726e585d6",
+      "liquidatedDebt": "0x96117e3dadfc94bb732",
+      "seized": "0x4afed8c8a26f02a29ad3",
+      "deficit": "0x1d511503aaeba1c157f51"
+     },
+     {
+      "step": 17,
+      "round": 0,
+      "liquidations": 1,
+      "priceWad": "0x1aa928b4867555f",
+      "liquidatedDebt": "0x6e2c233a829a80fd9e9",
+      "seized": "0x3ba46707619a7c169d45",
+      "deficit": "0x3ce202dddb61ff62907d5"
+     },
+     {
+      "step": 17,
+      "round": 1,
+      "liquidations": 1,
+      "priceWad": "0x191a08805020569",
+      "liquidatedDebt": "0x8bcc7169b1cdbd262a7",
+      "seized": "0x5061896a8e1d75085d7a",
+      "deficit": "0x3ce202dddb61ff62907d5"
+     },
+     {
+      "step": 17,
+      "round": 2,
+      "liquidations": 2,
+      "priceWad": "0x17353a9afcd3ac6",
+      "liquidatedDebt": "0x7611a45d64d24a02932",
+      "seized": "0x496d2f2267bbc26db09c",
+      "deficit": "0x4249754301158daa59373"
+     },
+     {
+      "step": 18,
+      "round": 0,
+      "liquidations": 1,
+      "priceWad": "0x15a03b427b8c692",
+      "liquidatedDebt": "0x81a8cdcf6005a20845f",
+      "seized": "0x5688868ee9de7cd15326",
+      "deficit": "0x4249754301158daa59373"
+     },
+     {
+      "step": 18,
+      "round": 1,
+      "liquidations": 1,
+      "priceWad": "0x13fe8ea59be262a",
+      "liquidatedDebt": "0x7cac285b1767dcc9ce4",
+      "seized": "0x59fea06bab8b37aab87b",
+      "deficit": "0x4249754301158daa59373"
+     },
+     {
+      "step": 18,
+      "round": 2,
+      "liquidations": 1,
+      "priceWad": "0x127c64d4f2f6cc0",
+      "liquidatedDebt": "0x77e09cf5205a008a4ba",
+      "seized": "0x5d982bf518ce362f338e",
+      "deficit": "0x4249754301158daa59373"
+     },
+     {
+      "step": 19,
+      "round": 0,
+      "liquidations": 1,
+      "priceWad": "0x11109e7657a0e88",
+      "liquidatedDebt": "0x7316ca8a2b37c418eeb",
+      "seized": "0x6156941d9eeaf551e701",
+      "deficit": "0x4249754301158daa59373"
+     },
+     {
+      "step": 19,
+      "round": 1,
+      "liquidations": 1,
+      "priceWad": "0xfc708a93f98ef2",
+      "liquidatedDebt": "0x6ea99b5d78532a38c28",
+      "seized": "0x653b525c3edfe21c81dc",
+      "deficit": "0x4249754301158daa59373"
+     },
+     {
+      "step": 19,
+      "round": 2,
+      "liquidations": 1,
+      "priceWad": "0xe965056cc9922b",
+      "liquidatedDebt": "0x6a6801b27d8b0aebcea",
+      "seized": "0x6947ef41372647bcfd17",
+      "deficit": "0x4249754301158daa59373"
+     },
+     {
+      "step": 20,
+      "round": 0,
+      "liquidations": 1,
+      "priceWad": "0xd77409326198ed",
+      "liquidatedDebt": "0x6627df7ea7a7eb97252",
+      "seized": "0x6d7e03109fc16ac546e6",
+      "deficit": "0x4249754301158daa59373"
+     },
+     {
+      "step": 20,
+      "round": 1,
+      "liquidations": 1,
+      "priceWad": "0xc732db0f25f950",
+      "liquidatedDebt": "0x623a08212b0dc5c5f48",
+      "seized": "0x71df366335817aeaa93f",
+      "deficit": "0x4249754301158daa59373"
+     },
+     {
+      "step": 20,
+      "round": 2,
+      "liquidations": 1,
+      "priceWad": "0xb82b9c54d2723d",
+      "liquidatedDebt": "0x5e72e06ea965db8287c",
+      "seized": "0x766d42cd93ce576a8c09",
+      "deficit": "0x4249754301158daa59373"
+     }
+    ]
+   }
+  },
+  {
+   "name": "usde-eth-5-external",
+   "scenario": {
+    "assetId": 14,
+    "shockBps": 500,
+    "steps": 20,
+    "maxRoundsPerStep": 3,
+    "maxPositions": 63,
+    "oracleFeedbackBps": 0
+   },
+   "counts": {
+    "bad-debt": 0,
+    "stuck": 14,
+    "liquidated": 1,
+    "safe": 48
+   },
+   "result": {
+    "totalDebt": "0x1aa765fedb4aa2337bd0000",
+    "totalCollateral": "0x1dff296f8784fd9a1225000",
+    "totalLiquidated": "0x1de60ed78effdc27f4a19",
+    "totalSeized": "0x1f981afb98dcfd5b283a0",
+    "badDebt": "0x0",
+    "stuckDebt": "0x13d16810f26370c9d1eb5e7",
+    "startPrice": "0xddfb5c057261000",
+    "finalPrice": "0xd2e1fdd1f975c00",
+    "rounds": 13,
+    "liquidations": 13,
+    "positionsUsed": 63,
+    "gasUsed": "0x8b1e2",
+    "memoryBytes": "0x82c0",
+    "log": [
+     {
+      "step": 2,
+      "round": 0,
+      "liquidations": 1,
+      "priceWad": "0xdcdf39004cafe00",
+      "liquidatedDebt": "0x7ff63d95a41610000",
+      "seized": "0x8b93646ff031fe8fd",
+      "deficit": "0x0"
+     },
+     {
+      "step": 8,
+      "round": 0,
+      "liquidations": 1,
+      "priceWad": "0xd98acff0db9c800",
+      "liquidatedDebt": "0x65eb3860a62918f8270e",
+      "seized": "0x6a367939a2f21d76819d",
+      "deficit": "0x0"
+     },
+     {
+      "step": 10,
+      "round": 0,
+      "liquidations": 1,
+      "priceWad": "0xd86eacebb5eb600",
+      "liquidatedDebt": "0x324d92674631641a0846",
+      "seized": "0x34b0f0a53f761b22e231",
+      "deficit": "0x0"
+     },
+     {
+      "step": 11,
+      "round": 0,
+      "liquidations": 1,
+      "priceWad": "0xd7e09b692312d00",
+      "liquidatedDebt": "0x1930279d3fcac4dd02ad",
+      "seized": "0x1a73a594502e82595fb3",
+      "deficit": "0x0"
+     },
+     {
+      "step": 12,
+      "round": 0,
+      "liquidations": 1,
+      "priceWad": "0xd75289e6903a400",
+      "liquidatedDebt": "0x25ac4bdeec31225e863b",
+      "seized": "0x27aa3c848dab81fa035f",
+      "deficit": "0x0"
+     },
+     {
+      "step": 13,
+      "round": 0,
+      "liquidations": 1,
+      "priceWad": "0xd6c47863fd61b00",
+      "liquidatedDebt": "0x1f464dd6aca812bf3179",
+      "seized": "0x21036ae869a54459eea8",
+      "deficit": "0x0"
+     },
+     {
+      "step": 14,
+      "round": 0,
+      "liquidations": 1,
+      "priceWad": "0xd63666e16a89200",
+      "liquidatedDebt": "0x225bb5832b4d833aeb55",
+      "seized": "0x245cc37568096632ffa6",
+      "deficit": "0x0"
+     },
+     {
+      "step": 15,
+      "round": 0,
+      "liquidations": 1,
+      "priceWad": "0xd5a8555ed7b0900",
+      "liquidatedDebt": "0x20ae23f1944e71c1390c",
+      "seized": "0x22ad22c840e6ec04ad2d",
+      "deficit": "0x0"
+     },
+     {
+      "step": 16,
+      "round": 0,
+      "liquidations": 1,
+      "priceWad": "0xd51a43dc44d8000",
+      "liquidatedDebt": "0x2164ade11e798316fdc6",
+      "seized": "0x23867226c9a4c42744a3",
+      "deficit": "0x0"
+     },
+     {
+      "step": 17,
+      "round": 0,
+      "liquidations": 1,
+      "priceWad": "0xd48c3259b1ff700",
+      "liquidatedDebt": "0x20e7d82439e7a02ff179",
+      "seized": "0x23190a2fe8828d748450",
+      "deficit": "0x0"
+     },
+     {
+      "step": 18,
+      "round": 0,
+      "liquidations": 1,
+      "priceWad": "0xd3fe20d71f26e00",
+      "liquidatedDebt": "0x21055b442426589b88be",
+      "seized": "0x23501f1ddbe230e1b2d3",
+      "deficit": "0x0"
+     },
+     {
+      "step": 19,
+      "round": 0,
+      "liquidations": 1,
+      "priceWad": "0xd3700f548c4e500",
+      "liquidatedDebt": "0x20d55d1e5555e5979b87",
+      "seized": "0x233463e0fd8dd7e6c9f3",
+      "deficit": "0x0"
+     },
+     {
+      "step": 20,
+      "round": 0,
+      "liquidations": 1,
+      "priceWad": "0xd2e1fdd1f975c00",
+      "liquidatedDebt": "0x20cc4a1dc02bb39b287f",
+      "seized": "0x23425a0fe861a4aff28f",
+      "deficit": "0x0"
+     }
+    ]
+   }
+  },
+  {
+   "name": "usde-eth-5-pool",
+   "scenario": {
+    "assetId": 14,
+    "shockBps": 500,
+    "steps": 20,
+    "maxRoundsPerStep": 3,
+    "maxPositions": 63,
+    "oracleFeedbackBps": 10000
+   },
+   "counts": {
+    "bad-debt": 22,
+    "stuck": 16,
+    "liquidated": 1,
+    "safe": 24
+   },
+   "result": {
+    "totalDebt": "0x1aa765fedb4aa2337bd0000",
+    "totalCollateral": "0x1dff296f8784fd9a1225000",
+    "totalLiquidated": "0xe2b954372c53072b6a964",
+    "totalSeized": "0x1178ff6cf2c271b5335499",
+    "badDebt": "0x49f8c638a22b10f86f4c4b",
+    "stuckDebt": "0x7c0568f30e2f439c0000",
+    "startPrice": "0xddfb5c057261000",
+    "finalPrice": "0xa2fd3b9abe6ed02",
+    "rounds": 40,
+    "liquidations": 40,
+    "positionsUsed": 63,
+    "gasUsed": "0xd5bdd",
+    "memoryBytes": "0x9a60",
+    "log": [
+     {
+      "step": 2,
+      "round": 0,
+      "liquidations": 1,
+      "priceWad": "0xdcdf39004cafe00",
+      "liquidatedDebt": "0x7ff63d95a41610000",
+      "seized": "0x8b93646ff031fe8fd",
+      "deficit": "0x0"
+     },
+     {
+      "step": 8,
+      "round": 0,
+      "liquidations": 1,
+      "priceWad": "0xd98accf06ec81a9",
+      "liquidatedDebt": "0x65eb7b581270f41bc9f1",
+      "seized": "0x6a36c07a82e6b6481447",
+      "deficit": "0x0"
+     },
+     {
+      "step": 8,
+      "round": 1,
+      "liquidations": 1,
+      "priceWad": "0xd0af74a6432d8bf",
+      "liquidatedDebt": "0x63d2d4937096bf2ee7b2",
+      "seized": "0x6c71c1f5ea839eb67880",
+      "deficit": "0x0"
+     },
+     {
+      "step": 8,
+      "round": 2,
+      "liquidations": 1,
+      "priceWad": "0xc8306be174e9681",
+      "liquidatedDebt": "0x61c537819d2914fc010b",
+      "seized": "0x6eb8c12b76dce8e7e545",
+      "deficit": "0x0"
+     },
+     {
+      "step": 9,
+      "round": 0,
+      "liquidations": 1,
+      "priceWad": "0xcbac79ba5eb606d",
+      "liquidatedDebt": "0x627de3d490d0849104fa",
+      "seized": "0x6da15f28771d4f0ffad6",
+      "deficit": "0x0"
+     },
+     {
+      "step": 9,
+      "round": 1,
+      "liquidations": 1,
+      "priceWad": "0xc361ace323f0f55",
+      "liquidatedDebt": "0x607749f50d35891481fe",
+      "seized": "0x6feebe98acd0ddac0a20",
+      "deficit": "0x0"
+     },
+     {
+      "step": 9,
+      "round": 2,
+      "liquidations": 1,
+      "priceWad": "0xbb6d4d0ae33161f",
+      "liquidatedDebt": "0x5e7b5abd5cebf8ffe017",
+      "seized": "0x72487e80bec7f0df40d3",
+      "deficit": "0x0"
+     },
+     {
+      "step": 10,
+      "round": 0,
+      "liquidations": 1,
+      "priceWad": "0xc4941ba7354b6a0",
+      "liquidatedDebt": "0x60a31fe30355923b7069",
+      "seized": "0x6f72d094a4260efec08a",
+      "deficit": "0x0"
+     },
+     {
+      "step": 10,
+      "round": 1,
+      "liquidations": 1,
+      "priceWad": "0xbc9341ff6c522e0",
+      "liquidatedDebt": "0x5ea649db1591bdffae65",
+      "seized": "0x71c9f63da69260912cf1",
+      "deficit": "0x0"
+     },
+     {
+      "step": 10,
+      "round": 2,
+      "liquidations": 1,
+      "priceWad": "0xb4e5d29757b8020",
+      "liquidatedDebt": "0x5cb3eb103f3fc43a1904",
+      "seized": "0x742db0ea7720351ff04f",
+      "deficit": "0x0"
+     },
+     {
+      "step": 11,
+      "round": 0,
+      "liquidations": 1,
+      "priceWad": "0xc0b6bea83840d88",
+      "liquidatedDebt": "0x5f8f4f705b76fd7528cc",
+      "seized": "0x706a81ff17606e97514f",
+      "deficit": "0x0"
+     },
+     {
+      "step": 11,
+      "round": 1,
+      "liquidations": 1,
+      "priceWad": "0xb8de2cb135f2f58",
+      "liquidatedDebt": "0x5d9825affd502f1869c9",
+      "seized": "0x72c6db411ec793147cdc",
+      "deficit": "0x0"
+     },
+     {
+      "step": 11,
+      "round": 2,
+      "liquidations": 1,
+      "priceWad": "0xb1576127c558ce5",
+      "liquidatedDebt": "0x5bab554dd7c22079458b",
+      "seized": "0x752fe57d9fae960ea6a3",
+      "deficit": "0x0"
+     },
+     {
+      "step": 12,
+      "round": 0,
+      "liquidations": 1,
+      "priceWad": "0xbe7839be9edda12",
+      "liquidatedDebt": "0x5ee12bd5da4c25b09970",
+      "seized": "0x70ee525704043f850148",
+      "deficit": "0x0"
+     },
+     {
+      "step": 12,
+      "round": 1,
+      "liquidations": 1,
+      "priceWad": "0xb6b70bbc724b04f",
+      "liquidatedDebt": "0x5ced9700173fcca733bd",
+      "seized": "0x734d703aa290a01b86fa",
+      "deficit": "0x0"
+     },
+     {
+      "step": 12,
+      "round": 2,
+      "liquidations": 1,
+      "priceWad": "0xaf46b05e0d4ea1b",
+      "liquidatedDebt": "0x5b0448ac98266b89c69b",
+      "seized": "0x75b94dfa5492218ad7a5",
+      "deficit": "0x0"
+     },
+     {
+      "step": 13,
+      "round": 0,
+      "liquidations": 1,
+      "priceWad": "0xbd0f66b1fc44c6a",
+      "liquidatedDebt": "0x5e67ee1f401388da0fa8",
+      "seized": "0x713477efc4334acbad03",
+      "deficit": "0x0"
+     },
+     {
+      "step": 13,
+      "round": 1,
+      "liquidations": 1,
+      "priceWad": "0xb55ce965eb104b2",
+      "liquidatedDebt": "0x5c76d7ac45c769b40771",
+      "seized": "0x73950eef6cedb7483b78",
+      "deficit": "0x0"
+     },
+     {
+      "step": 13,
+      "round": 2,
+      "liquidations": 1,
+      "priceWad": "0xadfaa5a16b56cba",
+      "liquidatedDebt": "0x5a8ffa9a2fc8936143d3",
+      "seized": "0x76026db6805e3a0ed8c2",
+      "deficit": "0x0"
+     },
+     {
+      "step": 14,
+      "round": 0,
+      "liquidations": 1,
+      "priceWad": "0xbc1636a72d5eff1",
+      "liquidatedDebt": "0x5e0a786a4710bc8d61d9",
+      "seized": "0x7159cc5c7fef52aec4d8",
+      "deficit": "0x0"
+     },
+     {
+      "step": 14,
+      "round": 1,
+      "liquidations": 1,
+      "priceWad": "0xb46dde87041b22d",
+      "liquidatedDebt": "0x5c1b4e125727b5dea455",
+      "seized": "0x73bb2c0b7f8cab2cdb9d",
+      "deficit": "0x0"
+     },
+     {
+      "step": 14,
+      "round": 2,
+      "liquidations": 1,
+      "priceWad": "0xad1556314451346",
+      "liquidatedDebt": "0x5a3652fc26397274c892",
+      "seized": "0x762957b8cbb3349a86f0",
+      "deficit": "0x0"
+     },
+     {
+      "step": 15,
+      "round": 0,
+      "liquidations": 1,
+      "priceWad": "0xbb57c8649b5994c",
+      "liquidatedDebt": "0x5dbbac7d5c1476624d95",
+      "seized": "0x716da9f786e76123ad44",
+      "deficit": "0x0"
+     },
+     {
+      "step": 15,
+      "round": 1,
+      "liquidations": 1,
+      "priceWad": "0xb3b7310a96830a4",
+      "liquidatedDebt": "0x5bce210b34533a02d0b1",
+      "seized": "0x73cf7472bdb46e2da0e5",
+      "deficit": "0x0"
+     },
+     {
+      "step": 15,
+      "round": 2,
+      "liquidations": 1,
+      "priceWad": "0xac6618ac91ebdfd",
+      "liquidatedDebt": "0x59eabc522ebc54533ee7",
+      "seized": "0x763e0d2a660a65decafc",
+      "deficit": "0x0"
+     },
+     {
+      "step": 16,
+      "round": 0,
+      "liquidations": 1,
+      "priceWad": "0xbab86661e8a11ce",
+      "liquidatedDebt": "0x5d74a315da1f877dc023",
+      "seized": "0x71783c5a9bf778fecacc",
+      "deficit": "0x0"
+     },
+     {
+      "step": 16,
+      "round": 1,
+      "liquidations": 1,
+      "priceWad": "0xb31e4c34fc1aa03",
+      "liquidatedDebt": "0x5b888dad9935b3262d5b",
+      "seized": "0x73da3fab5c2b8548a4c5",
+      "deficit": "0x0"
+     },
+     {
+      "step": 16,
+      "round": 2,
+      "liquidations": 1,
+      "priceWad": "0xabd36d625dc222d",
+      "liquidatedDebt": "0x59a6974d015f78c84036",
+      "seized": "0x7649126a1837b3304df3",
+      "deficit": "0x0"
+     },
+     {
+      "step": 17,
+      "round": 0,
+      "liquidations": 1,
+      "priceWad": "0xba297528f15c647",
+      "liquidatedDebt": "0x5d31b66eb00b39dcea98",
+      "seized": "0x717ddc99f95ba6e33c54",
+      "deficit": "0x0"
+     },
+     {
+      "step": 17,
+      "round": 1,
+      "liquidations": 1,
+      "priceWad": "0xb2952ccecccce0d",
+      "liquidatedDebt": "0x5b47016926c80ca24772",
+      "seized": "0x73dffe297ed9bcb350fa",
+      "deficit": "0x0"
+     },
+     {
+      "step": 17,
+      "round": 2,
+      "liquidations": 1,
+      "priceWad": "0xab4fe327334efca",
+      "liquidatedDebt": "0x5966642bd0bbea1e9980",
+      "seized": "0x764eefc9995289c6eea9",
+      "deficit": "0x0"
+     },
+     {
+      "step": 18,
+      "round": 0,
+      "liquidations": 1,
+      "priceWad": "0xb9a33b143a61421",
+      "liquidatedDebt": "0x5cf0f8189760fdbf4027",
+      "seized": "0x7180db0d6ac10a0b7220",
+      "deficit": "0x0"
+     },
+     {
+      "step": 18,
+      "round": 1,
+      "liquidations": 1,
+      "priceWad": "0xb21469b6ad09b5c",
+      "liquidatedDebt": "0x5b0797f9ff5436ae30e1",
+      "seized": "0x73e30cb560f6c1881b6d",
+      "deficit": "0x0"
+     },
+     {
+      "step": 18,
+      "round": 2,
+      "liquidations": 1,
+      "priceWad": "0xaad45e16a7ac5ac",
+      "liquidatedDebt": "0x592848a09bcd17508374",
+      "seized": "0x76520ec473a3dfe155ba",
+      "deficit": "0x0"
+     },
+     {
+      "step": 19,
+      "round": 0,
+      "liquidations": 1,
+      "priceWad": "0xb921a075508be19",
+      "liquidatedDebt": "0x5cb161f93fa4cace0245",
+      "seized": "0x718272ee805967cb95b2",
+      "deficit": "0x0"
+     },
+     {
+      "step": 19,
+      "round": 1,
+      "liquidations": 1,
+      "priceWad": "0xb19815e5ad77a88",
+      "liquidatedDebt": "0x5ac950a9e7949d1e78a4",
+      "seized": "0x73e4ad2738cdf81c7e5e",
+      "deficit": "0x0"
+     },
+     {
+      "step": 19,
+      "round": 2,
+      "liquidations": 1,
+      "priceWad": "0xaa5d1a14be13e46",
+      "liquidatedDebt": "0x58eb493cd9ca7959a50e",
+      "seized": "0x7653b7f519ff59cbd89c",
+      "deficit": "0x0"
+     },
+     {
+      "step": 20,
+      "round": 0,
+      "liquidations": 1,
+      "priceWad": "0xb8a279c5f50c3b8",
+      "liquidatedDebt": "0x5c72690a068bc994cbf7",
+      "seized": "0x71834bfdbcb2dbb20e52",
+      "deficit": "0x0"
+     },
+     {
+      "step": 20,
+      "round": 1,
+      "liquidations": 1,
+      "priceWad": "0xb11e1c738ab5302",
+      "liquidatedDebt": "0x5a8ba34e45185628e0f9",
+      "seized": "0x73e58ac55e9d050751de",
+      "deficit": "0x0"
+     },
+     {
+      "step": 20,
+      "round": 2,
+      "liquidations": 1,
+      "priceWad": "0xa9e817eb742e06f",
+      "liquidatedDebt": "0x58aee0a2e9a902b7aa73",
+      "seized": "0x76549a3aaa95907b95e3",
+      "deficit": "0x0"
+     }
+    ]
+   }
+  }
+ ]
+}
