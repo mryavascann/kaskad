@@ -9,8 +9,12 @@ const en = {
   brand: "Kaskad",
   meta: {
     title: "Kaskad · On-chain liquidation cascade engine on Monad",
+    /**
+     * `{shock}` is filled with the finding's price drop by `siteDescription` (shell/site-metadata.ts).
+     * A plain string on purpose: this dictionary is passed to Client Components, which can't take functions.
+     */
     description:
-      "What happens if an asset drops 3%? Kaskad replays the liquidation cascade across the real Aave book on Monad, in one transaction anyone can verify.",
+      "What happens if an asset drops {shock}? Kaskad replays the liquidation cascade across the real Aave book on Monad, in one transaction anyone can verify.",
   },
   placeholder: {
     kicker: "Being rebuilt",
@@ -117,7 +121,7 @@ const tr = {
   meta: {
     title: "Kaskad · Monad'da zincir üstü likidasyon kaskadı motoru",
     description:
-      "Bir varlık %3 düşerse ne olur? Kaskad, Monad'daki gerçek Aave defterinde likidasyon kaskadını herkesin doğrulayabileceği tek bir işlemde yeniden oynatır.",
+      "Bir varlık {shock} düşerse ne olur? Kaskad, Monad'daki gerçek Aave defterinde likidasyon kaskadını herkesin doğrulayabileceği tek bir işlemde yeniden oynatır.",
   },
   placeholder: {
     kicker: "Yeniden yapılıyor",

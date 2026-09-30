@@ -2,13 +2,14 @@ import type { Metadata } from "next";
 import "../globals.css";
 import { commonMessages } from "@/i18n/messages/common";
 import { RootDocument } from "@/shell/root-document";
+import { siteDescription } from "@/shell/site-metadata";
 import { SiteShell } from "@/shell/site-shell";
 
 const t = commonMessages.tr.meta;
 
 export const metadata: Metadata = {
   title: { default: t.title, template: "%s · Kaskad" },
-  description: t.description,
+  description: siteDescription("tr"),
   applicationName: "Kaskad",
 };
 
