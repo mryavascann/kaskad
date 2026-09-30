@@ -141,6 +141,7 @@ export function GuardLive({ locale }: { locale: Locale }) {
                         })
                       : null,
                     undefined,
+                    true,
                   ],
                   [
                     t.rule.trips,
@@ -153,18 +154,27 @@ export function GuardLive({ locale }: { locale: Locale }) {
                           .join(" ")
                       : null,
                     undefined,
+                    false,
                   ],
-                  [t.rule.effect, cfg ? t.rule.effectValue({ ltv: fmt.pct(cfg.safeLtvBps / 10_000, 0) }) : null, undefined],
+                  [t.rule.effect, cfg ? t.rule.effectValue({ ltv: fmt.pct(cfg.safeLtvBps / 10_000, 0) }) : null, undefined, true],
                   [
                     t.rule.now,
                     info ? (info.verdict.wouldTrip ? t.rule.nowTrip : t.rule.nowSafe)({ ratio: fmt.pct(info.verdict.badDebtRatioBps / 10_000) }) : null,
                     info ? (info.verdict.wouldTrip ? "text-liq-hi" : "text-safe") : undefined,
+                    true,
                   ],
-                ] as [string, string | null, string | undefined][]
-              ).map(([label, value, tone]) => (
+                ] as [string, string | null, string | undefined, boolean][]
+              ).map(([label, value, tone, long]) => (
                 <div key={label} className="flex flex-col gap-1.5 py-3.5 first:pt-0 last:pb-0">
                   <dt className="label-mono text-fg-3">{label}</dt>
-                  <dd className={cn("text-body-sm text-fg-1", tone)}>{value ?? <Skeleton className="h-4 w-3/4" />}</dd>
+                  {/* Long values wrap to two lines on phones: the row keeps that height while loading (CLS). */}
+                  <dd className={cn("text-body-sm text-fg-1", long && "max-sm:min-h-[2lh]", tone)}>
+                    {value ?? (
+                      <span className="flex h-[1lh] items-center">
+                        <Skeleton className="h-[0.8em] w-3/4" />
+                      </span>
+                    )}
+                  </dd>
                 </div>
               ))}
             </dl>
