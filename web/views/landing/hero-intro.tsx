@@ -26,7 +26,7 @@ export function HeroIntro({ locale, t, finding, meta }: { locale: Locale; t: Lan
   const stuck = finding ? usdParts(finding.stuckDebtUsd, locale) : null;
 
   return (
-    <div className="page-shell flex h-full flex-col justify-end pb-32 sm:pb-28 lg:justify-center lg:pb-20">
+    <div className="page-shell flex h-full flex-col justify-end pb-10 sm:pb-24 lg:justify-center lg:pb-20">
       <div className="flex max-w-4xl flex-col items-start gap-6 lg:gap-7">
         <WinnerBadge label={c.badge.winner} event={c.badge.event} className="animate-fade-in" />
         <SplitText as="h1" lines={t.hero.lines} accent={t.hero.accent} className="text-display text-fg-1" />
@@ -48,8 +48,8 @@ export function HeroIntro({ locale, t, finding, meta }: { locale: Locale; t: Lan
             data-landing-hero-metric=""
           />
           <p className="flex flex-wrap items-center gap-x-2 gap-y-1.5 font-mono text-caption text-fg-3">
-            <span className="inline-flex items-center gap-1.5">
-              <span aria-hidden className="size-1.5 rounded-full bg-safe motion-safe:animate-live" />
+            <span className="inline-flex items-start gap-1.5">
+              <span aria-hidden className="mt-[calc(0.5lh-0.1875rem)] size-1.5 shrink-0 rounded-full bg-safe motion-safe:animate-live" />
               {finding?.blockNumber != null ? t.hero.live({ block: fmt.block(finding.blockNumber) }) : t.hero.liveMissing}
             </span>
           </p>
