@@ -9,7 +9,6 @@
 import { useEffect } from "react";
 import { useShouldReduceMotion } from "./hooks";
 import { loadScrollKit } from "./scroll";
-import "./smooth-scroll.css";
 
 export type SmoothScrollProps = {
   /** Lenis lerp (0–1): lower is smoother. Default 0.1. */
