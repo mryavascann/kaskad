@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Direction A · Instrument</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@1&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: oklch(0.145 0.018 285);
+    --bg-1: oklch(0.175 0.02 285);
+    --bg-2: oklch(0.21 0.022 285);
+    --line: oklch(1 0 0 / 0.08);
+    --line-2: oklch(1 0 0 / 0.14);
+    --t1: oklch(0.96 0.005 285);
+    --t2: oklch(0.78 0.012 285);
+    --t3: oklch(0.6 0.015 285);
+    --t4: oklch(0.45 0.015 285);
+    --calm: oklch(0.72 0.035 245);
+    --warn: oklch(0.82 0.15 75);
+    --liq: oklch(0.66 0.22 25);
+    --safe: oklch(0.78 0.15 160);
+    --monad: oklch(0.64 0.2 290);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { width: 1440px; background: var(--bg); color: var(--t1); font-family: Geist, sans-serif; }
+  .mono { font-family: "Geist Mono", monospace; font-variant-numeric: tabular-nums; }
+  .hero { position: relative; height: 900px; overflow: hidden;
+    background: radial-gradient(ellipse 800px 500px at 78% 30%, oklch(0.64 0.2 290 / 0.10), transparent 70%), var(--bg); }
+  .grid { position: absolute; inset: 0;
+    background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 120px 120px; opacity: .55; mask-image: linear-gradient(#000 40%, transparent); }
+  nav { position: absolute; top: 0; left: 0; right: 0; height: 72px; display: flex; align-items: center; padding: 0 60px;
+    border-bottom: 1px solid var(--line); font-size: 13px; color: var(--t2); gap: 36px; }
+  nav .logo { color: var(--t1); font-weight: 600; font-size: 17px; letter-spacing: -.3px; display: flex; gap: 10px; align-items: center; margin-right: auto; }
+  nav .logo i { width: 18px; height: 18px; border: 1.5px solid var(--t1); border-radius: 3px; position: relative; }
+  nav .logo i::after { content: ""; position: absolute; left: 3px; right: 3px; bottom: 3px; height: 5px; background: var(--liq); }
+  nav .live { display: flex; gap: 8px; align-items: center; font-size: 11px; color: var(--t3); }
+  nav .live b { width: 6px; height: 6px; border-radius: 50%; background: var(--safe); box-shadow: 0 0 8px var(--safe); }
+  nav .cta { color: var(--t1); border: 1px solid var(--line-2); padding: 9px 16px; border-radius: 6px; }
+  .coords { position: absolute; font-size: 10px; color: var(--t4); letter-spacing: 1px; }
+  .head { position: absolute; left: 60px; top: 150px; width: 820px; }
+  .eyebrow { font-size: 11px; letter-spacing: 2px; color: var(--t3); display: flex; gap: 14px; align-items: center; }
+  .eyebrow span { color: var(--warn); }
+  h1 { margin-top: 26px; font-size: 92px; line-height: .98; font-weight: 500; letter-spacing: -4.2px; }
+  h1 em { font-family: "Instrument Serif", serif; font-weight: 400; letter-spacing: -1.5px; color: var(--t2); }
+  .sub { margin-top: 28px; font-size: 19px; color: var(--t2); width: 560px; line-height: 1.5; }
+  .ctas { margin-top: 34px; display: flex; gap: 12px; }
+  .btn { padding: 15px 22px; border-radius: 8px; font-size: 14px; font-weight: 500; }
+  .btn.p { background: var(--t1); color: var(--bg); }
+  .btn.s { border: 1px solid var(--line-2); color: var(--t1); }
+  .readout { position: absolute; right: 60px; top: 150px; width: 380px; border: 1px solid var(--line-2); border-radius: 10px;
+    background: oklch(0.17 0.02 285 / .8); backdrop-filter: blur(10px); }
+  .readout .row { display: flex; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid var(--line); font-size: 12px; color: var(--t3); }
+  .readout .row:last-child { border: 0; }
+  .readout .big { padding: 22px 18px 18px; border-bottom: 1px solid var(--line); }
+  .readout .big small { font-size: 11px; color: var(--t3); letter-spacing: 1.5px; }
+  .readout .big div { font-size: 64px; letter-spacing: -2px; color: var(--warn); margin-top: 6px; }
+  .readout .big p { font-size: 12px; color: var(--t2); margin-top: 4px; }
+  .trace { position: absolute; left: 0; right: 0; bottom: 70px; height: 300px; }
+  .axis { position: absolute; left: 60px; right: 60px; bottom: 44px; display: flex; justify-content: space-between; font-size: 10px; color: var(--t4); }
+  .note { position: absolute; left: 60px; bottom: 16px; font-size: 10px; color: var(--t4); }
+
+  .sys { padding: 80px 60px 90px; border-top: 1px solid var(--line); display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 28px; }
+  .panel { border: 1px solid var(--line); border-radius: 10px; padding: 26px; background: var(--bg-1); }
+  .panel h3 { font-size: 11px; letter-spacing: 2px; color: var(--t3); font-weight: 500; margin-bottom: 20px; }
+  .sw { display: grid; grid-template-columns: repeat(4, 1fr); gap: 30px 10px; }
+  .sw div { height: 64px; border-radius: 6px; border: 1px solid var(--line); position: relative; }
+  .sw span { position: absolute; left: 0; bottom: -18px; font-size: 9px; color: var(--t3); white-space: nowrap; }
+  .types .t1 { font-size: 48px; letter-spacing: -2px; font-weight: 500; line-height: 1; }
+  .types .t1 em { font-family: "Instrument Serif"; font-weight: 400; }
+  .types .t2 { margin-top: 16px; font-size: 28px; color: var(--warn); }
+  .types p { margin-top: 12px; font-size: 12px; color: var(--t3); line-height: 1.6; }
+  .res .nums { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .res .nums div { background: var(--bg-1); padding: 16px; }
+  .res .nums b { display: block; font-size: 30px; font-weight: 500; letter-spacing: -1px; }
+  .res .nums small { font-size: 11px; color: var(--t3); }
+  .tiles { margin-top: 16px; display: grid; grid-template-columns: repeat(19, 1fr); gap: 3px; }
+  .tiles i { aspect-ratio: 1; border-radius: 2px; background: var(--bg-2); border: 1px solid var(--line); }
+  .tiles i.w { background: oklch(0.82 0.15 75 / .25); border-color: oklch(0.82 0.15 75 / .6); }
+  .tiles i.l { background: oklch(0.66 0.22 25 / .35); border-color: var(--liq); }
+  .badge { margin-top: 16px; font-size: 11px; color: var(--t2); display: flex; justify-content: space-between; }
+  .motion { grid-column: 1 / -1; display: flex; gap: 40px; font-size: 12px; color: var(--t2); }
+  .motion b { color: var(--t1); font-weight: 500; }
+</style>
+</head>
+<body>
+<section class="hero">
+  <div class="grid"></div>
+  <nav>
+    <div class="logo"><i></i>Kaskad</div>
+    <span>Console</span><span>Is my position safe?</span><span>Guard</span><span>How it works</span>
+    <span class="live mono"><b></b>MONAD TESTNET · BLOCK 65,813,636</span>
+    <span class="cta">Run the stress test →</span>
+  </nav>
+  <div class="coords mono" style="left:60px;top:96px">A · INSTRUMENT</div>
+  <div class="coords mono" style="right:60px;top:96px">CH 10143 · 300 MS / BLOCK</div>
+
+  <div class="head">
+    <div class="eyebrow mono">LIQUIDATION CASCADE ENGINE <span>●</span> ON-CHAIN</div>
+    <h1>One transaction.<br><em>Every</em> liquidation wave.</h1>
+    <p class="sub">Kaskad replays a depeg across every real Aave borrower on Monad, inside a single transaction anyone can verify.</p>
+    <div class="ctas"><span class="btn p">Run the stress test</span><span class="btn s">Is my position safe?</span></div>
+  </div>
+
+  <div class="readout mono">
+    <div class="row"><span>SCENARIO</span><span style="color:var(--t1)">syrupUSDC −3.0%</span></div>
+    <div class="big"><small>CAN'T BE LIQUIDATED INSTANTLY</small><div>$111.0M</div><p>30 positions below threshold</p></div>
+    <div class="row"><span>POOL CAN CLEAR</span><span style="color:var(--t1)">$134K</span></div>
+    <div class="row"><span>LIQUIDITY GAP</span><span style="color:var(--liq)">~829×</span></div>
+    <div class="row"><span>PROOF</span><span style="color:var(--t1)">1 tx · 309 ms ↗</span></div>
+  </div>
+
+  <svg class="trace" viewBox="0 0 1440 300" preserveAspectRatio="none" id="trace"></svg>
+  <div class="axis mono"><span>BLOCK 0</span><span>4</span><span>8</span><span>12</span><span>16</span><span>20</span></div>
+  <div class="note mono">Model: single Monad DEX pool, instant-sale (flash-loan) liquidator. Maple redemption and other venues excluded.</div>
+</section>
+
+<section class="sys">
+  <div class="panel">
+    <h3 class="mono">PALETTE · OKLCH</h3>
+    <div class="sw">
+      <div style="background:var(--bg)"><span>bg .145</span></div>
+      <div style="background:var(--bg-2)"><span>elev .21</span></div>
+      <div style="background:var(--t2)"><span>text .78</span></div>
+      <div style="background:var(--calm)"><span>calm</span></div>
+      <div style="background:var(--warn)"><span>warn</span></div>
+      <div style="background:var(--liq)"><span>liquidation</span></div>
+      <div style="background:var(--safe)"><span>safe</span></div>
+      <div style="background:var(--monad)"><span>monad</span></div>
+    </div>
+  </div>
+  <div class="panel types">
+    <h3 class="mono">TYPE · GEIST / GEIST MONO / INSTRUMENT SERIF</h3>
+    <div class="t1">Cascade, <em>measured.</em></div>
+    <div class="t2 mono">$111,000,000.00</div>
+    <p>Headlines Geist 500, −4% tracking. Every number Geist Mono, tabular. Serif italic only for one word per headline.</p>
+  </div>
+  <div class="panel res">
+    <h3 class="mono">RESULT CARD</h3>
+    <div class="nums">
+      <div><b class="mono" style="color:var(--liq)">$0</b><small>bad debt</small></div>
+      <div><b class="mono" style="color:var(--warn)">$111.0M</b><small>stuck (instant)</small></div>
+    </div>
+    <div class="tiles" id="tiles"></div>
+    <div class="badge mono"><span>1 tx · 309 ms · 57 positions</span><span style="color:var(--t3)">MonadScan ↗</span></div>
+  </div>
+  <div class="motion mono">
+    <span><b>Motion:</b> needle writes the trace left→right</span>
+    <span><b>Shock:</b> trace spikes, readout ticks with NumberFlow</span>
+    <span><b>Calm/alarm:</b> blue-grey → amber → red, never color alone</span>
+  </div>
+</section>
+
+<script>
+  // seismograph trace: calm noise, then the shock burst around block 7, then a stalled tremor
+  const svg = document.getElementById("trace");
+  let seed = 7; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+  const pts = [], base = 150;
+  for (let x = 0; x <= 1440; x += 4) {
+    const t = x / 1440;
+    let amp = 3;
+    if (t > 0.33 && t < 0.42) amp = 120 * Math.sin((t - 0.33) / 0.09 * Math.PI);
+    else if (t >= 0.42) amp = 14 * Math.exp(-(t - 0.42) * 3) + 5;
+    pts.push(`${x},${base + (rnd() - 0.5) * 2 * amp}`);
+  }
+  svg.innerHTML = `
+    <defs><linearGradient id="g" x1="0" x2="1"><stop offset="0" stop-color="oklch(0.72 0.035 245)"/><stop offset=".32" stop-color="oklch(0.72 0.035 245)"/>
+    <stop offset=".36" stop-color="oklch(0.82 0.15 75)"/><stop offset=".40" stop-color="oklch(0.66 0.22 25)"/><stop offset=".6" stop-color="oklch(0.82 0.15 75)"/><stop offset="1" stop-color="oklch(0.82 0.15 75 / .6)"/></linearGradient></defs>
+    <line x1="0" x2="1440" y1="150" y2="150" stroke="oklch(1 0 0 / .08)"/>
+    ${Array.from({length: 73}, (_, i) => `<line x1="${60 + i * 18.33}" x2="${60 + i * 18.33}" y1="${i % 6 ? 290 : 280}" y2="300" stroke="oklch(1 0 0 / .18)"/>`).join("")}
+    <polyline points="${pts.join(" ")}" fill="none" stroke="url(#g)" stroke-width="1.6"/>
+    <line x1="518" x2="518" y1="0" y2="300" stroke="oklch(0.66 0.22 25 / .5)" stroke-dasharray="3 5"/>
+    <text x="528" y="22" fill="oklch(0.66 0.22 25)" font-family="Geist Mono" font-size="11">BLOCK 7 · FIRST LIQUIDATION · POOL EXHAUSTED</text>`;
+  // tiles: 57 positions, 1 liquidated, 30 stuck
+  const tiles = document.getElementById("tiles");
+  tiles.innerHTML = Array.from({length: 57}, (_, i) => `<i class="${i === 0 ? "l" : i <= 30 ? "w" : ""}"></i>`).join("");
+</script>
+</body>
+</html>

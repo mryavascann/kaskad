@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Direction B · Monolith</title>
+<link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@400,500,700,800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: oklch(0.12 0.02 290);
+    --bg-1: oklch(0.16 0.025 290);
+    --line: oklch(1 0 0 / 0.08);
+    --t1: oklch(0.97 0.005 290);
+    --t2: oklch(0.76 0.02 290);
+    --t3: oklch(0.56 0.02 290);
+    --warn: oklch(0.8 0.16 65);
+    --liq: oklch(0.63 0.24 27);
+    --safe: oklch(0.78 0.15 160);
+    --monad: oklch(0.62 0.21 292);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { width: 1440px; background: var(--bg); color: var(--t1); font-family: "Cabinet Grotesk", sans-serif; }
+  .mono { font-family: "JetBrains Mono", monospace; font-variant-numeric: tabular-nums; }
+  .hero { position: relative; height: 900px; overflow: hidden;
+    background:
+      radial-gradient(ellipse 900px 380px at 50% 100%, oklch(0.63 0.24 27 / .22), transparent 70%),
+      radial-gradient(ellipse 1000px 600px at 50% 10%, oklch(0.62 0.21 292 / .16), transparent 70%),
+      var(--bg); }
+  nav { position: absolute; top: 26px; left: 50%; transform: translateX(-50%); display: flex; gap: 30px; align-items: center;
+    padding: 12px 14px 12px 22px; border: 1px solid var(--line); border-radius: 100px; background: oklch(0.16 0.025 290 / .6);
+    backdrop-filter: blur(16px); font-size: 14px; color: var(--t2); z-index: 5; }
+  nav b { color: var(--t1); font-weight: 800; font-size: 18px; letter-spacing: -.5px; }
+  nav .cta { background: var(--t1); color: var(--bg); padding: 9px 16px; border-radius: 100px; font-weight: 700; }
+  .title { position: absolute; top: 132px; width: 100%; text-align: center; z-index: 3; }
+  .pill { display: inline-flex; gap: 10px; align-items: center; font-size: 12px; letter-spacing: 1.5px; color: var(--t2);
+    border: 1px solid var(--line); padding: 7px 14px; border-radius: 100px; background: oklch(0.16 0.025 290 / .5); }
+  .pill i { width: 6px; height: 6px; border-radius: 50%; background: var(--liq); box-shadow: 0 0 10px var(--liq); }
+  h1 { margin-top: 24px; font-size: 112px; line-height: .92; font-weight: 800; letter-spacing: -5px; }
+  h1 span { color: transparent; background: linear-gradient(180deg, var(--t1) 30%, oklch(0.63 0.24 27)); -webkit-background-clip: text; background-clip: text; }
+  .sub { margin: 26px auto 0; width: 620px; font-size: 20px; color: var(--t2); line-height: 1.45; font-weight: 500; }
+  .stage { position: absolute; left: 0; right: 0; bottom: -40px; height: 470px; perspective: 1100px; perspective-origin: 50% 0%; }
+  .floor { position: absolute; left: -10%; right: -10%; bottom: 0; height: 520px; transform: rotateX(72deg); transform-origin: bottom;
+    background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 80px 80px; mask-image: linear-gradient(transparent, #000 60%); }
+  .row { position: absolute; left: 50%; bottom: 60px; transform-style: preserve-3d; transform: translateX(-50%) rotateX(12deg) rotateY(-28deg); }
+  .dom { position: absolute; bottom: 0; width: 46px; height: 190px; border-radius: 6px; transform-origin: bottom right;
+    background: linear-gradient(180deg, oklch(0.24 0.025 290), oklch(0.15 0.02 290));
+    border: 1px solid oklch(1 0 0 / .09); box-shadow: inset 0 1px 0 oklch(1 0 0 / .12); }
+  .dom.hot { border-color: oklch(0.63 0.24 27 / .9); box-shadow: 0 0 34px oklch(0.63 0.24 27 / .55), inset 0 0 18px oklch(0.63 0.24 27 / .3); }
+  .dom.warm { border-color: oklch(0.8 0.16 65 / .5); box-shadow: 0 0 18px oklch(0.8 0.16 65 / .25); }
+  .stats { position: absolute; left: 60px; bottom: 60px; z-index: 4; display: flex; gap: 36px; }
+  .stat small { display: block; font-size: 11px; letter-spacing: 1.5px; color: var(--t3); }
+  .stat b { display: block; margin-top: 6px; font-size: 44px; font-weight: 700; letter-spacing: -1.5px; }
+  .right { position: absolute; right: 60px; bottom: 64px; z-index: 4; text-align: right; font-size: 12px; color: var(--t3); line-height: 1.8; }
+  .ctas { margin-top: 30px; display: flex; gap: 12px; justify-content: center; }
+  .btn { padding: 15px 24px; border-radius: 100px; font-size: 15px; font-weight: 700; }
+  .btn.p { background: var(--liq); color: white; box-shadow: 0 8px 40px oklch(0.63 0.24 27 / .4); }
+  .btn.s { border: 1px solid var(--line); color: var(--t1); background: oklch(0.16 0.025 290 / .5); }
+  .sys { padding: 80px 60px 90px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; border-top: 1px solid var(--line); }
+  .panel { border: 1px solid var(--line); border-radius: 22px; padding: 26px; background: var(--bg-1); }
+  .panel h3 { font-family: "JetBrains Mono"; font-size: 11px; letter-spacing: 2px; color: var(--t3); font-weight: 500; margin-bottom: 20px; }
+  .sw { display: grid; grid-template-columns: repeat(4, 1fr); gap: 30px 10px; }
+  .sw div { height: 64px; border-radius: 12px; border: 1px solid var(--line); position: relative; }
+  .sw span { position: absolute; left: 0; bottom: -18px; font-size: 10px; color: var(--t3); font-family: "JetBrains Mono"; }
+  .t1 { font-size: 54px; font-weight: 800; letter-spacing: -2.5px; line-height: .95; }
+  .t2 { margin-top: 14px; font-size: 28px; color: var(--liq); }
+  .types p { margin-top: 12px; font-size: 13px; color: var(--t3); line-height: 1.6; }
+  .res .big { font-size: 60px; font-weight: 800; letter-spacing: -2.5px; color: var(--warn); }
+  .res .lbl { font-size: 13px; color: var(--t2); }
+  .res .mini { margin-top: 18px; display: flex; gap: 6px; align-items: end; height: 70px; }
+  .res .mini i { flex: 1; border-radius: 3px; background: var(--bg); border: 1px solid var(--line); }
+  .res .mini i.h { background: oklch(0.63 0.24 27 / .5); border-color: var(--liq); }
+  .res .badge { margin-top: 16px; font-size: 11px; color: var(--t2); font-family: "JetBrains Mono"; }
+  .motion { grid-column: 1 / -1; display: flex; gap: 40px; font-size: 13px; color: var(--t2); font-family: "JetBrains Mono"; }
+  .motion b { color: var(--t1); font-weight: 500; }
+</style>
+</head>
+<body>
+<section class="hero">
+  <nav><b>kaskad</b><span>Console</span><span>Wallet</span><span>Guard</span><span>How it works</span><span class="cta">Run it</span></nav>
+  <div class="title">
+    <span class="pill mono"><i></i>LIVE ON MONAD · REAL AAVE BOOK</span>
+    <h1>Watch the cascade<br><span>before it happens.</span></h1>
+    <p class="sub">Every liquidation wave, every falling price, simulated on-chain in a single Monad transaction.</p>
+    <div class="ctas"><span class="btn p">Run the stress test</span><span class="btn s">Is my position safe?</span></div>
+  </div>
+  <div class="stage"><div class="floor"></div><div class="row" id="row"></div></div>
+  <div class="stats">
+    <div class="stat"><small class="mono">SYRUPUSDC −3%</small><b class="mono" style="color:var(--warn)">$111M</b></div>
+    <div class="stat"><small class="mono">POOL CAN CLEAR</small><b class="mono">$134K</b></div>
+  </div>
+  <div class="right mono">B · MONOLITH<br>57 positions · 1 tx · 309 ms</div>
+</section>
+
+<section class="sys">
+  <div class="panel">
+    <h3>PALETTE · OKLCH</h3>
+    <div class="sw">
+      <div style="background:var(--bg)"><span>bg .12</span></div>
+      <div style="background:var(--bg-1)"><span>elev .16</span></div>
+      <div style="background:var(--t2)"><span>text</span></div>
+      <div style="background:var(--monad)"><span>monad haze</span></div>
+      <div style="background:var(--warn)"><span>warn</span></div>
+      <div style="background:var(--liq)"><span>rim light</span></div>
+      <div style="background:var(--safe)"><span>safe</span></div>
+      <div style="background:linear-gradient(135deg,var(--liq),var(--warn))"><span>impact</span></div>
+    </div>
+  </div>
+  <div class="panel types">
+    <h3>TYPE · CABINET GROTESK / JETBRAINS MONO</h3>
+    <div class="t1">Before it<br>happens.</div>
+    <div class="t2 mono">$111,000,000</div>
+    <p>Display Cabinet Grotesk 800, −5% tracking, huge. Data in JetBrains Mono. Cinematic, poster-like.</p>
+  </div>
+  <div class="panel res">
+    <h3>RESULT CARD</h3>
+    <div class="big mono">$111M</div>
+    <div class="lbl">can't be liquidated instantly · $0 bad debt</div>
+    <div class="mini" id="mini"></div>
+    <div class="badge">1 tx · 309 ms · 57 positions · MonadScan ↗</div>
+  </div>
+  <div class="motion">
+    <span><b>3D:</b> R3F dominoes, rim light + bloom</span>
+    <span><b>Scroll:</b> first block tips, cascade runs with the price</span>
+    <span><b>Fallback:</b> single poster frame on low-end / reduced motion</span>
+  </div>
+</section>
+<script>
+  const row = document.getElementById("row");
+  const n = 22; let html = "";
+  for (let i = 0; i < n; i++) {
+    const x = i * 64 - n * 32;
+    const fallen = i < 3, tipping = i === 3;
+    const rot = fallen ? 62 - i * 4 : tipping ? 24 : 0;
+    const cls = fallen || tipping ? "hot" : i < 8 ? "warm" : "";
+    html += `<div class="dom ${cls}" style="left:${x}px;transform:translateZ(${-i * 12}px) rotate(${rot}deg)"></div>`;
+  }
+  row.innerHTML = html;
+  document.getElementById("mini").innerHTML = Array.from({length: 20}, (_, i) =>
+    `<i class="${i === 6 ? "h" : ""}" style="height:${i === 6 ? 100 : 18 + (i % 3) * 6}%"></i>`).join("");
+</script>
+</body>
+</html>

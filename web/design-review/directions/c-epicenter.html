@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Direction C · Epicenter</title>
+<link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: oklch(0.15 0.015 265);
+    --bg-1: oklch(0.185 0.018 265);
+    --line: oklch(1 0 0 / 0.07);
+    --t1: oklch(0.96 0.005 265);
+    --t2: oklch(0.76 0.015 265);
+    --t3: oklch(0.57 0.02 265);
+    --calm: oklch(0.7 0.04 240);
+    --warn: oklch(0.82 0.15 78);
+    --liq: oklch(0.65 0.22 25);
+    --safe: oklch(0.78 0.14 162);
+    --monad: oklch(0.65 0.19 290);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { width: 1440px; background: var(--bg); color: var(--t1); font-family: Satoshi, sans-serif; }
+  .mono { font-family: "JetBrains Mono", monospace; font-variant-numeric: tabular-nums; }
+  .hero { position: relative; height: 900px; overflow: hidden; background: var(--bg); }
+  nav { position: absolute; top: 0; left: 0; right: 0; height: 76px; display: flex; align-items: center; gap: 34px; padding: 0 56px; font-size: 14px; color: var(--t2); z-index: 5; }
+  nav b { color: var(--t1); font-size: 19px; font-weight: 700; letter-spacing: -.4px; margin-right: auto; display: flex; gap: 10px; align-items: center; }
+  nav b i { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--monad); box-shadow: 0 0 0 4px oklch(0.65 0.19 290 / .15), 0 0 0 8px oklch(0.65 0.19 290 / .07); }
+  nav .cta { color: var(--t1); padding: 10px 18px; border-radius: 10px; background: var(--monad); }
+  .rings { position: absolute; right: -210px; top: -40px; width: 1080px; height: 1080px; }
+  .head { position: absolute; left: 56px; top: 190px; width: 620px; z-index: 3; }
+  .eyebrow { font-size: 12px; letter-spacing: 1.8px; color: var(--t3); }
+  h1 { margin-top: 22px; font-size: 76px; line-height: 1.0; font-weight: 700; letter-spacing: -3.2px; }
+  h1 span { color: var(--monad); }
+  .sub { margin-top: 24px; font-size: 19px; color: var(--t2); line-height: 1.5; width: 520px; }
+  .ctas { margin-top: 32px; display: flex; gap: 12px; }
+  .btn { padding: 15px 22px; border-radius: 10px; font-size: 15px; font-weight: 500; }
+  .btn.p { background: var(--t1); color: var(--bg); }
+  .btn.s { border: 1px solid var(--line); color: var(--t1); background: var(--bg-1); }
+  .gap { position: absolute; left: 56px; bottom: 70px; width: 620px; z-index: 3; }
+  .gap .bar { display: flex; align-items: center; gap: 14px; margin-top: 12px; font-size: 13px; color: var(--t2); }
+  .gap .bar div { height: 12px; border-radius: 3px; }
+  .gap .k { font-size: 11px; letter-spacing: 1.5px; color: var(--t3); }
+  .gap .ratio { margin-top: 14px; font-size: 34px; letter-spacing: -1px; color: var(--liq); }
+  .gap .ratio small { font-size: 14px; color: var(--t2); letter-spacing: 0; }
+  .legend { position: absolute; right: 56px; bottom: 70px; z-index: 3; font-size: 12px; color: var(--t2); line-height: 2; text-align: right; }
+  .legend i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-left: 8px; }
+  .sys { padding: 80px 56px 90px; display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 24px; border-top: 1px solid var(--line); }
+  .panel { border: 1px solid var(--line); border-radius: 16px; padding: 26px; background: var(--bg-1); }
+  .panel h3 { font-family: "JetBrains Mono"; font-size: 11px; letter-spacing: 2px; color: var(--t3); font-weight: 500; margin-bottom: 20px; }
+  .sw { display: grid; grid-template-columns: repeat(4, 1fr); gap: 30px 10px; }
+  .sw div { height: 64px; border-radius: 50%; width: 64px; border: 1px solid var(--line); position: relative; }
+  .sw span { position: absolute; left: 0; bottom: -18px; font-size: 10px; color: var(--t3); font-family: "JetBrains Mono"; white-space: nowrap; }
+  .t1 { font-size: 46px; font-weight: 700; letter-spacing: -2px; line-height: 1; }
+  .t2 { margin-top: 14px; font-size: 28px; color: var(--warn); }
+  .types p { margin-top: 12px; font-size: 13px; color: var(--t3); line-height: 1.6; }
+  .res .nums { display: flex; gap: 22px; }
+  .res b { display: block; font-size: 34px; letter-spacing: -1px; }
+  .res small { font-size: 12px; color: var(--t3); }
+  .res svg { margin-top: 12px; }
+  .res .badge { margin-top: 8px; font-size: 11px; color: var(--t2); font-family: "JetBrains Mono"; }
+  .motion { grid-column: 1 / -1; display: flex; gap: 40px; font-size: 13px; color: var(--t2); font-family: "JetBrains Mono"; }
+  .motion b { color: var(--t1); font-weight: 500; }
+</style>
+</head>
+<body>
+<section class="hero">
+  <nav><b><i></i>Kaskad</b><span>Console</span><span>Wallet</span><span>Guard</span><span>How it works</span><span class="cta">Run the stress test</span></nav>
+  <svg class="rings" viewBox="-540 -540 1080 1080" id="rings"></svg>
+  <div class="head">
+    <div class="eyebrow mono">C · EPICENTER — ON-CHAIN RISK FOR LENDING</div>
+    <h1>Drop the price.<br>See <span>who falls.</span></h1>
+    <p class="sub">Each dot is a real Aave borrower on Monad. Kaskad sends the shock through all of them in one transaction.</p>
+    <div class="ctas"><span class="btn p">Run the stress test</span><span class="btn s">Is my position safe?</span></div>
+  </div>
+  <div class="gap">
+    <div class="k mono">SYRUPUSDC −3% · SAME SCALE</div>
+    <div class="bar mono"><div style="width:2px;background:var(--safe)"></div>$134K the $7M pool can clear</div>
+    <div class="bar mono"><div style="width:560px;background:linear-gradient(90deg,var(--warn),var(--liq))"></div></div>
+    <div class="bar mono" style="margin-top:6px">$111M waiting below threshold</div>
+    <div class="ratio mono">~829× <small>liquidity gap</small></div>
+  </div>
+  <div class="legend mono">
+    liquidated<i style="background:var(--liq)"></i><br>
+    below threshold, stuck<i style="background:var(--warn)"></i><br>
+    safe<i style="background:var(--calm)"></i>
+  </div>
+</section>
+
+<section class="sys">
+  <div class="panel">
+    <h3>PALETTE · OKLCH</h3>
+    <div class="sw">
+      <div style="background:var(--bg)"><span>bg .15</span></div>
+      <div style="background:var(--bg-1)"><span>elev .185</span></div>
+      <div style="background:var(--calm)"><span>calm</span></div>
+      <div style="background:var(--monad)"><span>epicenter</span></div>
+      <div style="background:var(--warn)"><span>warn</span></div>
+      <div style="background:var(--liq)"><span>liquidation</span></div>
+      <div style="background:var(--safe)"><span>safe</span></div>
+      <div style="background:var(--t2)"><span>text</span></div>
+    </div>
+  </div>
+  <div class="panel types">
+    <h3>TYPE · SATOSHI / JETBRAINS MONO</h3>
+    <div class="t1">See who falls.</div>
+    <div class="t2 mono">~829× gap</div>
+    <p>Satoshi 700 for headlines: friendly but precise. JetBrains Mono for every number and label.</p>
+  </div>
+  <div class="panel res">
+    <h3>RESULT CARD</h3>
+    <div class="nums">
+      <div><b class="mono" style="color:var(--liq)">$0</b><small>bad debt</small></div>
+      <div><b class="mono" style="color:var(--warn)">$111M</b><small>stuck</small></div>
+    </div>
+    <svg width="100%" height="110" viewBox="-60 -55 360 110" id="mini"></svg>
+    <div class="badge">1 tx · 309 ms · 57 positions · MonadScan ↗</div>
+  </div>
+  <div class="motion">
+    <span><b>Shock:</b> rings pulse out from the epicenter per wave</span>
+    <span><b>Dots:</b> each position flips state as the ring passes</span>
+    <span><b>Data-true:</b> dot count, colors, radii come from the result</span>
+  </div>
+</section>
+<script>
+  let seed = 11; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+  const svg = document.getElementById("rings");
+  let s = `<defs><radialGradient id="core"><stop offset="0" stop-color="oklch(0.65 0.19 290 / .9)"/><stop offset="1" stop-color="oklch(0.65 0.19 290 / 0)"/></radialGradient></defs>
+  <circle r="140" fill="url(#core)" opacity=".5"/>`;
+  const radii = [90, 160, 235, 315, 400, 490];
+  radii.forEach((r, i) => {
+    const c = i < 2 ? "oklch(0.65 0.22 25 / .55)" : i < 4 ? "oklch(0.82 0.15 78 / .35)" : "oklch(1 0 0 / .08)";
+    s += `<circle r="${r}" fill="none" stroke="${c}" stroke-width="${i < 2 ? 1.4 : 1}" ${i > 3 ? 'stroke-dasharray="2 6"' : ""}/>`;
+  });
+  // 57 positions: 1 liquidated (inner), 30 stuck (near), 26 safe (outer). Radius ~ HF distance.
+  for (let i = 0; i < 57; i++) {
+    const state = i === 0 ? "liq" : i <= 30 ? "warn" : "safe";
+    const r = state === "liq" ? 90 : state === "warn" ? 150 + rnd() * 170 : 330 + rnd() * 170;
+    const a = rnd() * Math.PI * 2;
+    const size = 3 + rnd() * 7;
+    const col = state === "liq" ? "oklch(0.65 0.22 25)" : state === "warn" ? "oklch(0.82 0.15 78)" : "oklch(0.7 0.04 240)";
+    s += `<circle cx="${Math.cos(a) * r}" cy="${Math.sin(a) * r}" r="${size}" fill="${col}" ${state !== "safe" ? `style="filter:drop-shadow(0 0 6px ${col})"` : 'opacity=".7"'}/>`;
+  }
+  s += `<circle r="6" fill="oklch(0.96 0.005 265)"/><text x="14" y="4" fill="oklch(0.76 0.015 265)" font-family="JetBrains Mono" font-size="11">−3.0% syrupUSDC</text>`;
+  svg.innerHTML = s;
+  document.getElementById("mini").innerHTML = [20, 36, 52].map((r, i) => `<circle r="${r}" fill="none" stroke="${["oklch(0.65 0.22 25)","oklch(0.82 0.15 78)","oklch(1 0 0 / .15)"][i]}"/>`).join("")
+    + Array.from({length: 57}, (_, i) => { const r = i === 0 ? 20 : i <= 30 ? 36 : 52; const a = i * 2.4; return `<circle cx="${Math.cos(a)*r}" cy="${Math.sin(a)*r}" r="2.4" fill="${i===0?"oklch(0.65 0.22 25)":i<=30?"oklch(0.82 0.15 78)":"oklch(0.7 0.04 240)"}"/>`; }).join("")
+    + `<text x="80" y="-10" fill="oklch(0.57 0.02 265)" font-family="JetBrains Mono" font-size="10">1 liquidated</text><text x="80" y="6" fill="oklch(0.57 0.02 265)" font-family="JetBrains Mono" font-size="10">30 stuck</text><text x="80" y="22" fill="oklch(0.57 0.02 265)" font-family="JetBrains Mono" font-size="10">26 safe</text>`;
+</script>
+</body>
+</html>
