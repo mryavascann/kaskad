@@ -21,6 +21,11 @@ import { heroFromClassification, type HeroData } from "@/three/data";
 export const LANDING_TTL_MS = 10 * 60_000;
 /** A failed read is retried sooner. */
 export const LANDING_RETRY_MS = 30_000;
+/** A complete earlier read may stand in for a failed or partial one for at most this long. */
+export const LANDING_KEEP_MS = 60 * 60_000;
+/** Attempts at the per-position read (the public RPC drops a request now and then). */
+export const POSITION_ATTEMPTS = 2;
+const POSITION_RETRY_DELAY_MS = 1500;
 
 export type LandingWave = {
   /** 1-based wave number across the run. */
@@ -164,10 +169,13 @@ export function landingScale(run: { hash: string; blockNumber: number; positions
 async function readFinding() {
   const finding = await fetchFinding();
   let positions: LandingPositions | null = null;
-  try {
-    const c = await fetchFindingPositions(finding);
-    if (c.consistent) positions = landingPositions(finding, c);
-  } catch {}
+  for (let attempt = 1; attempt <= POSITION_ATTEMPTS && !positions; attempt++) {
+    if (attempt > 1) await new Promise((r) => setTimeout(r, POSITION_RETRY_DELAY_MS));
+    try {
+      const c = await fetchFindingPositions(finding);
+      if (c.consistent) positions = landingPositions(finding, c);
+    } catch {}
+  }
   return { finding: landingFinding(finding), positions };
 }
 
@@ -201,18 +209,75 @@ async function build(): Promise<LandingData> {
   return { finding: found?.finding ?? null, positions: found?.positions ?? null, scale, markets, readAt: Date.now() };
 }
 
-let cache: { at: number; ttl: number; data: Promise<LandingData> } | null = null;
+/** True when every part was read (the hero has its finding and its per-position replay). */
+export function isComplete(d: LandingData): boolean {
+  return d.finding !== null && d.positions !== null && d.scale !== null && d.markets !== null;
+}
 
-/** The landing's chain data, memoized per process (`LANDING_TTL_MS`, `LANDING_RETRY_MS` after a failure). */
+/**
+ * The newer read, except where it is worse than an earlier one still within `LANDING_KEEP_MS`:
+ * a part that failed keeps the earlier value, and the finding + positions pair (they belong
+ * together) keeps the earlier pair when the new one lost its positions or ran at an older block
+ * (a lagging RPC node). Never mixes a finding with another read's positions.
+ */
+export function mergeLanding(prev: LandingData | null, next: LandingData, now = Date.now()): LandingData {
+  if (!prev || now - prev.readAt > LANDING_KEEP_MS) return next;
+  const pb = prev.finding?.blockNumber ?? null;
+  const nb = next.finding?.blockNumber ?? null;
+  const olderBlock = pb !== null && nb !== null && nb < pb;
+  const lostPositions = prev.finding !== null && prev.positions !== null && next.positions === null;
+  const keepPair = next.finding === null || olderBlock || lostPositions;
+  return {
+    finding: keepPair ? prev.finding : next.finding,
+    positions: keepPair ? prev.positions : next.positions,
+    scale: next.scale ?? prev.scale,
+    markets: next.markets ?? prev.markets,
+    readAt: keepPair ? prev.readAt : next.readAt,
+  };
+}
+
+let cache: { at: number; ttl: number; data: Promise<LandingData> } | null = null;
+let lastGood: LandingData | null = null;
+
+/**
+ * The landing's chain data, memoized per process (`LANDING_TTL_MS`, `LANDING_RETRY_MS` after a
+ * failure). A failed or partial read never replaces a better earlier one (`mergeLanding`).
+ */
 export function loadLanding(): Promise<LandingData> {
   const now = Date.now();
   if (cache && now - cache.at < cache.ttl) return cache.data;
-  const entry = { at: now, ttl: LANDING_TTL_MS, data: build() };
+  const entry = {
+    at: now,
+    ttl: LANDING_TTL_MS,
+    data: build().then((fresh) => {
+      const merged = mergeLanding(lastGood, fresh);
+      if (isComplete(merged)) lastGood = merged;
+      if (!isComplete(fresh)) entry.ttl = LANDING_RETRY_MS;
+      return merged;
+    }),
+  };
   cache = entry;
-  void entry.data.then((d) => {
-    if (!d.finding || !d.scale || !d.markets) entry.ttl = LANDING_RETRY_MS;
-  });
   return entry.data;
+}
+
+/** Tests: forget the per-process cache. */
+export function resetLandingCache(): void {
+  cache = null;
+  lastGood = null;
+}
+
+/**
+ * The page's guard for background regeneration (ISR): when the hero's data (finding + per-position
+ * replay) could not be read, throw, so Next.js keeps serving the last page it generated and retries
+ * on a later request (documented ISR behavior). Never throws while building (the first page must
+ * exist; it renders skeletons for what is missing) or outside production (`next dev`).
+ */
+export function keepLastPageOnPartialRead(d: LandingData, env: { phase?: string; nodeEnv?: string } = { phase: process.env.NEXT_PHASE, nodeEnv: process.env.NODE_ENV }): LandingData {
+  const regenerating = env.nodeEnv === "production" && env.phase !== "phase-production-build";
+  if (regenerating && (d.finding === null || d.positions === null)) {
+    throw new Error("Landing: finding or per-position replay unreadable; keeping the last generated page");
+  }
+  return d;
 }
 
 /** Real book size for the neutral loading row (deployment.json). */
