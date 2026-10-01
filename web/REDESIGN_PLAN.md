@@ -164,6 +164,11 @@ Branch: `feat/metropolis-frontend` (never commit to `main`; open a PR at the end
   `/app` 269 KB gz. `REDESIGN_REPORT.md` written. **PR #2** open (CI + Vercel green); the preview is behind Vercel
   SSO, so the user chose to measure PageSpeed on production after merge.
 
+- **PR #2 merged** (`7e890bb`, 2026-10-01); production on `kaskad42.vercel.app`. PageSpeed Insights (user's runs):
+  mobile perf `/` 95, `/app` 96, `/guard` `/wallet` `/how-it-works` 98–100; desktop `/` 99, `/app` 100; a11y/BP/SEO
+  100; CLS 0. Open: lab LCP on mobile `/app` 2.6 s and `/` (amber) vs < 2.5 s. Inline CSS and dropping font preloads
+  were A/B-tested and rejected (no LCP gain / CLS 0.05). Next lever: fewer JS bytes before the first paint.
+
 ## Handoff (2026-09-30)
 
 The project moves to a server and continues in a new chat. What the new session needs that git doesn't carry:
