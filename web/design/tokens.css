@@ -1,0 +1,188 @@
+/*
+ * Kaskad design tokens: the "Instrument" language.
+ *
+ * Source of truth for color, type, radius, elevation and layout. `design/tokens.ts` mirrors the
+ * values for code that cannot read CSS (three.js, canvas, tests); `design/tokens.test.ts` fails
+ * when the two drift apart and checks gamut + WCAG contrast.
+ *
+ * Rules
+ * - Only these colors exist: Tailwind's default palette is reset below.
+ * - Status colors carry meaning (calm / warn / liq / safe / monad) and are never the only signal:
+ *   pair them with an icon or text.
+ * - Every text color passes WCAG AA (4.5:1) on every surface, except fg-4, which is for large text,
+ *   disabled states and non-text marks only.
+ */
+
+@theme static {
+  --color-*: initial;
+
+  /* Surfaces: very dark violet-navy, never pure black. `void` is the 3D stage behind the hero. */
+  --color-void: oklch(0.12 0.02 288);
+  --color-bg: oklch(0.145 0.018 285);
+  --color-elev-1: oklch(0.175 0.02 285);
+  --color-elev-2: oklch(0.205 0.022 285);
+  --color-elev-3: oklch(0.24 0.024 285);
+
+  /* 1px lines. line-strong reaches 3:1 for input borders (WCAG 1.4.11). */
+  --color-line: oklch(1 0 0 / 0.08);
+  --color-line-2: oklch(1 0 0 / 0.14);
+  --color-line-3: oklch(1 0 0 / 0.22);
+  --color-line-strong: oklch(1 0 0 / 0.36);
+
+  /* Neutral text scale */
+  --color-fg-1: oklch(0.96 0.005 285);
+  --color-fg-2: oklch(0.8 0.012 285);
+  --color-fg-3: oklch(0.66 0.016 285);
+  --color-fg-4: oklch(0.52 0.016 285);
+
+  /* Status. `-hi` variants are for small text, glows and hover on dark fills. */
+  --color-calm: oklch(0.72 0.035 245);
+  --color-calm-hi: oklch(0.82 0.03 245);
+  --color-warn: oklch(0.82 0.15 75);
+  --color-warn-hi: oklch(0.87 0.11 80);
+  --color-liq: oklch(0.66 0.22 25);
+  --color-liq-hi: oklch(0.72 0.17 25);
+  --color-safe: oklch(0.78 0.15 160);
+  --color-safe-hi: oklch(0.86 0.12 162);
+  --color-monad: oklch(0.629 0.199 286);
+  --color-monad-hi: oklch(0.76 0.12 288);
+
+  /* Severity ramp for data marks: calm -> liquidation. Hue skips green on purpose (green = safe). */
+  --color-sev-0: oklch(0.72 0.035 245);
+  --color-sev-1: oklch(0.78 0.09 85);
+  --color-sev-2: oklch(0.82 0.15 75);
+  --color-sev-3: oklch(0.72 0.17 50);
+  --color-sev-4: oklch(0.66 0.22 25);
+
+  /* Type families (next/font variables are set on <html> by design/fonts.ts). */
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SFMono-Regular", Menlo, monospace;
+  --font-serif: var(--font-instrument-serif), ui-serif, Georgia, serif;
+
+  /*
+   * Type scale. Headlines: Geist 500, tight tracking. Numbers: Geist Mono, tabular.
+   * Serif italic (Instrument Serif) only for one or two words in a headline.
+   */
+  --text-display-xl: clamp(3.25rem, 1.9rem + 5.6vw, 7rem);
+  --text-display-xl--line-height: 0.94;
+  --text-display-xl--letter-spacing: -0.045em;
+  --text-display-xl--font-weight: 500;
+
+  --text-display: clamp(2.5rem, 1.7rem + 3.4vw, 4.75rem);
+  --text-display--line-height: 0.98;
+  --text-display--letter-spacing: -0.04em;
+  --text-display--font-weight: 500;
+
+  --text-title-1: clamp(2rem, 1.55rem + 1.9vw, 3.25rem);
+  --text-title-1--line-height: 1.04;
+  --text-title-1--letter-spacing: -0.032em;
+  --text-title-1--font-weight: 500;
+
+  --text-title-2: clamp(1.5rem, 1.3rem + 0.85vw, 2rem);
+  --text-title-2--line-height: 1.12;
+  --text-title-2--letter-spacing: -0.022em;
+  --text-title-2--font-weight: 500;
+
+  --text-title-3: 1.25rem;
+  --text-title-3--line-height: 1.3;
+  --text-title-3--letter-spacing: -0.012em;
+  --text-title-3--font-weight: 500;
+
+  --text-lead: clamp(1.0625rem, 1rem + 0.3vw, 1.1875rem);
+  --text-lead--line-height: 1.5;
+  --text-lead--letter-spacing: -0.006em;
+
+  --text-body: 1rem;
+  --text-body--line-height: 1.6;
+
+  --text-body-sm: 0.875rem;
+  --text-body-sm--line-height: 1.55;
+
+  --text-caption: 0.8125rem;
+  --text-caption--line-height: 1.45;
+
+  /* Mono labels: uppercase, tracked. Never smaller than 11px. */
+  --text-label: 0.6875rem;
+  --text-label--line-height: 1.35;
+  --text-label--letter-spacing: 0.16em;
+
+  /* Mono metrics */
+  --text-metric-xl: clamp(2.75rem, 1.6rem + 4.8vw, 5.5rem);
+  --text-metric-xl--line-height: 1;
+  --text-metric-xl--letter-spacing: -0.04em;
+  --text-metric-xl--font-weight: 450;
+
+  --text-metric-lg: clamp(2.125rem, 1.6rem + 2.2vw, 3.5rem);
+  --text-metric-lg--line-height: 1.02;
+  --text-metric-lg--letter-spacing: -0.035em;
+  --text-metric-lg--font-weight: 450;
+
+  --text-metric-md: clamp(1.5rem, 1.3rem + 0.8vw, 2rem);
+  --text-metric-md--line-height: 1.1;
+  --text-metric-md--letter-spacing: -0.025em;
+  --text-metric-md--font-weight: 450;
+
+  --text-metric-sm: 1.125rem;
+  --text-metric-sm--line-height: 1.3;
+  --text-metric-sm--letter-spacing: -0.01em;
+  --text-metric-sm--font-weight: 450;
+
+  --tracking-label: 0.16em;
+  --tracking-caps: 0.08em;
+
+  /* Radii: sharp, instrument-like. */
+  --radius-tag: 4px;
+  --radius-control: 7px;
+  --radius-panel: 10px;
+  --radius-sheet: 14px;
+
+  /* Elevation is mostly lines; shadows only for floating layers and alarm glows. */
+  --shadow-panel: inset 0 1px 0 0 oklch(1 0 0 / 0.04);
+  --shadow-pop: inset 0 1px 0 0 oklch(1 0 0 / 0.06), 0 18px 48px -12px oklch(0 0 0 / 0.72);
+  --shadow-glow-liq: 0 0 0 1px oklch(0.66 0.22 25 / 0.55), 0 0 32px -4px oklch(0.66 0.22 25 / 0.45);
+  --shadow-glow-warn: 0 0 0 1px oklch(0.82 0.15 75 / 0.5), 0 0 28px -6px oklch(0.82 0.15 75 / 0.35);
+  --shadow-glow-safe: 0 0 0 1px oklch(0.78 0.15 160 / 0.45), 0 0 28px -6px oklch(0.78 0.15 160 / 0.3);
+  --shadow-glow-monad: 0 0 0 1px oklch(0.629 0.199 286 / 0.5), 0 0 32px -6px oklch(0.629 0.199 286 / 0.4);
+
+  /* Layout */
+  --container-page: 90rem;
+  --container-doc: 46rem;
+}
+
+/* Layout rhythm that changes per breakpoint (not Tailwind theme values). */
+:root {
+  --page-gutter: 1rem;
+  --grid-gap: 1rem;
+  --section-y: 4.5rem;
+  --nav-h: 3.75rem;
+
+  --z-raised: 10;
+  --z-sticky: 20;
+  --z-nav: 40;
+  --z-overlay: 60;
+  --z-dialog: 70;
+  --z-popover: 80;
+  --z-toast: 90;
+  --z-skip: 100;
+}
+
+@media (width >= 40rem) {
+  :root {
+    --page-gutter: 1.5rem;
+  }
+}
+
+@media (width >= 64rem) {
+  :root {
+    --page-gutter: 2.5rem;
+    --grid-gap: 1.5rem;
+    --section-y: 7.5rem;
+    --nav-h: 4.5rem;
+  }
+}
+
+@media (width >= 90rem) {
+  :root {
+    --page-gutter: 3.75rem;
+  }
+}

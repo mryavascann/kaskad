@@ -1,5 +1,7 @@
 // Testnet JSON-RPC proxy: the browser never sees the Alchemy key. Only the methods the app
 // needs are forwarded, with a per-IP rate limit.
+import { gzipSync } from "node:zlib";
+
 const ALLOWED = new Set([
   "eth_chainId",
   "eth_blockNumber",
@@ -49,8 +51,31 @@ export async function POST(req: Request) {
     headers: { "content-type": "application/json" },
     body: JSON.stringify(body),
   });
-  return new Response(await upstream.text(), {
+  const text = await upstream.text();
+  // `next start` does not compress route-handler responses (Lighthouse flagged a 17 KiB eth_call
+  // result as uncompressed), so large bodies are gzipped here when the client accepts it. Vercel's
+  // edge leaves an already encoded body as it is.
+  if (text.length >= GZIP_MIN_BYTES && acceptsGzip(req.headers.get("accept-encoding"))) {
+    return new Response(gzipSync(text), {
+      status: upstream.status,
+      headers: { "content-type": "application/json", "content-encoding": "gzip", vary: "Accept-Encoding" },
+    });
+  }
+  return new Response(text, {
     status: upstream.status,
-    headers: { "content-type": "application/json" },
+    headers: { "content-type": "application/json", vary: "Accept-Encoding" },
+  });
+}
+
+/** Below this a gzip header and frame cost about as much as they save. */
+const GZIP_MIN_BYTES = 1_024;
+
+/** `gzip` listed in Accept-Encoding without `q=0`. */
+function acceptsGzip(header: string | null): boolean {
+  return (header ?? "").split(",").some((part) => {
+    const [name, ...params] = part.trim().toLowerCase().split(";");
+    if (name.trim() !== "gzip" && name.trim() !== "*") return false;
+    const q = params.map((p) => p.trim()).find((p) => p.startsWith("q="));
+    return q === undefined || Number(q.slice(2)) > 0;
   });
 }

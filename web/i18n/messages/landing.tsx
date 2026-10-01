@@ -1,0 +1,423 @@
+/**
+ * Copy of the landing (`/` EN, `/tr` TR). Sentences that carry numbers are functions: the page
+ * passes values read from the chain, deployment.json or named constants, so no metric is typed into
+ * the copy. The Turkish object must match the English shape (`satisfies LandingMessages`).
+ */
+import type { ReactNode } from "react";
+import type { BlockPulseCopy } from "@/viz/block-pulse";
+import type { GapBarsCopy } from "@/viz/gap-bars";
+import type { GasGaugeCopy } from "@/viz/gas-gauge";
+import type { Locale } from "../config";
+
+type Stat = string;
+
+const code = (s: string) => <code className="font-mono text-[0.92em] text-fg-1">{s}</code>;
+
+const en = {
+  meta: {
+    description: (v: { asset: string; shock: Stat }) =>
+      `What happens to Aave on Monad if ${v.asset} drops ${v.shock}? Kaskad replays every liquidation wave on the real book, in one transaction anyone can verify.`,
+  },
+  hero: {
+    /** Headline lines for SplitText; `accent` = word indices set in the serif italic. */
+    lines: ["One transaction.", "Every liquidation wave."],
+    accent: [4],
+    findingLabel: (v: { shock: Stat; asset: string }) => `Debt that can't be liquidated instantly at ${v.shock} ${v.asset}`,
+    live: (v: { block: Stat }) => `Live preview · Monad testnet block ${v.block}`,
+    liveMissing: "Live preview unavailable right now",
+    realBook: (v: { borrowers: Stat; positions: Stat; asset: string }) =>
+      `Real book: Monad Aave, ${v.borrowers} borrowers (${v.positions} ${v.asset} positions)`,
+    oracle: "Oracle follows the Maple rate (realistic)",
+    primary: "Run the stress test",
+    secondary: "Is my position safe?",
+    scroll: "Scroll to run the shock",
+  },
+  hud: {
+    label: "Replay of the live preview",
+    block: "Block",
+    price: "Oracle price",
+    drop: "Drop",
+    waves: "Waves",
+    under: "Under threshold",
+    liquidated: "Liquidated",
+  },
+  shock: {
+    kicker: "The shock",
+    title: (v: { asset: string; shock: Stat; steps: Stat }) => `${v.asset} ${v.shock}, over ${v.steps} blocks.`,
+    wave: (v: { n: Stat }) => `Wave ${v.n}`,
+    noWave: "Price falling · no liquidation yet",
+    waveLine: (v: { block: Stat; count: Stat; liquidated: Stat }) => `Block ${v.block} · ${v.count} liquidation · ${v.liquidated} repaid`,
+    waveLinePlural: (v: { block: Stat; count: Stat; liquidated: Stat }) => `Block ${v.block} · ${v.count} liquidations · ${v.liquidated} repaid`,
+    stalled: (v: { under: Stat; total: Stat }) =>
+      `The pool has no profitable sale left. ${v.under} of ${v.total} positions sit under the threshold, and nobody can clear them instantly.`,
+    loopLabel: "The loop Kaskad replays, wave by wave",
+    loop: ["Collateral is sold", "The price falls", "New liquidations"],
+    again: "and again",
+    loopNote:
+      "Here the oracle follows the Maple rate, so the sale moves the pool, not the oracle: the loop stops when the pool has nothing left to give.",
+    priceLabel: "Oracle price, block by block",
+    missing: "The live preview could not be read right now. The console runs it on demand.",
+  },
+  finding: {
+    kicker: "The finding",
+    title: "The pool can clear a sliver. The rest is stuck.",
+    lead: (v: { shock: Stat; asset: string; cleared: Stat; stuck: Stat; depth: Stat }) =>
+      `After a ${v.shock} move in ${v.asset}, the ${v.depth} Monad DEX pool lets an instant-sale liquidator clear ${v.cleared} of debt at a profit. ${v.stuck} stays under the liquidation threshold.`,
+    vs: "vs",
+    footnoteLabel: "Model",
+    footnote: "Single Monad DEX pool, instant sale (flash-loan liquidator); Maple redemption and other markets excluded.",
+    depth: "Exit pool depth",
+    under: "Positions under the threshold",
+    badDebt: "Bad debt",
+    waves: "Liquidation waves",
+    of: (v: { n: Stat; total: Stat }) => `${v.n} of ${v.total}`,
+    source: (v: { block: Stat }) => `Live preview at Monad testnet block ${v.block}, free eth_call`,
+    gap: {
+      label: "Liquidity gap",
+      scaleTag: "Same scale",
+      cleared: "What the pool lets a liquidator clear",
+      stuck: "Debt that can't be liquidated instantly",
+      ratioLabel: "Liquidity gap",
+      caption: "{stuck} can't be liquidated instantly: {ratio} the {cleared} the pool lets a liquidator clear.",
+      captionNoClear: "{stuck} can't be liquidated instantly, and an instant sale into the pool clears nothing.",
+      hairline: "Drawn to scale: the cleared bar is {share} of the other one.",
+      loading: "Loading the liquidity gap",
+      emptyTitle: "Nothing to compare",
+      emptyBody: "No debt was stuck and nothing was liquidated in this run.",
+      errorTitle: "Couldn't load the liquidity gap",
+    } satisfies GapBarsCopy,
+  },
+  onchain: {
+    kicker: "Why on-chain",
+    title: "Risk analysis, out from behind closed doors.",
+    lead: "Today a risk firm runs the numbers privately and sends a PDF. Nobody can check the model, and no contract can read the answer.",
+    report: {
+      name: "Risk report",
+      fee: (v: { fee: Stat }) => `${v.fee} / year`,
+      tags: ["off-chain", "unverifiable"],
+      locked: "Locked",
+      body: "Recommended parameters, stress scenarios and a methodology you can't rerun.",
+      source: "What Aave paid Gauntlet, its risk manager, per year (CoinDesk)",
+    },
+    block: {
+      name: "Kaskad result",
+      tags: ["on-chain", "verifiable", "composable"],
+      stuck: "Stuck debt",
+      cleared: "Clearable",
+      block: "Block",
+      body: "The same stress test, as a transaction. Anyone can rerun it, and a contract can act on it.",
+      proof: "Proof transaction on MonadScan",
+    },
+    missing: "Result unavailable right now",
+  },
+  monad: {
+    kicker: "Why Monad",
+    title: "It fits in one transaction here. Only here.",
+    lead: "The whole cascade has to run inside one transaction, and every position is a storage read.",
+    gas: {
+      title: (v: { n: Stat }) => `${v.n} positions, one transaction`,
+      source: (v: { block: Stat }) => `Proof transaction, Monad testnet block ${v.block}`,
+      missing: "The proof transaction could not be read right now.",
+      copy: {
+        label: "Gas of one transaction",
+        scaleTag: "Gas · one shared scale",
+        monad: "Monad",
+        ethereum: "Ethereum",
+        measured: "Measured",
+        estimate: "Estimate",
+        limit: "Limit",
+        cap: "Cap (EIP-7825)",
+        fits: "Fits in one tx",
+        overLimit: "Over the per-tx limit",
+        doesntFit: "Doesn't fit in one tx",
+        multiple: "{value} Monad's gas",
+        memory: "Memory · Monad per-tx limit",
+        memoryUsed: "{used} of {limit}",
+        memoryGas: "Memory gas",
+        positions: "{count} positions",
+        summaryMonad: "Monad: {gas} gas of its {limit} per-transaction limit, measured; it fits in one transaction.",
+        summaryMonadOver: "Monad: {gas} gas, over its {limit} per-transaction limit.",
+        summaryEth: "Ethereum, estimated: {gas} gas against its {limit} cap; it fits in one transaction.",
+        summaryEthOver: "Ethereum, estimated: {gas} gas against its {limit} cap; it doesn't fit in one transaction.",
+        loading: "Loading gas",
+        emptyTitle: "No gas figures",
+        emptyBody: "The run reported no gas.",
+        errorTitle: "Couldn't load the gas figures",
+      } satisfies GasGaugeCopy,
+    },
+    reads: {
+      title: "Reading one position",
+      monad: "Monad (MIP-8 page read)",
+      ethereum: "Ethereum (cold SLOAD)",
+      gas: (v: { gas: Stat }) => `${v.gas} gas`,
+      ratio: (v: { ratio: Stat }) => `${v.ratio} cheaper per position`,
+      note: (v: { slots: Stat }) => `A warm read plus the MIP-8 page cost, shared by the ${v.slots} slots of a page.`,
+    },
+    blocks: {
+      title: (v: { block: Stat; finality: Stat }) => `${v.block} blocks, ${v.finality} finality`,
+      body: (
+        <>Proofs go out with {code("eth_sendRawTransactionSync")}: the receipt comes back in the same call.</>
+      ) as ReactNode,
+      pulse: {
+        label: "Monad testnet blocks, live",
+        block: "Block",
+        rate: "{value} s per block",
+        observed: "observed",
+        since: "+{count} since the last read",
+        loading: "Waiting for the first block",
+        errorTitle: "Block feed interrupted",
+      } satisfies BlockPulseCopy,
+    },
+  },
+  guard: {
+    kicker: "Guard",
+    title: "A contract that reads the cascade, and acts.",
+    lead: "KaskadGuard runs a stored stress scenario on the engine. When simulated bad debt crosses its threshold, it pauses borrowing on the market it protects.",
+    a: { name: "Market A", role: "Unprotected" },
+    b: { name: "Market B", role: "Protected by KaskadGuard" },
+    paused: "Borrows paused",
+    open: "Borrows open",
+    maxLtv: "Max LTV",
+    breakerNone: "No circuit breaker",
+    breakerArmed: "Breaker armed",
+    breakerTripped: "Breaker tripped",
+    read: "State read from Monad testnet when this page was built",
+    missing: "Market state unavailable right now",
+    cta: "See the Guard",
+  },
+  wallet: {
+    kicker: "Is my position safe?",
+    title: "Paste an address. See the price that liquidates it.",
+    lead: "Any Aave borrower on Monad mainnet: health factor, the drop that liquidates the position, and what keeps it safe.",
+    field: "Wallet address",
+    placeholder: "0x…",
+    submit: "Check",
+    invalid: "Enter a valid address: 0x followed by its hex characters.",
+    samples: "Or try a real borrower",
+    sampleNames: {
+      "largest-syrupusdc-borrower": "Largest syrupUSDC borrower",
+      "largest-pt-ausd-borrower": "Largest PT-AUSD borrower",
+    } as Record<string, string>,
+    dialCaption: (v: { asset: string; drop: Stat; block: Stat }) =>
+      `Largest ${v.asset} position in the book snapshot (Monad mainnet block ${v.block}), priced where the live preview starts: liquidatable after a ${v.drop} drop.`,
+    dialCaptionSafe: (v: { asset: string; block: Stat }) =>
+      `Largest ${v.asset} position in the book snapshot (Monad mainnet block ${v.block}), priced where the live preview starts.`,
+    dialNote: "A snapshot, not the live position. The wallet page reads the live Aave position, so its numbers can differ.",
+  },
+  how: {
+    kicker: "How it works",
+    title: "Three steps, one transaction.",
+    steps: [
+      ["Snapshot the real book", "Every Aave borrower on Monad mainnet, read at one block and packed into one storage slot each."],
+      ["Shock it on chain", "The engine drops the price block by block and runs every liquidation wave against a pool sized to the real DEX depth."],
+      ["Read the result", "Stuck debt, bad debt and every wave land in an event: people read it here, contracts like the Guard act on it."],
+    ] as [string, string][],
+    cta: "Read the methodology",
+  },
+};
+
+export type LandingMessages = typeof en;
+
+const tr = {
+  meta: {
+    description: (v: { asset: string; shock: Stat }) =>
+      `${v.asset} ${v.shock} düşerse Monad'daki Aave'ye ne olur? Kaskad, gerçek defterde her likidasyon dalgasını herkesin doğrulayabileceği tek bir işlemde yeniden oynatır.`,
+  },
+  hero: {
+    lines: ["Tek işlem.", "Tüm likidasyon dalgaları."],
+    accent: [4],
+    findingLabel: (v: { shock: Stat; asset: string }) => `${v.asset} ${v.shock} düşerse anında likide edilemeyen borç`,
+    live: (v: { block: Stat }) => `Canlı ön izleme · Monad testnet bloğu ${v.block}`,
+    liveMissing: "Canlı ön izleme şu an okunamıyor",
+    realBook: (v: { borrowers: Stat; positions: Stat; asset: string }) =>
+      `Gerçek defter: Monad Aave, ${v.borrowers} borçlu (${v.positions} ${v.asset} pozisyonu)`,
+    oracle: "Oracle Maple kurunu izler (gerçekçi)",
+    primary: "Stres testini çalıştır",
+    secondary: "Param güvende mi?",
+    scroll: "Şoku başlatmak için kaydır",
+  },
+  hud: {
+    label: "Canlı ön izlemenin tekrarı",
+    block: "Blok",
+    price: "Oracle fiyatı",
+    drop: "Düşüş",
+    waves: "Dalga",
+    under: "Eşiğin altında",
+    liquidated: "Likide edilen",
+  },
+  shock: {
+    kicker: "Şok",
+    title: (v: { asset: string; shock: Stat; steps: Stat }) => `${v.asset} ${v.shock}, ${v.steps} blok boyunca.`,
+    wave: (v: { n: Stat }) => `${v.n}. dalga`,
+    noWave: "Fiyat düşüyor · henüz likidasyon yok",
+    waveLine: (v: { block: Stat; count: Stat; liquidated: Stat }) => `${v.block}. blok · ${v.count} likidasyon · ${v.liquidated} ödendi`,
+    waveLinePlural: (v: { block: Stat; count: Stat; liquidated: Stat }) => `${v.block}. blok · ${v.count} likidasyon · ${v.liquidated} ödendi`,
+    stalled: (v: { under: Stat; total: Stat }) =>
+      `Havuzda kârlı satış kalmadı. ${v.total} pozisyonun ${v.under} tanesi eşiğin altında ve kimse onları anında tasfiye edemiyor.`,
+    loopLabel: "Kaskad'ın dalga dalga oynattığı döngü",
+    loop: ["Teminat satılır", "Fiyat düşer", "Yeni likidasyonlar"],
+    again: "ve yeniden",
+    loopNote:
+      "Burada oracle Maple kurunu izliyor; satış oracle'ı değil havuzu düşürüyor. Havuz verecek bir şey bırakmayınca döngü duruyor.",
+    priceLabel: "Oracle fiyatı, blok blok",
+    missing: "Canlı ön izleme şu an okunamadı. Konsol onu istediğin an çalıştırır.",
+  },
+  finding: {
+    kicker: "Bulgu",
+    title: "Havuz ancak kıl payını eritebiliyor. Gerisi takılı kalıyor.",
+    lead: (v: { shock: Stat; asset: string; cleared: Stat; stuck: Stat; depth: Stat }) =>
+      `${v.asset} ${v.shock} hareket edince ${v.depth} derinliğindeki Monad DEX havuzu, anında satış yapan bir likidatörün yalnızca ${v.cleared} borcu kârla eritmesine izin veriyor. ${v.stuck} likidasyon eşiğinin altında kalıyor.`,
+    vs: "karşı",
+    footnoteLabel: "Model",
+    footnote: "Tek Monad DEX havuzu, anında satış (flash-loan likidatörü); Maple itfası ve diğer piyasalar hariç.",
+    depth: "Çıkış havuzu derinliği",
+    under: "Eşiğin altındaki pozisyonlar",
+    badDebt: "Karşılıksız borç",
+    waves: "Likidasyon dalgası",
+    of: (v: { n: Stat; total: Stat }) => `${v.total} pozisyonda ${v.n}`,
+    source: (v: { block: Stat }) => `Monad testnet bloğu ${v.block} üzerinde canlı ön izleme, ücretsiz eth_call`,
+    gap: {
+      label: "Likidite açığı",
+      scaleTag: "Aynı ölçek",
+      cleared: "Havuzun bir likidatöre erittirdiği",
+      stuck: "Anında likide edilemeyen borç",
+      ratioLabel: "Likidite açığı",
+      caption: "{stuck} anında likide edilemiyor: havuzun bir likidatöre erittirdiği {cleared} tutarın {ratio} katı.",
+      captionNoClear: "{stuck} anında likide edilemiyor ve havuza anında satış hiçbir şey eritmiyor.",
+      hairline: "Ölçekli çizildi: eritilen çubuk diğerinin {share} kadarı.",
+      loading: "Likidite açığı yükleniyor",
+      emptyTitle: "Karşılaştırılacak bir şey yok",
+      emptyBody: "Bu çalıştırmada takılı borç da likidasyon da olmadı.",
+      errorTitle: "Likidite açığı yüklenemedi",
+    } satisfies GapBarsCopy,
+  },
+  onchain: {
+    kicker: "Neden zincirde",
+    title: "Risk analizi kapalı kapıların ardından çıkıyor.",
+    lead: "Bugün bir risk firması hesabı kapalı kapılar ardında yapıp bir PDF gönderiyor. Modeli kimse doğrulayamıyor, sonucu hiçbir kontrat okuyamıyor.",
+    report: {
+      name: "Risk raporu",
+      fee: (v: { fee: Stat }) => `${v.fee} / yıl`,
+      tags: ["zincir dışı", "doğrulanamaz"],
+      locked: "Kilitli",
+      body: "Önerilen parametreler, stres senaryoları ve yeniden çalıştıramayacağın bir metodoloji.",
+      source: "Aave'nin risk yöneticisi Gauntlet'e yıllık ödemesi (CoinDesk)",
+    },
+    block: {
+      name: "Kaskad sonucu",
+      tags: ["zincirde", "doğrulanabilir", "birleştirilebilir"],
+      stuck: "Takılı borç",
+      cleared: "Eritilebilen",
+      block: "Blok",
+      body: "Aynı stres testi, bir işlem olarak. Herkes yeniden çalıştırabilir, bir kontrat ona göre davranabilir.",
+      proof: "MonadScan'de kanıt işlemi",
+    },
+    missing: "Sonuç şu an okunamıyor",
+  },
+  monad: {
+    kicker: "Neden Monad",
+    title: "Burada tek işleme sığıyor. Yalnızca burada.",
+    lead: "Kaskadın tamamı tek bir işlemde çalışmalı ve her pozisyon bir depolama okuması.",
+    gas: {
+      title: (v: { n: Stat }) => `${v.n} pozisyon, tek işlem`,
+      source: (v: { block: Stat }) => `Kanıt işlemi, Monad testnet bloğu ${v.block}`,
+      missing: "Kanıt işlemi şu an okunamadı.",
+      copy: {
+        label: "Tek işlemin gas'ı",
+        scaleTag: "Gas · ortak ölçek",
+        monad: "Monad",
+        ethereum: "Ethereum",
+        measured: "Ölçüldü",
+        estimate: "Tahmin",
+        limit: "Limit",
+        cap: "Tavan (EIP-7825)",
+        fits: "Tek işleme sığar",
+        overLimit: "İşlem limitinin üstünde",
+        doesntFit: "Tek işleme sığmaz",
+        multiple: "Monad gas'ının {value} katı",
+        memory: "Bellek · Monad işlem limiti",
+        memoryUsed: "{used} / {limit}",
+        memoryGas: "Bellek gas'ı",
+        positions: "{count} pozisyon",
+        summaryMonad: "Monad: {limit} işlem limitinin {gas} gas'ı kullanıldı, ölçüldü; tek işleme sığıyor.",
+        summaryMonadOver: "Monad: {gas} gas, {limit} işlem limitinin üstünde.",
+        summaryEth: "Ethereum, tahmini: {limit} tavanına karşı {gas} gas; tek işleme sığıyor.",
+        summaryEthOver: "Ethereum, tahmini: {limit} tavanına karşı {gas} gas; tek işleme sığmıyor.",
+        loading: "Gas yükleniyor",
+        emptyTitle: "Gas verisi yok",
+        emptyBody: "Çalıştırma gas bildirmedi.",
+        errorTitle: "Gas verisi yüklenemedi",
+      } satisfies GasGaugeCopy,
+    },
+    reads: {
+      title: "Bir pozisyonu okumak",
+      monad: "Monad (MIP-8 sayfa okuması)",
+      ethereum: "Ethereum (soğuk SLOAD)",
+      gas: (v: { gas: Stat }) => `${v.gas} gas`,
+      ratio: (v: { ratio: Stat }) => `pozisyon başına ${v.ratio} daha ucuz`,
+      note: (v: { slots: Stat }) => `Sıcak bir okuma artı MIP-8 sayfa maliyeti; maliyeti bir sayfanın ${v.slots} slotu paylaşıyor.`,
+    },
+    blocks: {
+      title: (v: { block: Stat; finality: Stat }) => `${v.block} blok, ${v.finality} kesinlik`,
+      body: (
+        <>Kanıtlar {code("eth_sendRawTransactionSync")} ile gönderiliyor: makbuz aynı çağrıda geri geliyor.</>
+      ) as ReactNode,
+      pulse: {
+        label: "Monad testnet blokları, canlı",
+        block: "Blok",
+        rate: "blok başına {value} sn",
+        observed: "gözlenen",
+        since: "son okumadan beri +{count}",
+        loading: "İlk blok bekleniyor",
+        errorTitle: "Blok akışı kesildi",
+      } satisfies BlockPulseCopy,
+    },
+  },
+  guard: {
+    kicker: "Guard",
+    title: "Kaskadı okuyan ve harekete geçen bir kontrat.",
+    lead: "KaskadGuard, motorda kayıtlı bir stres senaryosu çalıştırır. Simüle edilen karşılıksız borç eşiği aşınca koruduğu piyasada borçlanmayı durdurur.",
+    a: { name: "Piyasa A", role: "Korumasız" },
+    b: { name: "Piyasa B", role: "KaskadGuard korumalı" },
+    paused: "Borçlanma durdu",
+    open: "Borçlanma açık",
+    maxLtv: "Maks. LTV",
+    breakerNone: "Devre kesici yok",
+    breakerArmed: "Devre kesici hazır",
+    breakerTripped: "Devre kesici attı",
+    read: "Durum, sayfa oluşturulurken Monad testnet'ten okundu",
+    missing: "Piyasa durumu şu an okunamıyor",
+    cta: "Guard'ı gör",
+  },
+  wallet: {
+    kicker: "Param güvende mi?",
+    title: "Bir adres yapıştır. Onu likide eden fiyatı gör.",
+    lead: "Monad mainnet'teki herhangi bir Aave borçlusu: sağlık faktörü, pozisyonu likide eden düşüş ve güvende kalmak için gerekenler.",
+    field: "Cüzdan adresi",
+    placeholder: "0x…",
+    submit: "Kontrol et",
+    invalid: "Geçerli bir adres gir: 0x ve ardından onaltılık karakterleri.",
+    samples: "Ya da gerçek bir borçluyu dene",
+    sampleNames: {
+      "largest-syrupusdc-borrower": "En büyük syrupUSDC borçlusu",
+      "largest-pt-ausd-borrower": "En büyük PT-AUSD borçlusu",
+    } as Record<string, string>,
+    dialCaption: (v: { asset: string; drop: Stat; block: Stat }) =>
+      `Defter fotoğrafındaki (Monad mainnet bloğu ${v.block}) en büyük ${v.asset} pozisyonu, canlı ön izlemenin başladığı fiyatla: ${v.drop} düşüşte likide edilebilir.`,
+    dialCaptionSafe: (v: { asset: string; block: Stat }) =>
+      `Defter fotoğrafındaki (Monad mainnet bloğu ${v.block}) en büyük ${v.asset} pozisyonu, canlı ön izlemenin başladığı fiyatla.`,
+    dialNote: "Canlı pozisyon değil, fotoğraf. Cüzdan sayfası Aave'deki canlı pozisyonu okur; rakamlar farklı olabilir.",
+  },
+  how: {
+    kicker: "Nasıl çalışır",
+    title: "Üç adım, tek işlem.",
+    steps: [
+      ["Gerçek defterin fotoğrafı", "Monad mainnet'teki her Aave borçlusu tek bir blokta okunur, her biri tek bir depolama slotuna paketlenir."],
+      ["Şoku zincirde uygula", "Motor fiyatı blok blok düşürür ve gerçek DEX derinliğine göre boyutlanmış bir havuza karşı her likidasyon dalgasını çalıştırır."],
+      ["Sonucu oku", "Takılı borç, karşılıksız borç ve her dalga bir event'e yazılır: insanlar burada okur, Guard gibi kontratlar ona göre davranır."],
+    ] as [string, string][],
+    cta: "Metodolojiyi oku",
+  },
+} satisfies LandingMessages;
+
+export const landingMessages: Record<Locale, LandingMessages> = { en, tr };

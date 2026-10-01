@@ -1,0 +1,143 @@
+import { render, screen, waitFor, within } from "@testing-library/react";
+import { beforeAll, describe, expect, it, vi } from "vitest";
+import { formatters } from "@/i18n/format";
+import { landingMessages } from "@/i18n/messages/landing";
+import { depthNote } from "@/i18n/messages/data-notes";
+import { DEPLOYMENT } from "@/lib/kaskad/config";
+import { mockMatchMedia } from "@/motion/test-utils";
+
+mockMatchMedia();
+
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
+// The WebGL stage is covered by web/three's own tests; here it is a box.
+vi.mock("@/three/hero-stage", () => ({ HeroStage: () => <div data-testid="hero-stage" /> }));
+vi.mock("@/lib/chain/hooks/useLiveBlock", () => ({ useLiveBlock: () => ({ block: null, updatedAt: null, error: null }) }));
+
+const { Landing } = await import("./landing");
+const { openScrollIntent } = await import("@/motion/scroll");
+const { recordedLanding, EMPTY_LANDING } = await import("./__fixtures__/landing-data");
+
+const data = recordedLanding();
+const f = data.finding!;
+const en = formatters("en");
+/** The first load of a live chunk (viz + motion) can take a while in a busy test run. */
+const LAZY = { timeout: 10_000 };
+
+beforeAll(() => {
+  expect(f).not.toBeNull();
+  // Below-the-fold parts load after the reader engages; open that gate for every test.
+  openScrollIntent();
+});
+
+describe("Landing (EN)", () => {
+  it("has the headline as the page's only h1 and one h2 per section", async () => {
+    render(<Landing locale="en" data={data} />);
+    // The sections below the scene are server HTML first; their live parts take over after the first intent.
+    await screen.findByRole("heading", { level: 2, name: landingMessages.en.how.title }, LAZY);
+    const h1 = screen.getByRole("heading", { level: 1 });
+    expect(h1).toHaveTextContent("One transaction. Every liquidation wave.");
+    const titles = screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent);
+    const t = landingMessages.en;
+    for (const title of [t.finding.title, t.onchain.title, t.monad.title, t.guard.title, t.wallet.title, t.how.title]) {
+      expect(titles).toContain(title);
+    }
+  });
+
+  it("puts the live finding in the hero from the given data, with its honesty labels", () => {
+    render(<Landing locale="en" data={data} />);
+    expect(screen.getByText("Debt that can't be liquidated instantly at −3% syrupUSDC")).toBeInTheDocument();
+    expect(screen.getAllByText(en.usd(f.stuckDebtUsd)).length).toBeGreaterThan(0);
+    expect(screen.getByText(`Live preview · Monad testnet block ${en.block(f.blockNumber!)}`)).toBeInTheDocument();
+    expect(
+      screen.getByText(`Real book: Monad Aave, ${en.int(DEPLOYMENT.source.borrowersWithDebt)} borrowers (${en.int(f.positionsUsed)} syrupUSDC positions)`),
+    ).toBeInTheDocument();
+  });
+
+  it("links the CTAs to the console and the wallet page", () => {
+    render(<Landing locale="en" data={data} />);
+    expect(screen.getAllByRole("link", { name: /Run the stress test/ })[0]).toHaveAttribute("href", "/app");
+    expect(screen.getByRole("link", { name: "Is my position safe?" })).toHaveAttribute("href", "/wallet");
+  });
+
+  it("states the gap with the computed ratio and always shows the model footnote", async () => {
+    render(<Landing locale="en" data={data} />);
+    const section = screen.getByRole("region", { name: landingMessages.en.finding.title });
+    await waitFor(() => expect(within(section).getByText(en.ratio(f.stuckDebtUsd / f.clearedUsd))).toBeInTheDocument(), LAZY);
+    expect(within(section).getAllByText(en.usd(f.clearedUsd)).length).toBeGreaterThan(0);
+    expect(within(section).getByText(landingMessages.en.finding.footnote)).toBeVisible();
+    expect(within(section).getByText(`${data.positions!.belowThreshold} of ${data.positions!.total}`)).toBeInTheDocument();
+  });
+
+  it("quotes the MIP-8 read costs from lib/chain/limits with the computed ratio", async () => {
+    render(<Landing locale="en" data={data} />);
+    expect(await screen.findByText("162.5 gas", {}, LAZY)).toBeInTheDocument();
+    expect(screen.getByText("2,100 gas")).toBeInTheDocument();
+    expect(screen.getByText("12.9× cheaper per position")).toBeInTheDocument();
+  });
+
+  it("validates addresses and offers the sample borrowers", async () => {
+    render(<Landing locale="en" data={data} />);
+    // Query and check in one go: the live teaser may replace the static form at any moment.
+    await waitFor(() => expect(screen.getByRole("textbox", { name: "Wallet address" })).toBeInTheDocument(), LAZY);
+    const sample = screen.getByRole("link", { name: /Largest syrupUSDC borrower/ });
+    expect(sample.getAttribute("href")).toMatch(/^\/wallet\?address=0x[0-9a-fA-F]{40}$/);
+  });
+
+  it("labels the largest-position dial as the book snapshot, not the live position", async () => {
+    render(<Landing locale="en" data={data} />);
+    const section = screen.getByRole("region", { name: landingMessages.en.wallet.title });
+    const block = en.block(DEPLOYMENT.source.block);
+    const snapshot = new RegExp(`book snapshot \\(Monad mainnet block ${block.replace(/[#,]/g, (c) => `\\${c}`)}\\)`);
+    await waitFor(() => expect(within(section).getByText(snapshot)).toBeInTheDocument(), LAZY);
+    expect(within(section).getByText(landingMessages.en.wallet.dialNote)).toBeInTheDocument();
+  });
+
+  it("renders skeletons instead of numbers when the chain could not be read", async () => {
+    render(<Landing locale="en" data={EMPTY_LANDING} />);
+    await screen.findByRole("textbox", { name: "Wallet address" }, LAZY);
+    expect(screen.getByText("Live preview unavailable right now")).toBeInTheDocument();
+    expect(screen.getByRole("region", { name: landingMessages.en.finding.title }).querySelector("[aria-busy='true']")).not.toBeNull();
+    expect(screen.queryByText(/\$111/)).toBeNull();
+    expect(screen.getByText(landingMessages.en.guard.missing)).toBeInTheDocument();
+  });
+});
+
+describe("Landing (TR)", () => {
+  it("uses the Turkish copy and number format", async () => {
+    const tr = formatters("tr");
+    render(<Landing locale="tr" data={data} />);
+    await screen.findByRole("textbox", { name: "Cüzdan adresi" }, LAZY);
+    expect(screen.getByRole("heading", { level: 1 })).toHaveTextContent("Tek işlem. Tüm likidasyon dalgaları.");
+    expect(screen.getByText("syrupUSDC −%3 düşerse anında likide edilemeyen borç")).toBeInTheDocument();
+    expect(screen.getAllByText(tr.usd(f.stuckDebtUsd)).length).toBeGreaterThan(0);
+    expect(screen.getByRole("link", { name: "Param güvende mi?" })).toHaveAttribute("href", "/tr/cuzdan");
+    expect(screen.getByText(landingMessages.tr.finding.footnote)).toBeInTheDocument();
+  });
+
+  it("shows the exit-pool depth note in Turkish", () => {
+    const { container } = render(<Landing locale="tr" data={data} />);
+    const asset = DEPLOYMENT.assets[String(f.assetId)];
+    const note = depthNote(asset, "tr");
+    expect(note.lang).toBe("tr");
+    const shown = within(container.querySelector<HTMLElement>("#finding")!).getByText(note.text);
+    expect(shown).toHaveAttribute("lang", "tr");
+    expect(container.querySelector("#finding")!.textContent).not.toContain("Sum of GeckoTerminal");
+  });
+});
+
+describe("One block number for the finding", () => {
+  it("shows the finding's read block in the hero, the finding and the on-chain card, before and after the takeover", async () => {
+    const { container } = render(<Landing locale="en" data={data} />);
+    const blocks = () =>
+      ["[data-landing-shock]", "#finding", "#on-chain"].map((sel) => {
+        const found = container.querySelector(sel)!.textContent!.match(/#\d{1,3}(?:,\d{3})+/g) ?? [];
+        return [...new Set(found)];
+      });
+    const expected = [en.block(f.blockNumber!)];
+    expect(blocks()).toEqual([expected, expected, expected]);
+    // After the reader's first intent the live islands take over with the same props: no other block.
+    await screen.findByRole("textbox", { name: "Wallet address" }, LAZY);
+    await waitFor(() => expect(container.querySelector("#finding [data-slot='gap-bars']")).not.toBeNull());
+    expect(blocks()).toEqual([expected, expected, expected]);
+  });
+});

@@ -1,0 +1,53 @@
+/*
+ * SplitText: each word rises out of its own clipping mask at first paint (pure CSS, no hydration).
+ * The mask gets extra room above (accents such as İ Ş Ğ) and below (descenders g y p) through
+ * padding, and gives it back with negative margins, so the line box is unchanged.
+ */
+
+.root {
+  --split-room-top: 0.14em;
+  --split-room-bottom: 0.26em;
+}
+
+.mask {
+  display: inline-block;
+  /* Clip vertically only: italic accent words may lean out sideways. */
+  overflow-x: visible;
+  overflow-y: clip;
+  padding-block: var(--split-room-top) var(--split-room-bottom);
+  margin-block: calc(-1 * var(--split-room-top)) calc(-1 * var(--split-room-bottom));
+}
+
+.word {
+  display: inline-block;
+  /* `backwards`: holds the start frame through the stagger delay, leaves no layer behind at the end. */
+  animation: split-rise var(--dur-scene-short) var(--ease-out-expo) backwards;
+}
+
+/* Start fully below the mask (box height + both margins), so no ascender peeks out before its turn. */
+@keyframes split-rise {
+  from {
+    transform: translate3d(0, calc(100% + var(--split-room-top) + var(--split-room-bottom)), 0);
+  }
+}
+
+@keyframes split-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Reduced motion (OS setting, or a ReducedMotionScope): words only fade, nothing travels. */
+@media (prefers-reduced-motion: reduce) {
+  .word {
+    animation-name: split-fade;
+    animation-duration: var(--dur-base);
+    animation-timing-function: var(--ease-out-quart);
+  }
+}
+
+:global([data-motion="reduced"]) .word {
+  animation-name: split-fade;
+  animation-duration: var(--dur-base);
+  animation-timing-function: var(--ease-out-quart);
+}

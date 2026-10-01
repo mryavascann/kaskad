@@ -37,7 +37,7 @@ Aşağıdaki Monad değerleri testnette ölçüldü. Ethereum değerleri aynı k
 | 10.000 pozisyonluk kaskad | **17,7M gas** (30M limitin %59'u), 1,6 MB bellek | 42,3M gas: tx tavanının (16.777.216, EIP-7825) **2,52 katı → sığmaz** |
 | 5.000 pozisyon | 9,4M gas | 20,5M gas: tavanın 1,22 katı → sığmaz |
 | Monte Carlo: gerçek syrupUSDC defteri (57 pozisyon) × rastgele şok senaryoları | **213 senaryo** (dış fiyat oracle'ı) / 57 (en kötü durum) | 114 / 34 senaryo |
-| Pozisyon başına depolama okuma | ~164 gas (MIP-8: 128 slotluk sayfa) | 2.100 gas (soğuk SLOAD) |
+| Pozisyon başına depolama okuma | ~162,5 gas (MIP-8: 100 gas sıcak okuma + 128 slotluk sayfanın ilk erişimi 8.000 / 128) | 2.100 gas (soğuk SLOAD) |
 | Gönderimden receipt'e (`eth_sendRawTransactionSync`) | **ortalama 336 ms** (4 tx) | — |
 
 - **Farkı yaratan:** pozisyon başına ucuz depolama okuması (MIP-8) ve 30M'lik tx limiti. Ethereum'da her pozisyonun soğuk okuması bütçeyi tüketiyor.

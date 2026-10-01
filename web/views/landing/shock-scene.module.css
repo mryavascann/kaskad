@@ -1,0 +1,308 @@
+/*
+ * The hero + shock scene: one tall scroll track with a sticky viewport (CSS sticky, so nothing jumps
+ * when scripts arrive). Scroll progress arrives as CSS variables on the track, written by
+ * ShockDriver without React renders: --intro (1 → 0: headline out), --panel (0 → 1: shock panel
+ * in), --loop (0 → 1: loop diagram drawn). Defaults = first paint: headline visible, panel hidden.
+ *
+ * Reduced motion: no sticky, no scroll length; the headline, the panel (final state) and the strip
+ * stack as a normal layout, and the stage shows the final poster behind the headline.
+ */
+
+.track {
+  --intro: 1;
+  --panel: 0;
+  --loop: 0;
+  position: relative;
+  /* Starts under the sticky nav so progress 0 = top of the page. */
+  margin-top: calc(-1 * var(--nav-h));
+  height: 330svh;
+}
+
+.viewport {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow: clip;
+  isolation: isolate;
+}
+
+.stage {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+}
+
+/*
+ * The loop diagram and the price line get their own space: while the shock panel comes in
+ * (--panel 0 → 1) the row slides out from under them. Phones and tablets: down, below the panel's
+ * copy (the diagram also sits on its own backplate). Desktop: right, past the copy column
+ * (gutter + max-w-lg + 2rem), so no domino is drawn under the panel.
+ */
+.stage {
+  /* Phones: the row starts low, under the top-aligned copy (--stage-rest-y), and moves a little
+     further down as the panel arrives. */
+  --stage-rest-y: 0px;
+  --stage-shift-y: 6svh;
+  transform: translate3d(0, calc(var(--stage-rest-y) + var(--panel) * var(--stage-shift-y)), 0);
+}
+
+@media (width < 48rem) {
+  .stage {
+    /* Already below the copy at rest: it stays there under the shock panel too. */
+    --stage-rest-y: 22svh;
+    --stage-shift-y: 0px;
+  }
+}
+
+/* Desktop: the row sits right of the copy column and fades in from the left. */
+@media (width >= 64rem) {
+  .stage {
+    --panel-column: calc(max(0px, (100vw - var(--container-page)) / 2) + var(--page-gutter) + 32rem + 2rem);
+    --stage-shift-x: max(0px, calc(var(--panel-column) - 30vw));
+    /* At rest the first domino clears the hero CTAs (gutter + 26rem), which 30% alone does not at ~1024 px. */
+    --stage-rest-x: max(0px, calc(max(0px, (100vw - var(--container-page)) / 2) + var(--page-gutter) + 26rem - 30vw));
+    left: 30%;
+    mask-image: linear-gradient(to right, transparent 0%, #000 22%);
+    transform: translate3d(calc(var(--stage-rest-x) + var(--panel) * (var(--stage-shift-x) - var(--stage-rest-x))), 0, 0);
+  }
+}
+
+/*
+ * Phones and portrait tablets: the copy block starts at the top (badge and headline first, both
+ * CTAs inside the first screen) and the row sits below it (see the stage shift further down).
+ * Desktop: centred beside the row.
+ */
+.introBody {
+  justify-content: flex-start;
+  padding-top: clamp(1rem, 3svh, 1.75rem);
+}
+
+@media (width >= 64rem) {
+  .introBody {
+    justify-content: safe center;
+    padding-top: 0;
+  }
+}
+
+/*
+ * Legibility. Phones and tablets: the headline and the shock panel both sit high (dark from the
+ * top), the row below them. Desktop: copy on the left, one scrim.
+ */
+.scrim,
+.scrimTop {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+}
+
+.scrim {
+  opacity: var(--intro);
+  background: linear-gradient(to bottom, var(--color-bg) 0%, color-mix(in oklab, var(--color-bg) 80%, transparent) 46%, transparent 72%);
+}
+
+.scrimTop {
+  opacity: var(--panel);
+  background: linear-gradient(to bottom, var(--color-bg) 0%, color-mix(in oklab, var(--color-bg) 80%, transparent) 42%, transparent 64%);
+}
+
+@media (width >= 64rem) {
+  .scrim {
+    opacity: 1;
+    background:
+      linear-gradient(to right, var(--color-bg) 0%, color-mix(in oklab, var(--color-bg) 60%, transparent) 34%, transparent 52%),
+      linear-gradient(to top, var(--color-bg) 0%, transparent 20%);
+  }
+
+  .scrimTop {
+    display: none;
+  }
+}
+
+.intro {
+  position: absolute;
+  inset: 0;
+  padding-top: var(--nav-h);
+  opacity: var(--intro);
+  transform: translate3d(0, calc((1 - var(--intro)) * -3rem), 0);
+}
+
+/* Set by the driver once the headline has faded out: its links leave the tab order. */
+.track[data-intro-gone] .intro {
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.panel {
+  position: absolute;
+  inset: 0;
+  padding-top: var(--nav-h);
+  opacity: var(--panel);
+  transform: translate3d(0, calc((1 - var(--panel)) * 2.5rem), 0);
+  pointer-events: none;
+}
+
+.panel[data-visible] {
+  pointer-events: auto;
+}
+
+/*
+ * Phones and tablets: the strip would sit over the hero CTAs, so it arrives with the shock panel
+ * (--panel). It is absolutely positioned, so showing it never moves the layout. Desktop: the copy
+ * column leaves room for it and it stays from the first paint.
+ */
+.strip {
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  opacity: var(--panel);
+  transform: translate3d(0, calc((1 - var(--panel)) * 100%), 0);
+}
+
+@media (width >= 64rem) {
+  .strip {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.cue {
+  opacity: calc(var(--intro) * 2 - 1);
+}
+
+/* Loop diagram: steps light up and connectors draw in order as --loop goes 0 → 1. */
+.loopStep {
+  opacity: clamp(0.28, calc(var(--loop) * 3.4 - var(--i)), 1);
+}
+
+.loopLink {
+  transform-origin: left center;
+  transform: scaleX(clamp(0, calc(var(--loop) * 3.4 - var(--i) - 0.4), 1));
+}
+
+.loopReturn {
+  stroke-dasharray: 1;
+  stroke-dashoffset: calc(1 - clamp(0, calc(var(--loop) * 3.4 - 2.4), 1));
+}
+
+.loopAgain {
+  opacity: clamp(0, calc(var(--loop) * 3.4 - 3), 1);
+}
+
+/* Price line: revealed up to the current block, needle rides it. */
+.reveal {
+  clip-path: inset(0 calc(100% - var(--x) * 100%) 0 0);
+  transition: clip-path var(--dur-slow) var(--ease-out-quart);
+}
+
+.needleX {
+  position: absolute;
+  inset: 0;
+  transform: translate3d(calc(var(--x) * 100%), 0, 0);
+  transition: transform var(--dur-slow) var(--ease-out-quart);
+}
+
+.needleY {
+  position: absolute;
+  inset: 0;
+  transform: translate3d(0, calc(var(--y) * 100%), 0);
+  transition: transform var(--dur-slow) var(--ease-out-quart);
+}
+
+/*
+ * Portrait tablets (768–1023 px wide, taller than wide): the headline sits at the top and the row
+ * below it, instead of a bottom-anchored block under an empty top half.
+ */
+@media (width >= 48rem) and (width < 64rem) and (orientation: portrait) {
+  .stage {
+    --stage-rest-y: 8svh;
+  }
+
+  .introBody {
+    padding-top: clamp(2rem, 7svh, 5rem);
+  }
+
+  .scrim {
+    background: linear-gradient(to bottom, var(--color-bg) 0%, color-mix(in oklab, var(--color-bg) 78%, transparent) 42%, transparent 70%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .track {
+    height: auto;
+    margin-top: calc(-1 * var(--nav-h));
+  }
+
+  .viewport {
+    position: relative;
+    height: auto;
+    overflow: visible;
+  }
+
+  .stage {
+    bottom: auto;
+    height: 100svh;
+    transform: none;
+  }
+
+  .scrim {
+    bottom: auto;
+    height: 100svh;
+    opacity: 1;
+  }
+
+  .scrimTop {
+    display: none;
+  }
+
+  .intro {
+    position: relative;
+    inset: auto;
+    min-height: 100svh;
+    opacity: 1;
+    transform: none;
+  }
+
+  .track[data-intro-gone] .intro {
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  .panel {
+    position: relative;
+    inset: auto;
+    padding-top: 0;
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+  }
+
+  .strip {
+    position: relative;
+    opacity: 1;
+    transform: none;
+  }
+
+  .cue {
+    display: none;
+  }
+
+  .loopStep,
+  .loopAgain {
+    opacity: 1;
+  }
+
+  .loopLink {
+    transform: none;
+  }
+
+  .loopReturn {
+    stroke-dashoffset: 0;
+  }
+
+  .reveal,
+  .needleX,
+  .needleY {
+    transition: none;
+  }
+}
