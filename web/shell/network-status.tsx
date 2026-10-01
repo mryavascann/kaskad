@@ -1,5 +1,3 @@
-"use client";
-
 import { LiveIndicator } from "@/design/ui/status-dot";
 import type { Locale } from "@/i18n/config";
 import { formatters } from "@/i18n/format";
@@ -7,8 +5,9 @@ import type { CommonMessages } from "@/i18n/messages/common";
 import type { LiveBlock } from "@/lib/chain/hooks/useLiveBlock";
 
 /**
- * `● MONAD TESTNET · BLOCK 66,989,757`. Presentational: the owner polls once with `useLiveBlock()` and
- * passes the state to every copy (desktop bar, mobile sheet), so a page never runs two pollers.
+ * `● MONAD TESTNET · BLOCK 66,989,757`. Presentational: the nav polls once (`LivePoller`) and the
+ * mobile menu passes that state here (`useNavLive()`), so a page never runs two pollers. The bar's
+ * copy is rendered on the server (`SiteNav`, three states switched by `NavLiveSwitch`).
  */
 export function NetworkStatus({ live, locale, t, className }: { live: LiveBlock; locale: Locale; t: CommonMessages["network"]; className?: string }) {
   const { block, error } = live;

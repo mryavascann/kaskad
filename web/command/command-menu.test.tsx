@@ -6,7 +6,8 @@ import { commonMessages } from "@/i18n/messages/common";
 const push = vi.fn();
 vi.mock("next/navigation", () => ({ useRouter: () => ({ push }), usePathname: () => "/guard" }));
 
-const { CommandMenu, CommandMenuButton, isCommandMenuShortcut, useCommandMenu } = await import("./command-menu");
+const { CommandMenu, isCommandMenuShortcut, useCommandMenu } = await import("./command-menu");
+const { CommandMenuButton } = await import("./command-menu-button");
 
 const ADDRESS = "0x4A9B8E0fC2D16B1D5b6A5e2F1b1C3c1dF0E1a2B3";
 

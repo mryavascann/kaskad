@@ -1,36 +1,43 @@
-"use client";
-
-import { Menu, Search } from "lucide-react";
-import { usePathname } from "next/navigation";
-import { useState } from "react";
-import { Button, ButtonArrow } from "@/design/ui/button";
-import { ButtonLink } from "@/design/ui/button-link";
-import { IntentLink as Link } from "@/design/ui/intent-link";
-import { Dialog, DialogContent, DialogTitle, DialogTrigger } from "@/design/ui/dialog";
-import { Logo } from "@/design/ui/logo";
+import { soundToggleClass } from "@/audio/sound-toggle-styles";
 import { SoundToggle } from "@/audio/sound-toggle";
-import { CommandMenu, CommandMenuButton, preloadCommandMenu, ShortcutHint, useCommandMenu } from "@/command/command-menu";
-import { href, matchRoute, type Locale, type RouteId } from "@/i18n/config";
+import { CommandMenuButton } from "@/command/command-menu-button";
+import { CommandMenuHost } from "@/command/command-menu";
+import { ButtonArrow } from "@/design/ui/button-arrow";
+import { ButtonLink } from "@/design/ui/button-link";
+import { buttonStyles } from "@/design/ui/button-styles";
+import { IntentLink as Link } from "@/design/ui/intent-link";
+import { LiveIndicator } from "@/design/ui/status-dot";
+import { Logo } from "@/design/ui/logo";
+import { href, type Locale } from "@/i18n/config";
 import type { CommonMessages } from "@/i18n/messages/common";
-import { useLiveBlock } from "@/lib/chain/hooks/useLiveBlock";
 import { cn } from "@/lib/utils";
+import { LiveBlockValue, LivePoller, NavLiveSwitch } from "./live-status";
 import { LocaleSwitch } from "./locale-switch";
-import { NetworkStatus } from "./network-status";
+import { MobileMenu } from "./mobile-menu";
+import { NavBarLinks } from "./nav-bar-links";
 
-const LINKS: { route: RouteId; key: keyof CommonMessages["nav"] }[] = [
-  { route: "app", key: "console" },
-  { route: "wallet", key: "wallet" },
-  { route: "guard", key: "guard" },
-  { route: "how", key: "how" },
-];
-
+/**
+ * The site header. A Server Component: the logo, the links, the live status and the buttons are
+ * server HTML (classes merged here, so the islands ship without tailwind-merge), and only small
+ * islands hydrate: the links' `aria-current`, the live block, ⌘K, sound, the language switch and the
+ * phone menu button (its sheet loads on first use).
+ */
 export function SiteNav({ locale, t }: { locale: Locale; t: CommonMessages }) {
-  const pathname = usePathname() ?? "/";
-  const current = matchRoute(pathname)?.route;
-  const [open, setOpen] = useState(false);
-  // One poller for both copies of the network status (desktop bar and mobile sheet).
-  const live = useLiveBlock();
-  const command = useCommandMenu();
+  const n = t.network;
+  // The three states of the live block, rendered here; `NavLiveSwitch` shows one.
+  const status = (live: "connecting" | "live" | "offline") => (
+    <LiveIndicator
+      className="hidden xl:inline-flex"
+      label={live === "offline" ? n.offline : n.name}
+      tone={live === "offline" ? "liq" : "safe"}
+      pulse={live !== "offline"}
+      valueLabel={n.block}
+      value={live === "connecting" ? null : undefined}
+      valueContent={live === "live" ? <LiveBlockValue locale={locale} /> : undefined}
+      loadingLabel={n.connecting}
+      title={n.liveLabel}
+    />
+  );
 
   return (
     <header className="sticky top-0 z-(--z-nav) border-b border-line bg-bg/85 backdrop-blur-md">
@@ -40,98 +47,23 @@ export function SiteNav({ locale, t }: { locale: Locale; t: CommonMessages }) {
         </Link>
 
         <nav aria-label={t.nav.label} className="hidden lg:block">
-          <ul className="flex items-center gap-1">
-            {LINKS.map(({ route, key }) => (
-              <li key={route}>
-                <Link
-                  href={href(route, locale)}
-                  aria-current={current === route ? "page" : undefined}
-                  className={cn(
-                    "inline-flex h-9 items-center whitespace-nowrap rounded-control px-3 text-body-sm text-fg-2",
-                    "transition-colors duration-(--dur-fast) ease-out-quart hover:text-fg-1",
-                    "aria-[current=page]:text-fg-1 aria-[current=page]:underline aria-[current=page]:decoration-line-strong aria-[current=page]:underline-offset-8",
-                  )}
-                >
-                  {t.nav[key]}
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <NavBarLinks locale={locale} labels={t.nav} />
         </nav>
 
         <div className="ml-auto flex items-center gap-3">
-          <NetworkStatus live={live} locale={locale} t={t.network} className="hidden xl:inline-flex" />
-          <CommandMenuButton t={t.command} onOpen={command.openMenu} />
-          <SoundToggle t={t.sound} className="hidden md:inline-flex" />
+          <NavLiveSwitch connecting={status("connecting")} live={status("live")} offline={status("offline")} />
+          <LivePoller />
+          <CommandMenuButton t={t.command} />
+          <SoundToggle t={t.sound} className={soundToggleClass({ className: "hidden md:inline-flex" })} />
           <LocaleSwitch locale={locale} t={t.locale} />
           <ButtonLink href={href("app", locale)} variant="secondary" size="sm" className="hidden sm:inline-flex">
             {t.nav.cta}
             <ButtonArrow />
           </ButtonLink>
-
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button variant="ghost" size="icon" className="size-10 lg:hidden" aria-label={t.nav.menu}>
-                <Menu aria-hidden />
-              </Button>
-            </DialogTrigger>
-            <DialogContent closeLabel={t.nav.closeMenu} className="lg:hidden">
-              <DialogTitle className="label-mono text-fg-3">{t.nav.menu}</DialogTitle>
-              <nav aria-label={t.nav.label} className="mt-4">
-                <ul className="flex flex-col divide-y divide-line border-y border-line">
-                  {LINKS.map(({ route, key }) => (
-                    <li key={route}>
-                      <Link
-                        href={href(route, locale)}
-                        aria-current={current === route ? "page" : undefined}
-                        onClick={() => setOpen(false)}
-                        className="flex min-h-12 items-center justify-between py-3 text-title-3 text-fg-2 aria-[current=page]:text-fg-1"
-                      >
-                        {t.nav[key]}
-                        <span aria-hidden className="text-fg-4">
-                          →
-                        </span>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </nav>
-              <button
-                type="button"
-                aria-haspopup="dialog"
-                onPointerEnter={preloadCommandMenu}
-                onFocus={preloadCommandMenu}
-                onClick={() => {
-                  setOpen(false);
-                  command.openMenu();
-                }}
-                className="mt-4 flex min-h-12 w-full items-center gap-3 rounded-control border border-line-2 px-3 text-body-sm text-fg-2 transition-colors duration-(--dur-fast) hover:border-line-3 hover:text-fg-1"
-              >
-                <Search className="size-4 text-fg-3" aria-hidden />
-                <span className="flex-1 text-left">{t.command.open}</span>
-                <ShortcutHint t={t.command} className="hidden sm:inline-flex" />
-              </button>
-              <SoundToggle t={t.sound} showLabel className="mt-2 h-12 w-full justify-start gap-3 px-3 text-fg-2 [&_svg]:size-4" />
-              <div className="mt-6 flex flex-col gap-4">
-                <ButtonLink href={href("app", locale)} variant="primary" size="lg" onClick={() => setOpen(false)}>
-                  {t.nav.cta}
-                  <ButtonArrow />
-                </ButtonLink>
-                <NetworkStatus live={live} locale={locale} t={t.network} />
-              </div>
-            </DialogContent>
-          </Dialog>
+          <MobileMenu locale={locale} t={t} className={cn(buttonStyles({ variant: "ghost", size: "icon" }), "size-10 lg:hidden")} />
         </div>
       </div>
-      <CommandMenu
-        mounted={command.mounted}
-        open={command.open}
-        onOpenChange={command.setOpen}
-        locale={locale}
-        t={t}
-        pathname={pathname}
-        currentRoute={current ?? null}
-      />
+      <CommandMenuHost locale={locale} t={t} />
     </header>
   );
 }

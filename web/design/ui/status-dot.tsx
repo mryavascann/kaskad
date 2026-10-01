@@ -63,6 +63,12 @@ type LiveIndicatorProps = Omit<ComponentProps<"span">, "children"> & {
   loadingLabel?: string;
   /** Formats `value`; defaults to en-US grouping (pass the page locale's formatter). */
   formatValue?: (value: number) => string;
+  /**
+   * Rendered as the value instead of `formatValue(value)`, e.g. a small client island that reads a
+   * live store, so a Server Component can render the rest of the indicator. Takes precedence over
+   * `value`.
+   */
+  valueContent?: ReactNode;
 };
 
 /**
@@ -77,9 +83,11 @@ export function LiveIndicator({
   pulse = true,
   loadingLabel = "Loading",
   formatValue = (n) => grouping.format(n),
+  valueContent,
   className,
   ...props
 }: LiveIndicatorProps) {
+  const shown = valueContent !== undefined ? valueContent : value === null || value === undefined ? value : formatValue(value);
   return (
     <span
       data-slot="live-indicator"
@@ -88,20 +96,20 @@ export function LiveIndicator({
     >
       <StatusDot tone={tone} pulse={pulse} />
       <span className="min-w-0 truncate text-fg-2">{label}</span>
-      {value !== undefined && (
+      {shown !== undefined && (
         <>
           <span aria-hidden className="shrink-0 text-fg-4">
             ·
           </span>
-          <span className="inline-flex shrink-0 items-center gap-[0.6em] whitespace-nowrap" aria-busy={value === null || undefined}>
+          <span className="inline-flex shrink-0 items-center gap-[0.6em] whitespace-nowrap" aria-busy={shown === null || undefined}>
             <span>{valueLabel}</span>
-            {value === null ? (
+            {shown === null ? (
               <>
                 <span className="sr-only">{loadingLabel}</span>
                 <Skeleton className="h-[0.8em] w-[9ch]" />
               </>
             ) : (
-              <span className="tabular-nums text-fg-2">{formatValue(value)}</span>
+              <span className="tabular-nums text-fg-2">{shown}</span>
             )}
           </span>
         </>

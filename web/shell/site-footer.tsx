@@ -1,5 +1,5 @@
 import { ArrowUpRight } from "lucide-react";
-import { IntentLink as Link } from "@/design/ui/intent-link";
+import Link from "next/link";
 import type { ReactNode } from "react";
 import { Label } from "@/design/ui/label";
 import { Logo } from "@/design/ui/logo";
@@ -38,7 +38,8 @@ export function SiteFooter({ locale, t }: { locale: Locale; t: CommonMessages })
     <footer className="mt-auto border-t border-line">
       <div className="page-shell grid-page gap-y-12 py-14">
         <div className="col-span-full flex flex-col gap-5 lg:col-span-4">
-          <Link href={href("home", locale)} className="w-fit rounded-control">
+          {/* Plain next/link without prefetch: the footer is far below the fold, and no IntentLink island. */}
+          <Link href={href("home", locale)} prefetch={false} className="w-fit rounded-control">
             <Logo size={22} label={t.brand} />
           </Link>
           <p className="max-w-sm text-body-sm text-fg-2">{f.tagline}</p>

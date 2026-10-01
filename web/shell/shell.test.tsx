@@ -1,4 +1,4 @@
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { commonMessages } from "@/i18n/messages/common";
@@ -35,9 +35,9 @@ describe("SiteNav", () => {
     expect(within(nav).getByRole("link", { name: "Konsol" })).toHaveAttribute("href", "/tr/app");
   });
 
-  it("shows the live block with the locale's grouping", () => {
+  it("shows the live block with the locale's grouping once the idle poll lands", async () => {
     render(<SiteNav locale="tr" t={commonMessages.tr} />);
-    expect(screen.getAllByText("66.989.757").length).toBeGreaterThan(0);
+    expect((await screen.findAllByText("66.989.757")).length).toBeGreaterThan(0);
   });
 
   it("opens the mobile menu as a dialog with the same links", async () => {
@@ -47,6 +47,22 @@ describe("SiteNav", () => {
     const dialog = await screen.findByRole("dialog");
     expect(within(dialog).getByRole("link", { name: /Guard/ })).toHaveAttribute("href", "/guard");
     expect(within(dialog).getByRole("link", { name: /Run the stress test/ })).toHaveAttribute("href", "/app");
+  });
+
+  it("loads the mobile menu on demand, closes it with Escape and returns focus to the button", async () => {
+    const user = userEvent.setup();
+    render(<SiteNav locale="en" t={commonMessages.en} />);
+    const button = screen.getByRole("button", { name: "Menu" });
+    expect(button).toHaveAttribute("aria-haspopup", "dialog");
+    expect(button).toHaveAttribute("aria-expanded", "false");
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    await user.click(button);
+    const dialog = await screen.findByRole("dialog", { name: "Menu" });
+    expect(button).toHaveAttribute("aria-expanded", "true");
+    await waitFor(() => expect(dialog).toContainElement(document.activeElement as HTMLElement));
+    await user.keyboard("{Escape}");
+    await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+    expect(button).toHaveFocus();
   });
 
   it("offers the command menu in the bar and in the mobile menu", async () => {

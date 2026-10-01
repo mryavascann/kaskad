@@ -59,14 +59,16 @@ The "Instrument" language (stage 3 of `web/REDESIGN_PLAN.md`). Live reference: `
 
 | Group | Files |
 |---|---|
-| Base | `button` (+ `ButtonArrow`, `button-styles`), `button-link` (`ButtonLink`), `label` (`Label`, `Eyebrow`), `panel` (`Panel`, `PanelHeader`, `PanelBody`), `tone` |
+| Base | `button` (server-safe entry: `Button` from `button-client`, `ButtonArrow` from `button-arrow`, `buttonStyles`), `button-link` (`ButtonLink`), `label` (`Label`, `Eyebrow`), `panel` (`Panel`, `PanelHeader`, `PanelBody`), `tone` |
 | Display | `badge`, `status-dot` (`StatusDot`, `LiveIndicator`), `honesty` (`HonestyTag`), `kbd`, `divider`, `logo` (`Logo`, `LogoMark`), `section-header` |
 | Data | `metric` (`Metric`, `MetricGroup`, `formatMetric`), `readout` (`Readout`, `ReadoutRow`), `tick-ruler` |
 | Feedback | `skeleton`, `callout`, `empty-state`, `steps`, `footnote`, `toaster` (`Toaster`, `notify`), `toaster-slot` (`ToasterSlot`, `requestToaster`) |
 | Controls | `slider`, `segmented`, `tabs`, `switch`, `chip` (`Chip`, `ChipGroup`), `input` (`Input`, `InputAction`), `field` |
 | Overlays | `tooltip` (`TooltipProvider`, `Tooltip`), `popover`, `term`, `dialog` (+ `ConfirmDialog`), `disclosure` |
 
-Root providers (`shell/root-document.tsx`): `MotionProvider` (LazyMotion, features async), `ToasterSlot` (sonner loads when a page imports `toaster`), `DemoModeAttribute`, `RevealNoScript` (server). No root `TooltipProvider`: each `Tooltip` brings its own. Links: `ButtonLink` and the shell use `IntentLink` (prefetch on hover / focus / touch, not in view).
+Root providers (`shell/root-document.tsx`): `MotionProvider` (LazyMotion, features async), `ToasterSlot` (sonner loads when a page imports `toaster`), `DemoModeAttribute`, `RevealNoScript` (server). No root `TooltipProvider`: each `Tooltip` brings its own. Links: `ButtonLink` and the nav use `IntentLink` (prefetch on hover / focus / touch, not in view); the footer uses plain `next/link` with `prefetch={false}`.
+
+Shell weight (every page carries it): `SiteNav` is a Server Component. Classes are merged with `cn` on the server and passed to the islands as final strings (`soundToggleClass`, the menu button), so no shell island imports tailwind-merge; the phone menu sheet (Radix Dialog), the ⌘K palette and the audio synth load on first use; the live block polls from the first idle period.
 
 ## Commands
 

@@ -1,23 +1,32 @@
 "use client";
 
 /**
- * ⌘K / Ctrl+K command menu. `useCommandMenu()` owns the open state and the global shortcut;
- * `<CommandMenuButton>` is the nav trigger with the shortcut hint; `<CommandMenu>` mounts the dialog
- * body (./palette, cmdk) only after the first open, and preloads it when the trigger is hovered or
- * focused, so the initial page JS only carries this small file.
+ * ⌘K / Ctrl+K command menu, client side. Kept small, since the nav on every page loads it:
+ * - `useCommandMenu()` owns the open state, the global shortcut and the `openCommandMenu()` event.
+ * - `CommandMenuHost` mounts that state once per page (the nav renders it) with the palette.
+ * - `CommandMenuTrigger` is a bare `<button>` that opens it; its content and classes come from the
+ *   caller (`CommandMenuButton` renders them on the server).
+ * - `CommandMenu` mounts the dialog body (./palette, cmdk) only after the first open, and the triggers
+ *   preload it on hover or focus.
  */
-import { Search } from "lucide-react";
-import { lazy, Suspense, useCallback, useEffect, useState, useSyncExternalStore, type ComponentProps } from "react";
-import { Kbd, KbdGroup } from "@/design/ui/kbd";
+import { usePathname } from "next/navigation";
+import { lazy, Suspense, useCallback, useEffect, useState, type ComponentProps } from "react";
+import { matchRoute, type Locale } from "@/i18n/config";
 import type { CommonMessages } from "@/i18n/messages/common";
-import { cn } from "@/lib/utils";
 import type { PaletteProps } from "./palette";
 
 const loadPalette = () => import("./palette");
 const Palette = lazy(loadPalette);
 
-/** Starts downloading the palette chunk (hover / focus on the trigger). */
+/** Starts downloading the palette chunk (hover / focus on a trigger). */
 export const preloadCommandMenu = () => void loadPalette().catch(() => {});
+
+const OPEN_EVENT = "kaskad:command-menu";
+
+/** Opens the page's command menu (from any island: the nav button, the mobile menu). */
+export function openCommandMenu(): void {
+  window.dispatchEvent(new Event(OPEN_EVENT));
+}
 
 /** True for the ⌘K / Ctrl+K chord (no Shift or Alt, so browser and OS shortcuts stay free). */
 export function isCommandMenuShortcut(e: Pick<KeyboardEvent, "key" | "metaKey" | "ctrlKey" | "shiftKey" | "altKey">): boolean {
@@ -42,61 +51,52 @@ export function useCommandMenu() {
       setOpen((o) => !o);
     };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, []);
+    window.addEventListener(OPEN_EVENT, openMenu);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener(OPEN_EVENT, openMenu);
+    };
+  }, [openMenu]);
 
   return { open, setOpen, openMenu, mounted };
 }
 
-const subscribeNothing = () => () => {};
 const isApple = () => /Mac|iPhone|iPad|iPod/.test(navigator.platform || navigator.userAgent);
 
-/** "⌘ K" on Apple devices, "Ctrl K" elsewhere. The server renders "Ctrl"; the client corrects it after hydration. */
-export function ShortcutHint({ t, className, "aria-hidden": ariaHidden }: { t: CommonMessages["command"]; className?: string; "aria-hidden"?: boolean }) {
-  const apple = useSyncExternalStore(subscribeNothing, isApple, () => false);
+/** One per page (the nav): the shortcut, the palette, and `html[data-apple]` for `ShortcutHint`. */
+export function CommandMenuHost({ locale, t }: { locale: Locale; t: CommonMessages }) {
+  const pathname = usePathname() ?? "/";
+  const menu = useCommandMenu();
+  useEffect(() => {
+    if (isApple()) document.documentElement.dataset.apple = "";
+  }, []);
   return (
-    <KbdGroup className={className} aria-hidden={ariaHidden}>
-      {apple ? (
-        <Kbd size="sm" label={t.shortcutMac}>
-          ⌘K
-        </Kbd>
-      ) : (
-        <Kbd size="sm" label={t.shortcutOther}>
-          Ctrl K
-        </Kbd>
-      )}
-    </KbdGroup>
+    <CommandMenu
+      mounted={menu.mounted}
+      open={menu.open}
+      onOpenChange={menu.setOpen}
+      locale={locale}
+      t={t}
+      pathname={pathname}
+      currentRoute={matchRoute(pathname)?.route ?? null}
+    />
   );
 }
 
-/**
- * Named by its content, not `aria-label`, so the name contains the visible word ("Search pages,
- * scenarios and addresses" starts with "Search", WCAG 2.5.3). The key hint is announced through
- * `aria-keyshortcuts` instead of being read as part of the name.
- */
-export function CommandMenuButton({ t, onOpen, className, ...props }: { t: CommonMessages["command"]; onOpen: () => void } & ComponentProps<"button">) {
+/** A `<button>` that opens the command menu (`onOpen`, or the page's `CommandMenuHost`). */
+export function CommandMenuTrigger({ onOpen, onClick, ...props }: { onOpen?: () => void } & ComponentProps<"button">) {
   return (
     <button
       type="button"
       aria-haspopup="dialog"
-      aria-keyshortcuts="Meta+K Control+K"
-      onClick={onOpen}
       onPointerEnter={preloadCommandMenu}
       onFocus={preloadCommandMenu}
-      className={cn(
-        "inline-flex h-8 items-center gap-2 rounded-control border border-line-2 px-2 text-body-sm text-fg-3",
-        "transition-colors duration-(--dur-fast) ease-out-quart hover:border-line-3 hover:text-fg-1",
-        className,
-      )}
+      onClick={(event) => {
+        onClick?.(event);
+        (onOpen ?? openCommandMenu)();
+      }}
       {...props}
-    >
-      <Search className="size-3.5" aria-hidden />
-      <span aria-hidden className="hidden 2xl:inline">
-        {t.button}
-      </span>
-      <span className="sr-only">{t.open}</span>
-      <ShortcutHint t={t} aria-hidden className="hidden md:inline-flex" />
-    </button>
+    />
   );
 }
 
