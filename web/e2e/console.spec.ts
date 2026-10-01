@@ -48,6 +48,14 @@ test.describe("Console", () => {
     await expect(prove.getByText(/Estimated cost: .*MON.* · testnet, the sponsor pays/)).toBeVisible();
     await expect(prove.getByText("free eth_call preview, nothing written")).toBeVisible();
     // Under 1 MON there is no confirmation: clicking would send. Stop here (manual step below).
+
+    // The default scenario is read on the server (pinned block); any other scenario is a free
+    // eth_call from this browser.
+    await expect(stage.getByText(/Preview at Monad testnet block .+, free eth_call read on the server/)).toBeVisible();
+    const tremor = presets.getByRole("button", { name: /Small tremor/ });
+    await tremor.click();
+    await expect(tremor).toHaveAttribute("aria-pressed", "true");
+    await expect(stage.getByText("Free eth_call preview, read from this browser at the latest block")).toBeVisible({ timeout: 60_000 });
     expect(safety.rpcMethods).toContain("eth_call");
   });
 
