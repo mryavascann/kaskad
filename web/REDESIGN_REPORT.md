@@ -93,6 +93,12 @@ Production build on the work server (`FINAL_MEASUREMENTS.md`, mobile median of 3
 | `/wallet` | 59 (59–83) | 100 / 100 / 100 | 4.0 s | 2.6 s | 0 | 228 KB |
 | `/how-it-works` | 60 (58–72) | 100 / 100 / 100 | 3.7 s | 2.3 s | 0 | 185 KB |
 
+After that measurement the shell was cut (server-rendered nav with small client islands, phone menu sheet loaded on
+first tap, audio engine on the sound toggle's click, `cn` without the token mirror, two render-blocking stylesheets
+instead of three). Initial JS gz now: `/` 168 KB, `/how-it-works` 164 KB, `/guard` 205 KB, `/wallet` 212 KB, `/app`
+269 KB. On `/how-it-works` (15 alternated loads at 4× CPU) script time fell 676 → 529 ms; Lighthouse on this host
+moved 70 → 75 (median of 5) with overlapping ranges.
+
 Desktop: `/` 96, `/app` 97, `/wallet` 97, `/how-it-works` 88, `/guard` 76. Observed (unthrottled) LCP 0.4–1.3 s,
 LCP = FCP on every page (server-rendered text).
 
@@ -103,11 +109,12 @@ a11y 96 → 100, SEO 90 → 100, CLS ≤ 0.024 → 0.
 site shell and ~66 inside it (Lighthouse's CPU benchmark varies 895–1,807 between runs here), so most of the gap is
 the shared shell plus React/Next boot under 4× CPU throttling. Shell-level cuts (server-rendered nav with small
 client islands, lazy mobile menu, lazy audio engine, tokens out of the client path) are the last round on this
-branch; the final numbers are to be confirmed on the Vercel preview with PageSpeed Insights.
+branch; the final numbers will be taken with PageSpeed Insights on production after merge (the preview is behind
+Vercel deployment protection).
 
 ## 5. Tests
 
-Typecheck and lint clean; Vitest unit + jsdom component tests (133 files / 923 tests at `c8ec8b4`); Playwright e2e
+Typecheck and lint clean; Vitest unit + jsdom component tests (133 files / 925 tests at `d912717`); Playwright e2e
 (desktop 1440 and mobile 390): Guard market B rejects the borrow, address → health factor, console scenario → result
 → prove (up to the send; the heavy proof's confirmation dialog), smoke (every route 200, one h1, no console errors,
 no horizontal scroll at 360, redirects, 404), keyboard checks. A fixture fails any test that tries to send a raw

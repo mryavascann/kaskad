@@ -158,6 +158,12 @@ Branch: `feat/metropolis-frontend` (never commit to `main`; open a PR at the end
 - Checkpoint `cab0720`: typecheck + lint clean, 131 files / 905 unit tests, e2e 54 / 10 skip. Final quiet-machine
   measurement → `design-review/metropolis/FINAL_MEASUREMENTS.md`; then `REDESIGN_REPORT.md` and the PR.
 
+- Final QA gate `47961dc` (`FINAL_MEASUREMENTS.md`); last fixes `9bb1f34`, `2df10e9` (landing), `a641149` … `c8ec8b4`
+  (pages, `/api/rpc` gzip); baseline: empty page ~81 without the shell, ~66 with it on this host. Shell cuts `0541d23`,
+  `2b911a1`, `0f9e5e2`, `12b0f34`, `d912717`: initial JS `/` 168, `/how-it-works` 164, `/guard` 205, `/wallet` 212,
+  `/app` 269 KB gz. `REDESIGN_REPORT.md` written. **PR #2** open (CI + Vercel green); the preview is behind Vercel
+  SSO, so the user chose to measure PageSpeed on production after merge.
+
 ## Handoff (2026-09-30)
 
 The project moves to a server and continues in a new chat. What the new session needs that git doesn't carry:
