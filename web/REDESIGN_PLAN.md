@@ -146,6 +146,18 @@ Branch: `feat/metropolis-frontend` (never commit to `main`; open a PR at the end
 - Git rule for parallel agents: commit with `git commit -m ... -- <paths>` (a shared index swept a staged deletion into
   `182bbf6`), own pid/scratch files, stop servers by PID only.
 
+- **Perf rounds 2–3 done.** Landing: server-rendered shock scene, no GSAP, Lenis only on fine pointers after intent,
+  intent gate (`whenScrollIntent`), LCP = FCP (`97128bf` … `ce680df`); below-the-fold sections use static-HTML
+  takeover islands so they survive hydration and render without JS (`5993201`; the earlier Suspense deferral made
+  them vanish); build-time retry of the landing read. Pages: lazy signer (`lib/chain/signer.ts`), lazy actions,
+  viem reads after first paint, `viz` on `m.*` + lazy `animate` (`e8b3197`, `a72455e`, `b5a26ba`). Console: the
+  default preset result is read on the server (`views/console/data.ts`, pinned block, revalidate 600) and
+  `usePreview(scenario, initial)` doesn't refetch it; tabs/timeline/NumberFlow/prove flow/signer load on intent
+  (`b630790`). Initial JS gz: `/app` 281, `/guard` 209, `/wallet` 228. Lesson: progressive hydration via Suspense
+  loses server HTML when a context above changes (LazyMotion features load) — use takeover islands.
+- Checkpoint `cab0720`: typecheck + lint clean, 131 files / 905 unit tests, e2e 54 / 10 skip. Final quiet-machine
+  measurement → `design-review/metropolis/FINAL_MEASUREMENTS.md`; then `REDESIGN_REPORT.md` and the PR.
+
 ## Handoff (2026-09-30)
 
 The project moves to a server and continues in a new chat. What the new session needs that git doesn't carry:
