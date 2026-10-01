@@ -1,8 +1,7 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useCue } from "@/audio/use-cue";
-import { Footnote } from "@/design/ui/footnote";
 import { Panel, PanelBody } from "@/design/ui/panel";
 import type { Locale } from "@/i18n/config";
 import { consoleMessages } from "@/i18n/messages/console";
@@ -11,6 +10,7 @@ import { BASE_SETTINGS, buildScenario, DEFAULT_PRESET_ID, matchPreset } from "@/
 import type { Scenario, Settings } from "@/lib/chain/types";
 import { PanelHeading } from "../shared/panel-heading";
 import { AnalysisTabs } from "./analysis-tabs";
+import type { InitialPreview } from "./data";
 import type { ConsolePreset } from "./model";
 import { PresetFromUrl } from "./preset-from-url";
 import { ResultStage, type PreviewState } from "./result-stage";
@@ -24,6 +24,10 @@ type Props = {
   presets: readonly ConsolePreset[];
   /** The server's clock at render (days to maturity), so server and browser markup agree. */
   nowMs: number;
+  /** The default preset's preview read on the server; null when it could not be read. */
+  initial?: InitialPreview | null;
+  /** The honesty labels of the default settings, rendered on the server. */
+  initialAssumptions: ReactNode;
 };
 
 /**
@@ -31,12 +35,14 @@ type Props = {
  * the deeper analysis tabs. The selected preset is derived from the settings (`matchPreset`), so any
  * manual change that leaves a preset clears it.
  */
-export function Console({ locale, presets, nowMs }: Props) {
+export function Console({ locale, presets, nowMs, initial = null, initialAssumptions }: Props) {
   const t = consoleMessages[locale];
-  const [settings, setSettings] = useState<Settings>(() => ({ ...(presets.find((p) => p.id === DEFAULT_PRESET_ID)?.settings ?? BASE_SETTINGS) }));
+  const [defaults] = useState<Settings>(() => ({ ...(presets.find((p) => p.id === DEFAULT_PRESET_ID)?.settings ?? BASE_SETTINGS) }));
+  const [settings, setSettings] = useState<Settings>(defaults);
   const presetId = matchPreset(settings);
   const scenario = useMemo(() => buildScenario(settings), [settings]);
-  const preview = usePreview(scenario);
+  const preview = usePreview(scenario, initial);
+  const onDefaults = sameSettings(settings, defaults);
   // Only scenarios the viewer picked sound the boom: not the first preview, not the ?preset= jump.
   const touched = useRef(false);
   const edit = useCallback((next: Settings | ((s: Settings) => Settings)) => {
@@ -67,31 +73,22 @@ export function Console({ locale, presets, nowMs }: Props) {
           <Panel>
             <PanelHeading title={t.inputs.title} />
             <PanelBody>
-              <ScenarioInputs
-                locale={locale}
-                presets={presets}
-                settings={settings}
-                presetId={presetId}
-                onPreset={onPreset}
-                onChange={onChange}
-              />
+              <ScenarioInputs locale={locale} presets={presets} settings={settings} presetId={presetId} onPreset={onPreset} onChange={onChange} />
             </PanelBody>
           </Panel>
-          <RunAssumptions locale={locale} settings={settings} nowMs={nowMs} />
+          {/* The default settings' labels come rendered from the server (no component code of theirs runs in the browser); other settings render here. */}
+          {onDefaults ? initialAssumptions : <RunAssumptions locale={locale} settings={settings} nowMs={nowMs} />}
         </aside>
         <div className="col-span-full min-w-0 md:col-span-8 lg:col-span-8">
-          <ResultStage locale={locale} settings={settings} preview={preview} />
+          <ResultStage locale={locale} settings={settings} preview={preview} initial={initial} />
         </div>
       </div>
-
       <AnalysisTabs locale={locale} settings={settings} result={preview.result} />
-
-      <Footnote label={t.footnote.label} className="max-w-3xl border-t border-line pt-6">
-        {t.footnote.body}
-      </Footnote>
     </div>
   );
 }
+
+const sameSettings = (a: Settings, b: Settings) => (Object.keys(a) as (keyof Settings)[]).every((k) => a[k] === b[k]);
 
 /**
  * `cue("boom")` once per settled result: the preview for the scenario now on screen has landed (not

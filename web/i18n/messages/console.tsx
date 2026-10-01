@@ -180,6 +180,8 @@ const en = {
   stage: {
     title: "Result",
     status: { loading: "Computing the preview", ready: "Preview ready", error: "Preview failed" },
+    pinned: (v: { block: S }) => `Preview at Monad testnet block ${v.block}, free eth_call read on the server`,
+    browser: "Free eth_call preview, read from this browser at the latest block",
     context: (v: { symbol: S; shock: S; oracle: S; book: S; steps: S }) => `${v.symbol} ${v.shock} · ${v.oracle} · ${v.book} · ${v.steps}`,
     contextOracle: { external: "external price", pool: "pool price, worst case" } as Record<"external" | "pool", S>,
     contextBook: (v: { kind: "real" | "calibrated"; n: S }) => (v.kind === "real" ? `real book, ${v.n} positions` : `synthetic, ${v.n} positions`),
@@ -452,6 +454,8 @@ const tr = {
   stage: {
     title: "Sonuç",
     status: { loading: "Önizleme hesaplanıyor", ready: "Önizleme hazır", error: "Önizleme başarısız" },
+    pinned: (v: { block: S }) => `Monad testnet bloğu ${v.block} üzerinde önizleme, sunucuda okunan ücretsiz eth_call`,
+    browser: "Ücretsiz eth_call önizlemesi, bu tarayıcıdan en son blokta okundu",
     context: (v: { symbol: S; shock: S; oracle: S; book: S; steps: S }) => `${v.symbol} ${v.shock} · ${v.oracle} · ${v.book} · ${v.steps}`,
     contextOracle: { external: "dış fiyat", pool: "havuz fiyatı, en kötü durum" } as Record<"external" | "pool", S>,
     contextBook: (v: { kind: "real" | "calibrated"; n: S }) => (v.kind === "real" ? `gerçek defter, ${v.n} pozisyon` : `sentetik, ${v.n} pozisyon`),

@@ -1,20 +1,16 @@
 "use client";
 
-import { ArrowUpRight, Pause, Play, RotateCcw } from "lucide-react";
-import { memo, useEffect, useMemo, useRef, useState, type ComponentProps } from "react";
+import { Pause, Play, RotateCcw } from "lucide-react";
+import { lazy, memo, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useCue } from "@/audio/use-cue";
-import { Badge } from "@/design/ui/badge";
 import { Button } from "@/design/ui/button";
 import { Callout } from "@/design/ui/callout";
 import { Label } from "@/design/ui/label";
-import { Metric, type MetricFormat } from "@/design/ui/metric";
-import { Panel } from "@/design/ui/panel";
 import { Skeleton, SkeletonText } from "@/design/ui/skeleton";
 import { StatusDot } from "@/design/ui/status-dot";
 import { INTL_LOCALE, type Locale } from "@/i18n/config";
-import { formatters, usdParts } from "@/i18n/format";
+import { formatters } from "@/i18n/format";
 import { consoleMessages, consoleNarrative } from "@/i18n/messages/console";
-import { preloadAction, proveScenario, proveScenarioGasLimit, type ProveScenarioOutcome } from "@/lib/chain/actions/lazy";
 import { canClassify } from "@/lib/chain/book";
 import type { PreviewError } from "@/lib/chain/engine-model";
 import { usePositionMap } from "@/lib/chain/hooks/usePositionMap";
@@ -23,13 +19,16 @@ import { narrativeFacts } from "@/lib/chain/narrative";
 import { calibratedScale, effectiveResolution, isCalibratedRun, oracleMode, resultFacts, symbolParts } from "@/lib/chain/scenario";
 import { cascadeTimeline, type CascadeTimeline } from "@/lib/chain/timeline";
 import type { Result, Scenario, Settings } from "@/lib/chain/types";
-import { DEPLOYMENT, txUrl } from "@/lib/kaskad/config";
+import { DEPLOYMENT } from "@/lib/kaskad/config";
 import { cn } from "@/lib/utils";
+import { whenScrollIntent } from "@/motion/scroll";
 import { duration } from "@/motion/tokens";
-import { PositionTiles } from "@/viz/position-tiles";
-import { WaveTimeline } from "@/viz/wave-timeline";
-import { CostLine, TxProgress, useConfirmCost, useTxFlow } from "../shared/tx/tx-parts";
+import { PositionTiles, type PositionsInput } from "@/viz/position-tiles";
+import type { InitialPreview } from "./data";
 import { crossesLiquidation, narrativeText, priceLabel, settingsForScenario, shockLabel } from "./model";
+import { useMountGate } from "./mount-gate";
+import { StaticProvePanel } from "./prove-frame";
+import { UsdMetric } from "./usd-metric";
 
 export type PreviewState = {
   result: Result | null;
@@ -39,13 +38,22 @@ export type PreviewState = {
   resultScenario: Scenario | null;
 };
 
+/**
+ * The cascade timeline (its code and Motion's spring and presence engine) is a separate chunk, loaded
+ * with the reader's first scroll, touch, press, key or mouse move. The server renders it in full; in
+ * the browser it hydrates once the chunk is there. It sits below the first screen on every width, so
+ * if React has to render it from scratch before that (a context above it changed first), the
+ * same-height hold stands there meanwhile, out of sight.
+ */
+const WaveTimeline = lazy(() =>
+  whenScrollIntent()
+    .then(() => import("@/viz/wave-timeline"))
+    .then((m) => ({ default: m.WaveTimeline })),
+);
+
 /** One block per beat while playing (a UI pace, not chain time). */
 const BLOCK_MS = duration.slow;
 
-function UsdMetric({ value, locale, ...props }: Omit<ComponentProps<typeof Metric>, "value" | "prefix" | "suffix" | "format" | "locales"> & { value: number | null; locale: Locale }) {
-  const p = value === null ? null : usdParts(value, locale);
-  return <Metric value={p?.value ?? null} prefix={p?.prefix} suffix={p?.suffix} format={p?.format as MetricFormat | undefined} locales={p?.locales} {...props} />;
-}
 
 /** Block playhead shared by the timeline and the tiles: the end state until someone scrubs or plays. */
 function useReplay(timeline: object | null, steps: number) {
@@ -65,6 +73,8 @@ function useReplay(timeline: object | null, steps: number) {
   return {
     step,
     running,
+    /** Someone has scrubbed or played this result. */
+    moved: timeline !== null && scrub?.of === timeline,
     seek: (next: number) => {
       if (!timeline) return;
       setPlaying(null);
@@ -90,11 +100,27 @@ function useReplayTick(timeline: CascadeTimeline | null, step: number) {
   }, [timeline, step, cue]);
 }
 
-/** The main stage: context line, the two hero numbers, positions, the cascade, the story, the proof. */
-export function ResultStage({ locale, settings, preview }: { locale: Locale; settings: Settings; preview: PreviewState }) {
+/**
+ * The main stage: context line, the two hero numbers, positions, the cascade, the story, the proof.
+ * `initial` is the server's preview of the default scenario: while it is the result on screen, the
+ * stage says which block it ran at and the first render has no entrance (it is the first paint).
+ */
+export function ResultStage({
+  locale,
+  settings,
+  preview,
+  initial = null,
+}: {
+  locale: Locale;
+  settings: Settings;
+  preview: PreviewState;
+  initial?: InitialPreview | null;
+}) {
   const t = consoleMessages[locale].stage;
   const fmt = formatters(locale);
   const { result, resultScenario, loading, error } = preview;
+  const served = initial !== null && result !== null && result === initial.result ? initial : null;
+  const engaged = useMountGate("intent");
 
   // Describe the result on screen, which can lag the inputs while a new preview loads.
   const shown = result && resultScenario ? settingsForScenario(resultScenario) : settings;
@@ -117,7 +143,11 @@ export function ResultStage({ locale, settings, preview }: { locale: Locale; set
     share === undefined ? undefined : `${t.share({ pct: fmt.pct(share) })}${facts?.scaled ? ` · ${t.scaled}` : ""}`;
   // `animate-rise` fills backwards (motion/tokens.css): no translate3d layer is left after the rise,
   // which at 1x DPR smeared the timeline's non-scaling-stroke ticks into a grey band.
-  const beat = (b: "context" | "hero" | "detail") => cn("motion-safe:animate-rise", b === "hero" && "[animation-delay:var(--beat-hero)]", b === "detail" && "[animation-delay:var(--beat-detail)]");
+  // The first result rises in (context, numbers, detail); the server's result is already there on the first paint.
+  const beat = (b: "context" | "hero" | "detail") =>
+    initial
+      ? undefined
+      : cn("motion-safe:animate-rise", b === "hero" && "[animation-delay:var(--beat-hero)]", b === "detail" && "[animation-delay:var(--beat-detail)]");
   const ready = result !== null;
 
   return (
@@ -133,6 +163,8 @@ export function ResultStage({ locale, settings, preview }: { locale: Locale; set
           </span>
         </div>
         <p className="font-mono text-body-sm text-fg-1">{context}</p>
+        {/* Where the result on screen was read: the server's pinned block, or this browser. One line either way (no shift). */}
+        <p className="min-h-[1lh] font-mono text-caption text-fg-3">{served ? t.pinned({ block: fmt.block(served.blockNumber) }) : result ? t.browser : null}</p>
         <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">
           {facts && !loading ? t.announce({ bad: fmt.usd(facts.badDebtUsd), stuck: fmt.usd(facts.stuckDebtUsd) }) : ""}
         </p>
@@ -149,7 +181,7 @@ export function ResultStage({ locale, settings, preview }: { locale: Locale; set
           <div className="flex flex-col gap-2">
             <UsdMetric
               locale={locale}
-              size="xl"
+              still={served !== null && !engaged}
               label={t.badDebt}
               tone={facts && facts.badDebtUsd > 0 ? "liq" : "neutral"}
               value={facts?.badDebtUsd ?? null}
@@ -162,7 +194,7 @@ export function ResultStage({ locale, settings, preview }: { locale: Locale; set
           <div className="flex flex-col gap-2">
             <UsdMetric
               locale={locale}
-              size="xl"
+              still={served !== null && !engaged}
               label={t.stuck}
               tone={facts && facts.stuckDebtUsd > 0 ? "warn" : "neutral"}
               value={facts?.stuckDebtUsd ?? null}
@@ -175,18 +207,20 @@ export function ResultStage({ locale, settings, preview }: { locale: Locale; set
         </div>
 
         <div key={`d-${ready ? "ready" : "wait"}`} className={cn("flex flex-col gap-10", beat("detail"))}>
-          <CascadeReplay locale={locale} result={result} resultScenario={resultScenario} calibrated={calibrated} fallbackSteps={shown.steps} />
-
+          <CascadeReplay
+            locale={locale}
+            result={result}
+            resultScenario={resultScenario}
+            calibrated={calibrated}
+            fallbackSteps={shown.steps}
+            classification={served?.classification ?? null}
+          />
           <div className="grid gap-8 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
             <section aria-labelledby="stage-narrative" className="flex flex-col gap-3">
               <Label as="h3" id="stage-narrative">
                 {t.narrative}
               </Label>
-              {narrative ? (
-                <p className="text-body text-fg-2">{narrative}</p>
-              ) : (
-                <SkeletonText lines={4} className="text-body" />
-              )}
+              {narrative ? <p className="text-body text-fg-2">{narrative}</p> : <SkeletonText lines={4} className="text-body" />}
             </section>
             <section aria-labelledby="stage-stats" className="flex flex-col gap-3">
               <Label as="h3" id="stage-stats">
@@ -226,8 +260,7 @@ export function ResultStage({ locale, settings, preview }: { locale: Locale; set
               </div>
             </section>
           </div>
-
-          <ProvePanel locale={locale} preview={preview} />
+          <LazyProvePanel locale={locale} preview={preview} />
         </div>
       </div>
     </section>
@@ -245,6 +278,7 @@ const CascadeReplay = memo(function CascadeReplay({
   resultScenario,
   calibrated,
   fallbackSteps,
+  classification,
 }: {
   locale: Locale;
   result: Result | null;
@@ -252,6 +286,8 @@ const CascadeReplay = memo(function CascadeReplay({
   calibrated: boolean;
   /** Blocks to draw while there is no result yet. */
   fallbackSteps: number;
+  /** The server's classification of `result` (the initial preview): no book read in the browser. */
+  classification: PositionsInput | null;
 }) {
   const t = consoleMessages[locale].stage;
   const charts = consoleMessages[locale].charts;
@@ -261,141 +297,84 @@ const CascadeReplay = memo(function CascadeReplay({
   const prices = useMemo(() => timeline?.points.map((p) => p.price), [timeline]);
   const replay = useReplay(timeline, steps);
   useReplayTick(timeline, replay.step);
-  const positions = usePositionMap(resultScenario, result);
+  const read = usePositionMap(classification ? null : resultScenario, classification ? null : result);
+  const positions = classification ? { classification, eligible: true, error: null } : read;
   const tilesExpected = resultScenario && canClassify(resultScenario) ? resultScenario.maxPositions : undefined;
 
   return (
     <>
-    <section aria-labelledby="stage-positions" className="flex flex-col gap-4">
-      <Label as="h3" id="stage-positions">
-        {t.positions}
-      </Label>
-      {result && !positions.eligible ? (
-        <p className="rounded-control border border-dashed border-line-2 px-4 py-3 text-body-sm text-fg-2">
-          {calibrated ? t.positionsCalibrated : t.positionsTooLarge}
-        </p>
-      ) : (
-        <PositionTiles
-          classification={positions.classification}
-          expectedCount={tilesExpected}
-          step={replay.step}
-          steps={steps}
-          prices={prices}
-          error={positions.error ?? undefined}
-          locale={INTL_LOCALE[locale]}
-          formatUsd={fmt.usd}
-          copy={charts.positions}
-        />
-      )}
-    </section>
-
-    <section aria-labelledby="stage-timeline" className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <Label as="h3" id="stage-timeline">
-          {t.timeline}
+      <section aria-labelledby="stage-positions" className="flex flex-col gap-4">
+        <Label as="h3" id="stage-positions">
+          {t.positions}
         </Label>
-        <div className="flex items-center gap-1.5">
-          <Button size="sm" variant="secondary" disabled={!timeline} onClick={() => (replay.running ? replay.pause() : replay.play())}>
-            {replay.running ? <Pause aria-hidden /> : <Play aria-hidden />}
-            {replay.running ? t.pause : replay.step >= steps ? t.replay : t.play}
-          </Button>
-          <Button size="sm" variant="ghost" disabled={!timeline} onClick={() => replay.seek(0)}>
-            <RotateCcw aria-hidden />
-            {t.toStart}
-          </Button>
+        {result && !positions.eligible ? (
+          <p className="rounded-control border border-dashed border-line-2 px-4 py-3 text-body-sm text-fg-2">
+            {calibrated ? t.positionsCalibrated : t.positionsTooLarge}
+          </p>
+        ) : (
+          <PositionTiles
+            classification={positions.classification}
+            expectedCount={tilesExpected}
+            step={replay.step}
+            steps={steps}
+            prices={prices}
+            error={positions.error ?? undefined}
+            locale={INTL_LOCALE[locale]}
+            formatUsd={fmt.usd}
+            copy={charts.positions}
+            // The server's result is on screen from the first paint: its tiles do not tip in (the flips run once the playhead moves).
+            className={classification && !replay.moved ? "[&_[data-state]>span]:animate-none" : undefined}
+          />
+        )}
+      </section>
+
+      <section aria-labelledby="stage-timeline" className="flex flex-col gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <Label as="h3" id="stage-timeline">
+            {t.timeline}
+          </Label>
+          <div className="flex items-center gap-1.5">
+            <Button size="sm" variant="secondary" disabled={!timeline} onClick={() => (replay.running ? replay.pause() : replay.play())}>
+              {replay.running ? <Pause aria-hidden /> : <Play aria-hidden />}
+              {replay.running ? t.pause : replay.step >= steps ? t.replay : t.play}
+            </Button>
+            <Button size="sm" variant="ghost" disabled={!timeline} onClick={() => replay.seek(0)}>
+              <RotateCcw aria-hidden />
+              {t.toStart}
+            </Button>
+          </div>
         </div>
-      </div>
-      <WaveTimeline
-        timeline={timeline}
-        step={replay.step}
-        onStepChange={replay.seek}
-        locale={INTL_LOCALE[locale]}
-        formatUsd={fmt.usd}
-        copy={charts.timeline}
-      />
-    </section>
+        <Suspense fallback={<div aria-hidden className="min-h-[33.5rem]" />}>
+          <WaveTimeline
+            timeline={timeline}
+            step={replay.step}
+            onStepChange={replay.seek}
+            locale={INTL_LOCALE[locale]}
+            formatUsd={fmt.usd}
+            copy={charts.timeline}
+          />
+        </Suspense>
+      </section>
     </>
   );
 });
 
-/** "Prove on chain": the badge (free preview, then the tx), the cost line, the flow. */
-function ProvePanel({ locale, preview }: { locale: Locale; preview: PreviewState }) {
-  const t = consoleMessages[locale].prove;
-  const fmt = formatters(locale);
-  const flow = useTxFlow<ProveScenarioOutcome>();
-  const { confirm, dialog } = useConfirmCost(locale);
-  const [provedKey, setProvedKey] = useState<string | null>(null);
-  const { result, resultScenario, loading, ms } = preview;
-  const key = resultScenario ? JSON.stringify(resultScenario) : null;
+const ProvePanel = lazy(() => import("./prove-panel").then((m) => ({ default: m.ProvePanel })));
 
-  const preloadProve = () => preloadAction("proveScenario");
-  const prove = async () => {
-    if (!result || !resultScenario) return;
-    setProvedKey(key);
-    flow.start(["send", "confirm"]);
-    const out = await proveScenario(resultScenario, result, { onEvent: flow.onEvent, confirm });
-    flow.finish(out);
-  };
-
-  const out = flow.outcome;
-  const cue = useCue();
-  useEffect(() => {
-    if (out?.status === "confirmed") cue("tick");
-  }, [out, cue]);
-  const proved = out?.status === "confirmed" && provedKey === key ? out : null;
-  const positions = proved?.simulationDone ? Number(proved.simulationDone.positionsUsed) : result?.positionsUsed;
-
-  return (
-    <Panel as="section" aria-labelledby="prove-title" corners className="flex flex-col gap-5 p-5 sm:p-6">
-      <div className="flex flex-col gap-5 md:flex-row md:items-start md:justify-between">
-        <div className="flex max-w-lg flex-col gap-2">
-          <h3 id="prove-title" className="text-title-3 text-fg-1">
-            {t.title}
-          </h3>
-          <p className="text-body-sm text-fg-2">{t.body}</p>
-        </div>
-        <div className="flex shrink-0 flex-col gap-2 md:items-end">
-          <Button variant="primary" size="lg" loading={flow.busy} disabled={!result || loading || flow.busy} onClick={prove} onPointerEnter={preloadProve} onFocus={preloadProve}>
-            {t.cta}
-            <ArrowUpRight aria-hidden />
-          </Button>
-          <CostLine gasLimit={result ? proveScenarioGasLimit(result) : null} locale={locale} className="md:text-right" />
-        </div>
-      </div>
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 border-t border-line pt-4">
-        {result && positions !== undefined ? (
-          proved ? (
-            <>
-              <Badge tone="safe" variant="outline" mono>
-                {t.badgeTx({ ms: fmt.ms(proved.ms), positions: fmt.int(positions) })}
-              </Badge>
-              <span className="text-caption text-fg-3">{t.badgeTxNote}</span>
-              <a
-                href={txUrl(proved.hash)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="group ml-auto inline-flex items-center gap-1 font-mono text-caption text-fg-2 hover:text-fg-1"
-              >
-                {t.open} · {proved.hash.slice(0, 6)}…{proved.hash.slice(-4)}
-                <ArrowUpRight className="size-3.5 text-fg-3 group-hover:text-fg-1" aria-hidden />
-              </a>
-            </>
-          ) : (
-            <>
-              <Badge tone="monad" variant="outline" mono icon={null}>
-                {t.badgePreview({ ms: fmt.ms(ms), positions: fmt.int(positions) })}
-              </Badge>
-              <span className="text-caption text-fg-3">{t.badgePreviewNote}</span>
-            </>
-          )
-        ) : (
-          <span className="text-caption text-fg-3" aria-busy>
-            {t.waiting}
-          </span>
-        )}
-      </div>
-      <TxProgress flow={flow.flow} outcome={proved ?? (out && out.status !== "confirmed" ? out : null)} locale={locale} />
-      {dialog}
-    </Panel>
+/**
+ * The proof panel's flow code (cost confirmation dialog, progress, the action loader) loads with the
+ * reader's first scroll, touch, press, key or mouse move; until then the same panel renders from
+ * `StaticProvePanel` (also while the chunk loads). A press on its button loads the flow and starts it.
+ */
+function LazyProvePanel({ locale, preview }: { locale: Locale; preview: PreviewState }) {
+  const engaged = useMountGate("intent");
+  const [pressed, setPressed] = useState(false);
+  const still = <StaticProvePanel locale={locale} preview={preview} onProve={() => setPressed(true)} />;
+  return engaged || pressed ? (
+    <Suspense fallback={still}>
+      <ProvePanel locale={locale} preview={preview} startOnMount={pressed} />
+    </Suspense>
+  ) : (
+    still
   );
 }

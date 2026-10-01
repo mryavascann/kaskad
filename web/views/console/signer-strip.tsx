@@ -1,13 +1,13 @@
 "use client";
 
-import { ArrowUpRight, ChevronDown, Fingerprint, KeyRound, Wallet, Zap } from "lucide-react";
-import { memo } from "react";
+import { ArrowUpRight } from "lucide-react";
+import { createElement, memo, useEffect, useState } from "react";
+import type { Address } from "viem";
 import { buttonStyles } from "@/design/ui/button-styles";
 import { Button } from "@/design/ui/button";
 import { Callout } from "@/design/ui/callout";
 import { Disclosure } from "@/design/ui/disclosure";
 import { Label } from "@/design/ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "@/design/ui/popover";
 import { Skeleton } from "@/design/ui/skeleton";
 import { StatusDot } from "@/design/ui/status-dot";
 import type { Locale } from "@/i18n/config";
@@ -17,14 +17,17 @@ import { useSigner } from "@/lib/chain/hooks/useSigner";
 import { useSignerBalances } from "@/lib/chain/hooks/useSignerBalances";
 import { useSignerConnect } from "@/lib/chain/hooks/useSignerConnect";
 import { loadSigner } from "@/lib/chain/signer";
-import { FAUCET_URL } from "@/lib/chain/sponsor";
+import { FAUCET_URL, type SponsorStatus } from "@/lib/chain/sponsor";
 import { formatEther } from "@/lib/chain/units";
 import { addrUrl } from "@/lib/kaskad/config";
 import { shortAddr } from "@/lib/kaskad/format";
 import { cn } from "@/lib/utils";
+import { useLoadedWhen, useMountGate } from "./mount-gate";
+import { SignerMenuLabel } from "./signer-menu-label";
 
 const mon = (wei: bigint) => Number(formatEther(wei));
 const preload = () => void loadSigner().catch(() => {});
+const loadMenu = () => import("./signer-menu").then((m) => m.SignerMenu);
 
 function Cell({ label, children, className }: { label: string; children: React.ReactNode; className?: string }) {
   return (
@@ -35,27 +38,48 @@ function Cell({ label, children, className }: { label: string; children: React.R
   );
 }
 
+/** What the strip reads: the signer's address, its balance and the sponsor budget (null: not read yet). */
+type Readings = { address: Address | null; balance: bigint | null; sponsor: SponsorStatus | null; sponsorLow: boolean };
+const UNREAD: Readings = { address: null, balance: null, sponsor: null, sponsorLow: false };
+
+/** The reads, from the signer module and the balance poll; reports them with `onRead`. Renders nothing. */
+function LiveReadings({ injected, mera, onRead }: { injected: Address | null; mera: Address | null; onRead: (r: Readings) => void }) {
+  const signer = useSigner({ load: "idle" });
+  const { burner, balances, sponsor, sponsorLow } = useSignerBalances({ injected, mera });
+  const address = signer.kind === "burner" ? (signer.address ?? burner) : signer.address;
+  const balance = balances[signer.kind];
+  useEffect(() => onRead({ address, balance, sponsor, sponsorLow }), [address, balance, sponsor, sponsorLow, onRead]);
+  return null;
+}
+
 /**
  * Who signs and pays for "Prove on chain": the active signer, its balance, the sponsor budget that
  * funds the temporary wallet, and the switch to a browser wallet or a Mera passkey. Replaces the old
  * /baglan page. Reads only (balances, GET /api/fund); switching signers never sends a transaction.
  * A memo: scenario edits re-render the console, not the strip (its balance polls re-render only it).
+ *
+ * The reads (signer module: burner key and viem accounts; balances; sponsor) start with the reader's
+ * first scroll, touch, press, key or mouse move (`useMountGate("intent")`), or as soon as they reach
+ * for the strip; until then its cells show their skeletons. The kind of signer is exact from the
+ * start: every page load begins with the sponsored burner.
  */
 export const SignerStrip = memo(function SignerStrip({ locale }: { locale: Locale }) {
   const t = consoleMessages[locale].signer;
   const fmt = formatters(locale);
-  // The signer module (burner key, viem accounts) loads when the browser is idle after the first
-  // paint, or as soon as the viewer reaches for the strip.
-  const signer = useSigner({ load: "idle" });
+  const signer = useSigner();
   const conn = useSignerConnect();
-  const { burner, balances, sponsor, sponsorLow } = useSignerBalances({ injected: conn.injected, mera: conn.mera });
-
-  const address = signer.kind === "burner" ? (signer.address ?? burner) : signer.address;
-  const balance = balances[signer.kind];
+  const live = useMountGate("intent");
+  const [wantMenu, setWantMenu] = useState(false);
+  const Menu = useLoadedWhen(live || wantMenu, loadMenu);
+  const [{ address, balance, sponsor, sponsorLow }, setReadings] = useState<Readings>(UNREAD);
   const reserve = sponsor?.reserveWei != null ? fmt.mon(mon(sponsor.reserveWei)) : null;
+  // Before the reads start the placeholders hold still: a shimmer here would repaint the top of the page
+  // every frame for as long as the reader leaves it alone.
+  const still = live ? undefined : "motion-safe:animate-none";
 
   return (
     <section aria-label={t.region} className="flex flex-col gap-3" onPointerEnter={preload} onFocusCapture={preload}>
+      {live && <LiveReadings injected={conn.injected} mera={conn.mera} onRead={setReadings} />}
       {/* Phones: signer full width, balance | sponsor, actions full width. sm–lg: 2 × 2 (no empty cell). lg: one row. */}
       <div className="grid grid-cols-2 gap-px overflow-hidden rounded-panel border border-line-2 bg-line lg:grid-cols-[1.3fr_0.8fr_1.1fr_auto]">
         <Cell label={t.active} className="col-span-2 sm:col-span-1">
@@ -73,11 +97,11 @@ export const SignerStrip = memo(function SignerStrip({ locale }: { locale: Local
               <span className="sr-only">({t.addressLink({ address })})</span>
             </a>
           ) : (
-            <Skeleton className="h-4 w-24" />
+            <Skeleton className={cn("h-4 w-24", still)} />
           )}
         </Cell>
         <Cell label={t.balance}>
-          {balance === null ? <Skeleton className="h-4 w-20" /> : <span className="font-mono text-body-sm text-fg-1">{fmt.mon(mon(balance))}</span>}
+          {balance === null ? <Skeleton className={cn("h-4 w-20", still)} /> : <span className="font-mono text-body-sm text-fg-1">{fmt.mon(mon(balance))}</span>}
         </Cell>
         <Cell label={t.sponsor}>
           {sponsor ? (
@@ -86,39 +110,19 @@ export const SignerStrip = memo(function SignerStrip({ locale }: { locale: Local
               <span className="text-caption text-fg-3">{t.sponsorCaption({ reserve })}</span>
             </>
           ) : (
-            <Skeleton className="h-4 w-28" />
+            <Skeleton className={cn("h-4 w-28", still)} />
           )}
         </Cell>
         <div className="col-span-2 flex flex-wrap items-center gap-2 bg-elev-1 px-4 py-3 sm:col-span-1 lg:justify-end">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button size="sm" variant="secondary" loading={conn.busy}>
-                <Wallet aria-hidden />
-                {t.connect}
-                <ChevronDown aria-hidden className="text-fg-3" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent align="end" className="flex w-72 flex-col gap-1 p-2">
-              <Button size="sm" variant="ghost" className="justify-start" onClick={() => void conn.connectInjected()} disabled={conn.busy}>
-                <Wallet aria-hidden />
-                {t.injected}
-              </Button>
-              <Button size="sm" variant="ghost" className="justify-start" onClick={() => void conn.connectMera("login")} disabled={conn.busy}>
-                <Fingerprint aria-hidden />
-                {t.meraLogin}
-              </Button>
-              <Button size="sm" variant="ghost" className="justify-start" onClick={() => void conn.connectMera("create")} disabled={conn.busy}>
-                <KeyRound aria-hidden />
-                {t.meraCreate}
-              </Button>
-              {signer.kind !== "burner" && (
-                <Button size="sm" variant="ghost" className="justify-start" onClick={() => conn.selectBurner()}>
-                  <Zap aria-hidden />
-                  {t.burner}
-                </Button>
-              )}
-            </PopoverContent>
-          </Popover>
+          {Menu ? (
+            // createElement: `Menu` is a loaded module export (stable), not a component made during render.
+            createElement(Menu, { locale, conn, kind: signer.kind, defaultOpen: wantMenu })
+          ) : (
+            // Stands in until the menu's chunk arrives (the reader's first intent); a press opens it once loaded.
+            <Button size="sm" variant="secondary" aria-haspopup="dialog" onClick={() => setWantMenu(true)}>
+              <SignerMenuLabel locale={locale} />
+            </Button>
+          )}
           <a href={FAUCET_URL} target="_blank" rel="noopener noreferrer" className={buttonStyles({ variant: "ghost", size: "sm" })}>
             {t.faucet}
             <ArrowUpRight aria-hidden />

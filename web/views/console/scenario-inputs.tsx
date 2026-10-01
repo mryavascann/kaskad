@@ -3,7 +3,6 @@
 import { Activity, Check, ChevronDown, Droplets, Flame, Layers3, Timer, TrendingDown, Waves, Zap, type LucideIcon } from "lucide-react";
 import { memo, useId } from "react";
 import { Chip, ChipGroup } from "@/design/ui/chip";
-import { Disclosure } from "@/design/ui/disclosure";
 import { Label } from "@/design/ui/label";
 import { Segmented } from "@/design/ui/segmented";
 import { Slider } from "@/design/ui/slider";
@@ -27,6 +26,7 @@ import {
 } from "@/lib/chain/scenario";
 import type { OracleMode, Settings } from "@/lib/chain/types";
 import { cn } from "@/lib/utils";
+import { LazyDisclosure } from "@/viz/lazy-disclosure";
 import { presetText, shockLabel, type ConsolePreset } from "./model";
 
 const PRESET_ICON: Record<PresetId, LucideIcon> = {
@@ -206,7 +206,8 @@ export const ScenarioInputs = memo(function ScenarioInputs({ locale, presets, se
         />
       </section>
 
-      <Disclosure summary={t.advanced} variant="panel" mono>
+      {/* The path settings mount the first time the panel opens (two sliders and two switches less to hydrate). */}
+      <LazyDisclosure summary={t.advanced} variant="panel" mono>
         <div className="flex flex-col gap-5">
           <Slider
             label={t.steps}
@@ -256,7 +257,7 @@ export const ScenarioInputs = memo(function ScenarioInputs({ locale, presets, se
             </div>
           )}
         </div>
-      </Disclosure>
+      </LazyDisclosure>
     </div>
   );
 });

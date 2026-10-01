@@ -1,13 +1,16 @@
+import { Footnote } from "@/design/ui/footnote";
 import { Eyebrow, Label } from "@/design/ui/label";
 import { StatusDot } from "@/design/ui/status-dot";
 import type { Locale } from "@/i18n/config";
 import { formatters } from "@/i18n/format";
 import { consoleMessages } from "@/i18n/messages/console";
 import { marketOverview } from "@/lib/chain/deployment";
-import { symbolParts } from "@/lib/chain/scenario";
+import { BASE_SETTINGS, DEFAULT_PRESET_ID, symbolParts } from "@/lib/chain/scenario";
 import { DEPLOYMENT } from "@/lib/kaskad/config";
 import { Console } from "./console";
+import type { InitialPreview } from "./data";
 import { consolePresets } from "./model";
+import { RunAssumptions } from "./run-assumptions";
 
 /** Protocol totals from deployment.json (the Monad mainnet Aave snapshot the books come from). */
 function MarketStrip({ locale }: { locale: Locale }) {
@@ -44,23 +47,41 @@ function MarketStrip({ locale }: { locale: Locale }) {
   );
 }
 
-export function ConsolePage({ locale }: { locale: Locale }) {
+/**
+ * `initial`: the default preset's preview read on the server (views/console/data.ts), or null when it
+ * could not be read (the console then shows its normal loading state and previews from the browser).
+ */
+export function ConsolePage({ locale, initial = null }: { locale: Locale; initial?: InitialPreview | null }) {
   const t = consoleMessages[locale];
-  // One clock for the render (PT days to maturity); the page revalidates hourly.
+  // One clock for the render (PT days to maturity); the page revalidates.
   const now = new Date();
+  const presets = consolePresets(now);
+  const defaults = presets.find((p) => p.id === DEFAULT_PRESET_ID)?.settings ?? BASE_SETTINGS;
   return (
     <div className="page-shell pb-20">
+      {/* No entrance on the heading block: it is the first screen's largest text (LCP) on phones. */}
       <header className="grid-page gap-y-8 pt-12 pb-10 lg:pt-20">
         <div className="col-span-full lg:col-span-7">
-          <Eyebrow className="motion-safe:animate-rise">{t.hero.kicker}</Eyebrow>
-          <h1 className="mt-5 text-display text-fg-1 motion-safe:animate-rise motion-safe:[animation-delay:var(--beat-hero)]">{t.hero.title}</h1>
-          <p className="mt-5 max-w-2xl text-lead text-fg-2 motion-safe:animate-rise motion-safe:[animation-delay:var(--beat-detail)]">{t.hero.lead}</p>
+          <Eyebrow>{t.hero.kicker}</Eyebrow>
+          <h1 className="mt-5 text-display text-fg-1">{t.hero.title}</h1>
+          <p className="mt-5 max-w-2xl text-lead text-fg-2">{t.hero.lead}</p>
         </div>
         <div className="col-span-full self-end lg:col-span-5">
           <MarketStrip locale={locale} />
         </div>
       </header>
-      <Console locale={locale} presets={consolePresets(now)} nowMs={now.getTime()} />
+      <div className="flex flex-col gap-14">
+        <Console
+          locale={locale}
+          presets={presets}
+          nowMs={now.getTime()}
+          initial={initial}
+          initialAssumptions={<RunAssumptions locale={locale} settings={defaults} nowMs={now.getTime()} />}
+        />
+        <Footnote label={t.footnote.label} className="max-w-3xl border-t border-line pt-6">
+          {t.footnote.body}
+        </Footnote>
+      </div>
     </div>
   );
 }

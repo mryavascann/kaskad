@@ -70,4 +70,32 @@ describe("usePreview (useKaskad.ts:76-107)", () => {
     expect(preview).not.toHaveBeenCalled();
     expect(result.current).toMatchObject({ loading: false, result: null });
   });
+
+  it("initial data for the scenario on screen: ready at mount, no request (also when coming back to it)", async () => {
+    preview.mockResolvedValue(rB);
+    const initial = { scenario: { ...a }, result: rA, ms: 120 };
+    const { result, rerender } = renderHook(({ s }) => usePreview(s, initial), { initialProps: { s: a } });
+    expect(result.current).toMatchObject({ result: rA, error: null, loading: false, ms: 120, resultScenario: a });
+    await act(() => vi.advanceTimersByTimeAsync(PREVIEW_DEBOUNCE_MS * 2));
+    expect(preview).not.toHaveBeenCalled();
+
+    rerender({ s: b }); // left before B's request went out: back on A, nothing to fetch
+    rerender({ s: a });
+    await act(() => vi.advanceTimersByTimeAsync(PREVIEW_DEBOUNCE_MS * 2));
+    expect(preview).not.toHaveBeenCalled();
+
+    rerender({ s: b });
+    await act(() => vi.advanceTimersByTimeAsync(PREVIEW_DEBOUNCE_MS));
+    expect(preview).toHaveBeenCalledWith(b);
+    expect(result.current).toMatchObject({ result: rB, loading: false, resultScenario: b });
+  });
+
+  it("initial data for another scenario is ignored", async () => {
+    preview.mockResolvedValue(rB);
+    const { result } = renderHook(() => usePreview(b, { scenario: a, result: rA, ms: 1 }));
+    expect(result.current).toMatchObject({ result: null, loading: true });
+    await act(() => vi.advanceTimersByTimeAsync(PREVIEW_DEBOUNCE_MS));
+    expect(preview).toHaveBeenCalledWith(b);
+    expect(result.current.result).toBe(rB);
+  });
 });
