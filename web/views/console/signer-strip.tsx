@@ -36,10 +36,19 @@ const loadMenu = () => import("./signer-menu").then((m) => m.SignerMenu);
  */
 export const SIGNER_READ_IDLE_MS = 1_800;
 
-/** No temporary wallet yet: a dash, named for screen readers and on hover. */
-function NotCreated({ label }: { label: string }) {
+/** A skeleton on a line of value text (the value's line height), so the value lands without a shift. */
+function Hold({ className, text = "text-body-sm" }: { className: string; text?: "text-body-sm" | "text-caption" }) {
   return (
-    <span title={label} className="font-mono text-body-sm text-fg-3">
+    <span className={cn("flex h-[1lh] items-center", text)}>
+      <Skeleton className={className} />
+    </span>
+  );
+}
+
+/** No temporary wallet yet: a dash, named for screen readers and on hover. */
+function NotCreated({ label, className }: { label: string; className?: string }) {
+  return (
+    <span title={label} className={cn("font-mono text-fg-3", className ?? "text-body-sm")}>
       <span aria-hidden>—</span>
       <span className="sr-only">{label}</span>
     </span>
@@ -181,9 +190,10 @@ export const SignerStrip = memo(function SignerStrip({ locale }: { locale: Local
               <span className="sr-only">({t.addressLink({ address })})</span>
             </a>
           ) : fresh ? (
-            <NotCreated label={t.notCreated} />
+            // As wide as the skeleton and the address, so it wraps (or not) the same way.
+            <NotCreated label={t.notCreated} className="inline-block w-24 text-caption" />
           ) : (
-            <Skeleton className={cn("h-4 w-24", still)} />
+            <Hold text="text-caption" className={cn("h-4 w-24", still)} />
           )}
         </Cell>
         <Cell label={t.balance}>
@@ -192,7 +202,7 @@ export const SignerStrip = memo(function SignerStrip({ locale }: { locale: Local
           ) : fresh ? (
             <NotCreated label={t.notCreated} />
           ) : (
-            <Skeleton className={cn("h-4 w-20", still)} />
+            <Hold className={cn("h-4 w-20", still)} />
           )}
         </Cell>
         <Cell label={t.sponsor}>
@@ -205,7 +215,7 @@ export const SignerStrip = memo(function SignerStrip({ locale }: { locale: Local
             </>
           ) : (
             <>
-              <Skeleton className={cn("h-4 w-28", still)} />
+              <Hold className={cn("h-4 w-28", still)} />
               <span aria-hidden className="invisible basis-full text-caption">
                 {t.sponsorCaption({ reserve: fmt.mon(0) })}
               </span>
