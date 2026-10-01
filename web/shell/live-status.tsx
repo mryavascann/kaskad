@@ -69,7 +69,13 @@ export function NavLiveSwitch({ connecting, live, offline }: { connecting: React
   return state === "live" ? live : state === "offline" ? offline : connecting;
 }
 
+// One formatter per locale for the page's life: building an Intl.NumberFormat is the costly part, and
+// the block re-renders every few seconds.
+const intFormat: Partial<Record<Locale, (n: bigint) => string>> = {};
+
 export function LiveBlockValue({ locale }: { locale: Locale }) {
   const { block } = useNavLive();
-  return block === null ? null : formatters(locale).int(block);
+  if (block === null) return null;
+  const format = (intFormat[locale] ??= formatters(locale).int);
+  return format(block);
 }
