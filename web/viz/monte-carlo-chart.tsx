@@ -26,6 +26,8 @@ export type MonteCarloCopy = StateCopy & {
   summary: string;
   summaryNoLoss: string;
   noLoss: string;
+  /** Legend of the no-loss histogram (bars: how many paths ended in each shock range). */
+  binKey: string;
   tableSummary: string;
   tableCaption: string;
 };
@@ -47,6 +49,7 @@ export const MONTE_CARLO_COPY: MonteCarloCopy = {
     "{paths} random price paths with a mean shock of {meanShock}: {loss} of them ({share}) end with bad debt. Mean bad debt {mean}, 95th percentile {p95}, worst {worst} (shock {worstShock}).",
   summaryNoLoss: "{paths} random price paths with a mean shock of {meanShock}, up to {maxShock}: none ends with bad debt.",
   noLoss: "No path ends with bad debt.",
+  binKey: "Paths per shock range",
   tableSummary: "Data table",
   tableCaption: "Every path: final shock and bad debt",
   loading: "Loading the Monte Carlo paths",
@@ -152,6 +155,12 @@ export function MonteCarloChart({
             <span className="size-2 rounded-full bg-calm" />
             {copy.withoutLoss}
           </li>
+          {!any && (
+            <li className="flex items-center gap-1.5">
+              <span className="h-2 w-2.5 rounded-[1px] bg-calm/30" />
+              {copy.binKey}
+            </li>
+          )}
         </ul>
       </div>
 
@@ -190,6 +199,19 @@ export function MonteCarloChart({
                   shapeRendering="crispEdges"
                 />
               ))}
+              {geo.bins.map((b) =>
+                b.count > 0 ? (
+                  <rect
+                    key={b.x}
+                    x={round((b.x + b.w * 0.08) * W)}
+                    width={round(b.w * 0.84 * W)}
+                    y={round((1 - b.h) * H)}
+                    height={round(b.h * H)}
+                    fill="var(--color-calm)"
+                    fillOpacity={0.22}
+                  />
+                ) : null,
+              )}
               {geo.p95Y !== null && (
                 <line x1={0} x2={W} y1={round(geo.p95Y * H)} y2={round(geo.p95Y * H)} stroke="var(--color-warn)" strokeDasharray="5 4" vectorEffect="non-scaling-stroke" />
               )}
@@ -222,15 +244,25 @@ export function MonteCarloChart({
                 {copy.p95Tag}
               </span>
             )}
-            {/* No loss: the dots all sit on the $0 line, so the note fills the empty plot above them
-                (the box keeps its height: same box in every state). */}
+            {/* No loss: the dots all sit on the $0 line and the bars show how far the paths' shocks spread
+                (the box keeps its height: same box in every state); the note is one line at the top. */}
+            {geo.bins.map((b) =>
+              b.count > 0 ? (
+                <span
+                  key={b.x}
+                  aria-hidden
+                  className="label-mono absolute -translate-x-1/2 -translate-y-full pb-0.5 text-fg-3"
+                  style={{ left: pct(b.x + b.w / 2), top: pct(1 - b.h) }}
+                >
+                  {f.int(b.count)}
+                </span>
+              ) : null,
+            )}
             {!any && (
-              <div aria-hidden className="absolute inset-x-0 top-0 bottom-6 grid place-items-center px-4 text-center">
-                <p className="flex max-w-xs flex-col items-center gap-2 text-body-sm font-medium text-fg-1">
-                  <CircleCheck className="size-5 text-safe" />
-                  {copy.noLoss}
-                </p>
-              </div>
+              <p aria-hidden className="absolute inset-x-0 top-0 flex items-center gap-2 text-body-sm font-medium text-fg-1">
+                <CircleCheck className="size-4 shrink-0 text-safe" />
+                {copy.noLoss}
+              </p>
             )}
             {geo.worst && (
               <div aria-hidden className="pointer-events-none absolute" style={{ left: pct(geo.worst.x), top: pct(geo.worst.y) }}>

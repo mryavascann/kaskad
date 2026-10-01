@@ -23,6 +23,7 @@ describe("mcGeometry on the recorded pool-price run (30 paths)", () => {
     expect(g.p95Y).not.toBeNull();
     expect(g.p95Y as number).toBeLessThan(g.meanY as number);
     expect(g.worst).not.toBeNull();
+    expect(g.bins).toEqual([]);
     // The worst path is the highest dot.
     expect(g.worst?.y).toBeCloseTo(Math.min(...g.dots.map((d) => d.y)), 4);
   });
@@ -43,6 +44,15 @@ describe("mcGeometry on the recorded external-price run (100 paths, none loses)"
     expect(g.meanY).toBeNull();
     expect(g.p95Y).toBeNull();
     expect(g.worst).toBeNull();
+  });
+
+  it("counts every path once in the shock histogram, aligned with the axis ticks", () => {
+    expect(g.bins.reduce((a, b) => a + b.count, 0)).toBe(sali.paths);
+    expect(g.bins[0].x).toBe(0);
+    const last = g.bins[g.bins.length - 1];
+    expect(last.x + last.w).toBeCloseTo(1, 3);
+    expect(Math.max(...g.bins.map((b) => b.h))).toBeCloseTo(0.6, 4);
+    for (const b of g.bins) expect(b.count).toBe(sali.points.filter((p) => (p.shockPct >= b.from && p.shockPct < b.to) || (b === last && p.shockPct >= b.from)).length);
   });
 
   it("labels only the $0 baseline (no invented ticks)", () => {

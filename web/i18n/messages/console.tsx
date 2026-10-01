@@ -661,6 +661,7 @@ const tr = {
         "Ortalama {meanShock} şoklu {paths} rastgele fiyat yolu: {loss} tanesi ({share}) karşılıksız borçla bitiyor. Ortalama karşılıksız borç {mean}, 95. yüzdelik {p95}, en kötü {worst} (şok {worstShock}).",
       summaryNoLoss: "Ortalama {meanShock}, en fazla {maxShock} şoklu {paths} rastgele fiyat yolu: hiçbiri karşılıksız borçla bitmiyor.",
       noLoss: "Hiçbir yol karşılıksız borçla bitmiyor.",
+      binKey: "Şok aralığı başına yol",
       tableSummary: "Veri tablosu",
       tableCaption: "Her yol: son şok ve karşılıksız borç",
       loading: "Monte Carlo yolları yükleniyor",

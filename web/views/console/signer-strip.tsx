@@ -28,6 +28,11 @@ import { SignerMenuLabel } from "./signer-menu-label";
 const mon = (wei: bigint) => Number(formatEther(wei));
 const preload = () => void loadSigner().catch(() => {});
 const loadMenu = () => import("./signer-menu").then((m) => m.SignerMenu);
+/**
+ * Upper bound on the wait for the strip's reads when the reader does nothing: the strip is on the
+ * first screen (the last thing on it on phones), so it fills by itself shortly after the first paint.
+ */
+export const SIGNER_READ_IDLE_MS = 1_800;
 
 function Cell({ label, children, className }: { label: string; children: React.ReactNode; className?: string }) {
   return (
@@ -58,19 +63,22 @@ function LiveReadings({ injected, mera, onRead }: { injected: Address | null; me
  * /baglan page. Reads only (balances, GET /api/fund); switching signers never sends a transaction.
  * A memo: scenario edits re-render the console, not the strip (its balance polls re-render only it).
  *
- * The reads (signer module: burner key and viem accounts; balances; sponsor) start with the reader's
- * first scroll, touch, press, key or mouse move (`useMountGate("intent")`), or as soon as they reach
- * for the strip; until then its cells show their skeletons. The kind of signer is exact from the
- * start: every page load begins with the sponsored burner.
+ * The reads (signer module: burner key and viem accounts; balances; sponsor) start once the browser
+ * is idle after the first paint (at most `SIGNER_READ_IDLE_MS` later), or earlier with the reader's
+ * first scroll, touch, press, key or mouse move, or as soon as they reach for the strip; until then
+ * its cells show their skeletons (same boxes as the values: no shift). The signer menu's code still
+ * waits for intent (the stand-in button looks the same and opens it). The kind of signer is exact
+ * from the start: every page load begins with the sponsored burner.
  */
 export const SignerStrip = memo(function SignerStrip({ locale }: { locale: Locale }) {
   const t = consoleMessages[locale].signer;
   const fmt = formatters(locale);
   const signer = useSigner();
   const conn = useSignerConnect();
-  const live = useMountGate("intent");
+  const engaged = useMountGate("intent");
+  const live = useMountGate("idle", SIGNER_READ_IDLE_MS);
   const [wantMenu, setWantMenu] = useState(false);
-  const Menu = useLoadedWhen(live || wantMenu, loadMenu);
+  const Menu = useLoadedWhen(engaged || wantMenu, loadMenu);
   const [{ address, balance, sponsor, sponsorLow }, setReadings] = useState<Readings>(UNREAD);
   const reserve = sponsor?.reserveWei != null ? fmt.mon(mon(sponsor.reserveWei)) : null;
   // Before the reads start the placeholders hold still: a shimmer here would repaint the top of the page

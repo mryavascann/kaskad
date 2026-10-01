@@ -319,13 +319,22 @@ describe("Console signer and tabs", () => {
     renderConsole();
     const strip = screen.getByRole("region", { name: "Signer and gas" });
     expect(within(strip).getByText("Temporary wallet (sponsored)")).toBeInTheDocument();
-    expect(within(strip).queryByText("1.00 MON")).toBeNull(); // nothing read before the reader engages
+    expect(within(strip).queryByText("1.00 MON")).toBeNull(); // nothing read in the first render (hydration)
     await act(async () => openIntent());
     expect(within(strip).getByText("1.00 MON")).toBeInTheDocument();
     expect(within(strip).getByText("2.00 MON")).toBeInTheDocument();
     expect(within(strip).getByText(/10\.00 MON reserve excluded/)).toBeInTheDocument();
     expect(within(strip).getByRole("status")).toHaveTextContent("Running low");
     expect(within(strip).getByRole("link", { name: /Get testnet MON/ })).toHaveAttribute("rel", "noopener noreferrer");
+  });
+
+  it("fills the strip by itself once the browser is idle, with no intent", async () => {
+    renderConsole();
+    const strip = screen.getByRole("region", { name: "Signer and gas" });
+    expect(within(strip).queryByText("1.00 MON")).toBeNull();
+    // jsdom has no requestIdleCallback: lib/chain/idle falls back to a short timeout.
+    expect(await within(strip).findByText("1.00 MON")).toBeInTheDocument();
+    expect(within(strip).getByText("2.00 MON")).toBeInTheDocument();
   });
 
   it("offers browser wallet and Mera passkey from the signer menu", async () => {

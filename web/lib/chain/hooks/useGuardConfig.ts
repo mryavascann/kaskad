@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { engineFor } from "../engine-model";
+import { onIdle } from "../idle";
 import { guardGasFromPreview, guardVerdict, readGuardConfig, type GuardConfig, type GuardVerdict } from "../guard";
 import type { Result } from "../types";
 
@@ -18,7 +19,8 @@ type GuardInfo = {
 /**
  * Reads the Guard once: scenario, thresholds, safe LTV, engine (1 batched request), then previews the
  * scenario (1 eth_call; a 2nd one on the Guard's engine when it differs from engineFor()).
- * Replaces the legacy hard-coded "eşik %0,5" / "%70" copy.
+ * Replaces the legacy hard-coded "eşik %0,5" / "%70" copy. Starts once the browser is idle after the
+ * first paint: the reads load viem (read client, ABI coder), which would otherwise run in hydration.
  */
 export function useGuardConfig() {
   const [info, setInfo] = useState<GuardInfo | null>(null);
@@ -26,7 +28,7 @@ export function useGuardConfig() {
 
   useEffect(() => {
     let live = true;
-    (async () => {
+    const cancel = onIdle(async () => {
       try {
         const config = await readGuardConfig();
         const { previewScenario } = await import("../engine");
@@ -39,9 +41,10 @@ export function useGuardConfig() {
       } catch (e) {
         if (live) setError(String((e as Error)?.message ?? e));
       }
-    })();
+    });
     return () => {
       live = false;
+      cancel();
     };
   }, []);
 

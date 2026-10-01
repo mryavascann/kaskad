@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { onIdle } from "../idle";
 import type { Result } from "../types";
 import {
   HEADLINE_CASCADE,
@@ -28,7 +29,9 @@ const EMPTY: LookupState = { address: "", position: null, cascade: null, error: 
 /**
  * Wallet risk page state (app/(legacy)/cuzdan/Wallet.tsx:34-96): the syrupUSDC -20 % headline cascade
  * on mount, address lookup (GET /api/position, then the -3 % cascade of the dominant collateral),
- * derived risk and survive suggestions. Only the newest lookup may update the state.
+ * derived risk and survive suggestions. Only the newest lookup may update the state. The headline
+ * cascade (viem read client, loaded with import()) starts once the browser is idle after the first
+ * paint; the page's first screen is the server-rendered search panel.
  */
 export function useWalletRisk() {
   const [headline, setHeadline] = useState<Result | null>(null);
@@ -39,11 +42,14 @@ export function useWalletRisk() {
 
   useEffect(() => {
     let live = true;
-    cascadeFor(HEADLINE_CASCADE.assetId, HEADLINE_CASCADE.shockBps).then((r) => {
-      if (live) setHeadline(r);
+    const cancel = onIdle(() => {
+      void cascadeFor(HEADLINE_CASCADE.assetId, HEADLINE_CASCADE.shockBps).then((r) => {
+        if (live) setHeadline(r);
+      });
     });
     return () => {
       live = false;
+      cancel();
     };
   }, []);
 
