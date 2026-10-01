@@ -1,4 +1,4 @@
-import { act, render, renderHook, screen } from "@testing-library/react";
+import { act, render, renderHook, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { commonMessages } from "@/i18n/messages/common";
@@ -84,12 +84,12 @@ describe("sound preference", () => {
     expect(screen.getByRole("button", { name: "Ses efektleri" })).toHaveAttribute("title", "Ses kapalı");
   });
 
-  it("plays a confirmation tick when switched on", async () => {
+  it("plays a confirmation tick when switched on (the synth loads on that click)", async () => {
     const user = userEvent.setup();
     render(<SoundToggle t={t} />);
     await user.click(screen.getByRole("button", { name: "Sound effects" }));
+    await waitFor(() => expect(FakeAudioContext.oscillators).toBe(1));
     expect(FakeAudioContext.instances).toBe(1);
-    expect(FakeAudioContext.oscillators).toBe(1);
   });
 });
 

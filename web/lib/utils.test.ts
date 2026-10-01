@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { cn } from "./utils";
+import { radius, type } from "@/design/tokens";
+import { cn, RADIUS_SCALE, TYPE_SCALE } from "./utils";
 
 describe("cn (tailwind-merge with the design tokens)", () => {
   it("keeps a token font size and a token text color together", () => {
@@ -24,5 +25,12 @@ describe("cn (tailwind-merge with the design tokens)", () => {
     expect(cn("page-shell", "grid-page", "label-mono", "section-y", "corner-ticks")).toBe(
       "page-shell grid-page label-mono section-y corner-ticks",
     );
+  });
+});
+
+describe("cn scales", () => {
+  it("match the design tokens", () => {
+    expect([...TYPE_SCALE].sort()).toEqual(Object.keys(type).sort());
+    expect([...RADIUS_SCALE].sort()).toEqual(Object.keys(radius).sort());
   });
 });
