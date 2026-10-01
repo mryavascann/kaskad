@@ -46,6 +46,8 @@ Rules it follows:
 | `book.ts` | `readBook`, `readBookCached`, `classifyPositions`, `compareWithEngine`, `canClassify`, `BOOK_READ_MAX` | `PositionBook.sol:135-147` views + `lib/kaskad/pack.ts` |
 | `finding.ts` | `findingScenario`, `findingFacts`, `fetchFinding`, `fetchFindingPositions` | landing finding (below) |
 | `block-number.ts` | `fetchBlockNumber()`, `parseQuantity`, `blockNumberEndpoint`, `BlockNumberError`: one `eth_blockNumber` POST with plain `fetch`, no viem (used by `useLiveBlock`, which the nav runs on every page) | `TESTNET_RPC` rule of `lib/kaskad/config.ts:38-40` |
+| `burner-peek.ts` | `peekBurner()` (`none` / `known` / `unknown`), `rememberBurnerAddress`, `BURNER_KEY`, `BURNER_ADDRESS_KEY`: the temporary wallet from localStorage, without loading the burner (viem, secp256k1). `useSignerBalances` remembers the derived address | key slot of `lib/kaskad/burner.ts:10`, key check `:26` |
+| `balance.ts` | `fetchBalance(address)`: one `eth_getBalance` POST with plain `fetch`, no viem (the signer strip's first read) | same endpoint rule as `block-number.ts` |
 | `poll.ts` | `pollWhileVisible(tick, ms)`, `MIN_POLL_MS` | `GuardPanel.tsx:110-117`, `Connect.tsx:81-88` |
 | `hooks/*` (client) | `usePreview`, `useStressCurve`, `useMonteCarlo`, `useCompare`, `useGuardMarkets`, `useGuardConfig`, `useSigner`, `useSignerBalances`, `useSignerConnect`, `useWalletRisk`, `useLiveBlock`, `useFinding`, `usePositionMap` | `useKaskad.ts:76-107`, `Protocol.tsx:220-241`, `MonteCarlo.tsx:68-101`, `ComparePanel.tsx:30-54`, `GuardPanel.tsx:87-117`, `use-signer.ts`, `Connect.tsx:69-100`, `Wallet.tsx:34-96`; `useLiveBlock` is new |
 

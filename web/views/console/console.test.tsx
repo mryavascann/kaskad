@@ -328,13 +328,54 @@ describe("Console signer and tabs", () => {
     expect(within(strip).getByRole("link", { name: /Get testnet MON/ })).toHaveAttribute("rel", "noopener noreferrer");
   });
 
-  it("fills the strip by itself once the browser is idle, with no intent", async () => {
-    renderConsole();
-    const strip = screen.getByRole("region", { name: "Signer and gas" });
-    expect(within(strip).queryByText("1.00 MON")).toBeNull();
-    // jsdom has no requestIdleCallback: lib/chain/idle falls back to a short timeout.
-    expect(await within(strip).findByText("1.00 MON")).toBeInTheDocument();
-    expect(within(strip).getByText("2.00 MON")).toBeInTheDocument();
+  // jsdom has no requestIdleCallback: lib/chain/idle falls back to a short timeout.
+  const stubFetch = () => {
+    const calls: string[] = [];
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async (url: string, init?: RequestInit) => {
+        calls.push(init?.body ? `${url} ${JSON.parse(String(init.body)).method}` : String(url));
+        if (String(url).endsWith("/api/fund"))
+          return Response.json({ address: "0x2222222222222222222222222222222222222222", balanceWei: "12000000000000000000", spendableWei: "5000000000000000000", reserveWei: "10000000000000000000" });
+        return Response.json({ jsonrpc: "2.0", id: 1, result: "0x29a2241af62c0000" }); // 3 MON
+      }),
+    );
+    return calls;
+  };
+
+  it("fills the strip by itself once the browser is idle (no intent, no signer module): new visitor", async () => {
+    const calls = stubFetch();
+    try {
+      localStorage.clear();
+      renderConsole();
+      const strip = screen.getByRole("region", { name: "Signer and gas" });
+      expect(within(strip).queryByText("5.00 MON")).toBeNull();
+      expect(await within(strip).findByText("5.00 MON")).toBeInTheDocument();
+      // No key in this browser yet: no address or balance to read, said as such.
+      expect(within(strip).getAllByText(/Not created yet/)).toHaveLength(2);
+      expect(within(strip).queryByText("1.00 MON")).toBeNull(); // the live reads (mocked) did not start
+      expect(calls).toEqual(["/api/fund"]);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("fills the strip by itself for a returning visitor: remembered address, one eth_getBalance", async () => {
+    const calls = stubFetch();
+    try {
+      localStorage.clear();
+      localStorage.setItem("kaskad.burner.v1", `0x${"ab".repeat(32)}`);
+      const { rememberBurnerAddress } = await import("@/lib/chain/burner-peek");
+      rememberBurnerAddress("0x3333333333333333333333333333333333333333");
+      renderConsole();
+      const strip = screen.getByRole("region", { name: "Signer and gas" });
+      expect(await within(strip).findByText("3.00 MON")).toBeInTheDocument();
+      expect(within(strip).getByText("0x3333…3333")).toBeInTheDocument();
+      expect(calls.filter((c) => c.endsWith("eth_getBalance"))).toHaveLength(1);
+    } finally {
+      localStorage.clear();
+      vi.unstubAllGlobals();
+    }
   });
 
   it("offers browser wallet and Mera passkey from the signer menu", async () => {

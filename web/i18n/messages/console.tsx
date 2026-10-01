@@ -84,6 +84,7 @@ const en = {
     faucet: "Get testnet MON",
     free: "Previews are free and need no wallet. Only “Prove on chain” sends a transaction.",
     addressLink: (v: { address: S }) => `${v.address} on MonadScan`,
+    notCreated: "Not created yet: the temporary wallet is made when you use the console",
     errors: {
       "no-wallet": "No browser wallet found.",
       rejected: "The request was rejected in the wallet.",
@@ -358,6 +359,7 @@ const tr = {
     faucet: "Testnet MON al",
     free: "Önizlemeler ücretsiz ve cüzdan gerektirmez. Yalnızca “Zincirde kanıtla” işlem gönderir.",
     addressLink: (v: { address: S }) => `${v.address} MonadScan'de`,
+    notCreated: "Henüz oluşturulmadı: geçici cüzdan konsolu kullandığında oluşur",
     errors: {
       "no-wallet": "Tarayıcı cüzdanı bulunamadı.",
       rejected: "İstek cüzdanda reddedildi.",
