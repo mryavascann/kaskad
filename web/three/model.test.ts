@@ -15,6 +15,7 @@ import {
   STUCK_LEAN,
   TIMING,
   warmthAt,
+  PRE_WARMTH,
   type HeroPosition,
 } from "./model";
 
@@ -232,11 +233,13 @@ describe("landingBounce", () => {
 describe("warmthAt / fallAt", () => {
   const [d] = buildHeroModel(BOOK).dominoes;
 
-  it("warms up over the window before the threshold", () => {
+  it("pre-glows faintly over the window before the threshold, full amber only from the threshold on", () => {
     const threshold = d.thresholdAt ?? 0;
     expect(warmthAt(d, threshold - TIMING.warmWindow - 0.01)).toBe(0);
+    expect(warmthAt(d, threshold - TIMING.warmWindow / 2)).toBeCloseTo(PRE_WARMTH / 2, 6);
+    expect(warmthAt(d, threshold - 1e-6)).toBeLessThanOrEqual(PRE_WARMTH);
     expect(warmthAt(d, threshold)).toBe(1);
-    expect(warmthAt(d, threshold - TIMING.warmWindow / 2)).toBeCloseTo(0.5, 6);
+    expect(warmthAt(d, threshold + 0.2)).toBe(1);
     expect(warmthAt({ ...d, thresholdAt: null }, 1)).toBe(0);
   });
 

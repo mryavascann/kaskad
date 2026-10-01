@@ -48,6 +48,35 @@ describe("replayAt", () => {
   });
 });
 
+describe("the first frame and the poster per block", () => {
+  it("starts before the shock: block 0, no drop, nobody under the threshold", () => {
+    const tl = p.hero.timeline;
+    expect(blockAtProgress(tl, 0)).toBe(0);
+    const r = replayAt(f, p, 0);
+    expect(r.drop).toBe(0);
+    expect(r.under).toBe(0);
+    expect(r.waves).toHaveLength(0);
+    // The resting poster agrees: no domino is under its threshold or tipped at progress 0.
+    expect(p.hero.positions.every((d) => (d.thresholdAt ?? Infinity) > 0 && (d.tipAt ?? Infinity) > 0)).toBe(true);
+  });
+
+  it("redraws a poster-only stage at the end of each whole block, never past the readout's block", async () => {
+    const { posterProgressAt } = await import("./scene-stage");
+    const tl = p.hero.timeline;
+    expect(posterProgressAt(tl, null)).toBe(0);
+    expect(posterProgressAt(tl, 0)).toBe(0);
+    expect(posterProgressAt(tl, f.steps)).toBe(1);
+    for (let k = 1; k < f.steps; k++) {
+      const at = posterProgressAt(tl, k);
+      expect(at).toBeGreaterThan(posterProgressAt(tl, k - 1));
+      expect(blockAtProgress(tl, at - 1e-9)).toBe(k);
+      // Every position the readout counts under the threshold in block k shows amber there, and no other.
+      const under = replayAt(f, p, k).under;
+      expect(p.hero.positions.filter((d) => d.thresholdAt != null && d.thresholdAt <= at - 1e-9).length).toBe(under);
+    }
+  });
+});
+
 describe("blockAtProgress", () => {
   it("is the whole block of three/data's blockAt", () => {
     const tl = p.hero.timeline;

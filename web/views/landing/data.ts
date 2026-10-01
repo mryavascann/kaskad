@@ -16,6 +16,7 @@ import { cascadeTimeline } from "@/lib/chain/timeline";
 import { DEPLOYMENT } from "@/lib/kaskad/config";
 import { wadToNum } from "@/lib/kaskad/format";
 import { heroFromClassification, type HeroData } from "@/three/data";
+import { BEATS } from "./replay";
 
 /** How long a successful read is reused in this process (the page itself revalidates every 600 s). */
 export const LANDING_TTL_MS = 10 * 60_000;
@@ -172,7 +173,9 @@ export function landingPositions(finding: Finding, c: Extract<Classification, { 
     total: c.positions.length,
     belowThreshold: c.belowThreshold,
     counts: c.counts,
-    hero: heroFromClassification(c.positions, finding.scenario, { result: finding.result }),
+    // Progress 0 (the first screen, before any scroll) is block 0: no shock yet, as the readout says.
+    // The headline's fade-out walks the price to the first tip, which comes as the panel arrives.
+    hero: heroFromClassification(c.positions, finding.scenario, { result: finding.result, lead: BEATS.introOut[1] }),
     crossBlocks: c.positions.map((p) => crossBlock(prices, p.liquidationPrice)),
     largest: largest && {
       debtUsd: largest.debtUsd,

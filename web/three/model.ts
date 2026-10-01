@@ -374,15 +374,21 @@ export function poseAt(model: HeroModel, progress: number, out?: Float64Array): 
 }
 
 /**
- * How far the price has come toward a domino's liquidation price, 0–1, for the amber pre-glow of
- * upright dominoes: 0 until `warmWindow` before its threshold, 1 at the threshold.
+ * How far the price has come toward a domino's liquidation price, 0–1, for the amber edge of upright
+ * dominoes: 0 until `warmWindow` before its threshold, a faint pre-glow up to `PRE_WARMTH` while the
+ * price closes in, and 1 (full amber) only from the threshold on, the moment a readout counts the
+ * position under the threshold. So a row that is merely close never reads as already under.
  */
 export function warmthAt(domino: HeroDomino, progress: number): number {
   if (domino.thresholdAt === null) return 0;
+  if (progress >= domino.thresholdAt) return 1;
   const start = domino.thresholdAt - TIMING.warmWindow;
   const x = clamp((progress - start) / TIMING.warmWindow);
-  return x * x * (3 - 2 * x);
+  return PRE_WARMTH * x * x * (3 - 2 * x);
 }
+
+/** Highest warmth before the threshold (see `warmthAt`). */
+export const PRE_WARMTH = 0.3;
 
 /**
  * Where a domino is in its fall at `progress`: 0 upright (or never tips), 1 landed. Drives the edge

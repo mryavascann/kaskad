@@ -120,7 +120,8 @@ export function ReplayStripView({ locale, finding, book, block }: Omit<ReadoutPr
   const items: [string, string | null, string?][] = [
     [t.hud.block, r && finding ? `${fmt.int(r.block).padStart(2, "0")}/${fmt.int(finding.steps)}` : null],
     [t.hud.price, r ? `$${fmt.num(r.price, 4)}` : null],
-    [t.hud.drop, r ? fmt.drop(r.drop, 1) : null, "text-warn"],
+    // Before the shock (block 0, the first screen) the drop is a plain 0, not a warning.
+    [t.hud.drop, r ? (r.drop > 0 ? fmt.drop(r.drop, 1) : fmt.pct(0, 1)) : null, r && r.drop > 0 ? "text-warn" : undefined],
     [t.hud.waves, r ? fmt.int(r.waves.length) : null, r && r.waves.length ? "text-liq-hi" : undefined],
     [t.hud.under, r && r.under !== null && book ? `${fmt.int(r.under)}/${fmt.int(book.total)}` : null],
     [t.hud.liquidated, r ? fmt.usd(r.liquidatedUsd) : null],

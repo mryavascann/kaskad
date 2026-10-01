@@ -65,7 +65,7 @@ export function ShockScene({ locale, finding, positions, placeholderCount, intro
           <div aria-hidden data-stage-poster="" className="absolute inset-0 isolate overflow-hidden bg-void">
             <HeroPoster positions={positions?.hero.positions} progress={0} placeholderCount={placeholderCount} />
           </div>
-          <LiveStage positions={positions?.hero.positions} placeholderCount={placeholderCount} />
+          <LiveStage positions={positions?.hero.positions} placeholderCount={placeholderCount} timeline={positions?.hero.timeline ?? null} />
         </div>
         <div aria-hidden className={styles.scrim} />
         <div aria-hidden className={styles.scrimTop} />

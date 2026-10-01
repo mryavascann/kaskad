@@ -60,10 +60,14 @@ to `steps`), `dropAt(hero.timeline, p)` (drop of the straight-line path in whole
 price = `startPrice × (1 − drop)` for the external oracle. With the default `start: "first-tip"` the
 timeline starts half a block before the first tip, so **the first domino tips with the first scroll**;
 for the finding that is block 7 (the one liquidation), then a pause until blocks 14–20 while the price
-keeps falling. Pass `{ start: "shock" }` to start at block 0 instead.
+keeps falling. Pass `{ start: "shock" }` to start at block 0 instead. The landing passes
+`{ lead: 0.13 }`: progress 0 is then block 0 (the frame before the shock, matching a readout that says
+block 0 / 0 %), the first 13 % of the progress walks the price to the first-tip framing, and every
+event keeps its block.
 
 Reduced motion: the stage keeps the poster at `posterProgress` (default `1`: the final state, every
-outcome visible). Don't scrub a poster from scroll. Demo mode (`?demo=1`): the stage pins `quality="high"`,
+outcome visible). Don't scrub a poster per scroll frame; the landing redraws a poster-only stage at most
+once per whole block (`views/landing/scene-stage.tsx`), so it never shows more than its readouts. Demo mode (`?demo=1`): the stage pins `quality="high"`,
 and frames are a pure function of progress, so recordings are identical.
 
 ## Props
@@ -91,7 +95,8 @@ a named level is pinned. Parallax only with a fine pointer and without reduced m
 | Stuck (amber `warn`) | Tips and freezes at `STUCK_LEAN` (24°) or earlier on the next domino: can't be liquidated instantly. |
 | Liquidated / bad debt (red `liq`) | Falls until it rests on the next dominoes (chain angle ≈ 46° with these proportions); bad debt glows hotter and tints its faces. |
 | Partly liquidated | Red flash in the block of its first liquidation (`hitAt`), then amber with a red foot. |
-| Safe (dark) | Never moves; its hairline warms toward amber over `TIMING.warmWindow` before its liquidation price. |
+| Under the threshold (amber edge) | From the whole block in which the price is under its liquidation price (the block a readout counts it in). Over `TIMING.warmWindow` before that, only a faint pre-glow (`PRE_WARMTH`), so a row that is merely close never reads as under. |
+| Safe (dark) | Never moves; its hairline pre-glows only if the price gets close by the end of the run. |
 | Floor light | Hot edges spill a pool of their color on the floor (`poolOf`). |
 
 Motion: a falling domino rotates about its front-bottom edge with `ease.inQuart` and lands with the

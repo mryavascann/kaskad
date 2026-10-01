@@ -19,10 +19,36 @@ describe("recoveryWhy", () => {
 describe("depthNote", () => {
   const assets = Object.values(DEPLOYMENT.assets);
 
-  it("keeps measured citations verbatim and marks them English", () => {
+  it("keeps measured citations verbatim in English", () => {
     const syrup = DEPLOYMENT.assets["9"];
-    expect(depthNote(syrup, "tr")).toEqual({ text: syrup.depthNote, lang: "en" });
-    expect(depthNote(syrup, "en").text).toContain("GeckoTerminal");
+    expect(depthNote(syrup, "en")).toEqual({ text: syrup.depthNote, lang: "en" });
+  });
+
+  it("renders measured citations in Turkish from the numbers they cite, keeping the English source", () => {
+    const syrup = DEPLOYMENT.assets["9"];
+    const note = depthNote(syrup, "tr");
+    expect(note.lang).toBe("tr");
+    expect(note.text).toBe(
+      "GeckoTerminal'deki 2 Monad DEX havuzunun reserve_in_usd toplamı; en büyüğü uniswap-v4-monad üzerindeki syrupUSDC / USDC 0.05% ($7.036.161). Kayma eğrisi değil, TVL yaklaşımı. DefiLlama, Monad üzerinde bunun için borç verme dışı (DEX) havuz listelemiyor.",
+    );
+    expect(note.source).toEqual({ text: syrup.depthNote, lang: "en" });
+    expect(note.text).not.toMatch(/\b(Sum of|largest|not a slippage curve|lists no)\b/);
+    expect(depthNote(DEPLOYMENT.assets["12"], "tr").text).toBe(
+      "Pendle AMM likiditesi (PT ↔ SY) $2.135.230; GeckoTerminal DEX havuzları $0. PT, dayanak varlığa 1:1 yalnızca vadede dönüşür.",
+    );
+  });
+
+  it("gives Turkish pages a Turkish note for every asset of the deployment", () => {
+    for (const a of assets) {
+      const note = depthNote(a, "tr");
+      expect(note.lang, a.symbol).toBe("tr");
+      expect(note.text, a.symbol).not.toMatch(/\b(Sum of|largest|assumed|Not measured)\b/);
+    }
+  });
+
+  it("keeps an English citation of an unknown shape, tagged English, on Turkish pages", () => {
+    const odd = { depthUsd: 1_000_000, depthIsAssumption: false, depthNote: "Read from a new source." };
+    expect(depthNote(odd, "tr")).toEqual({ text: odd.depthNote, lang: "en" });
   });
 
   it("rebuilds assumed notes in English from the data", () => {

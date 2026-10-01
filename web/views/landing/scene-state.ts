@@ -39,7 +39,12 @@ export const sceneBlock = signal<number | null>(null);
 /** Whole block at `progress`: `floor(blockAt(timeline, progress))` of three/data, inlined so the eager driver skips the model. */
 export function blockAtProgress(timeline: HeroTimeline, progress: number): number {
   const p = Math.min(1, Math.max(0, progress));
-  const block = Math.min(timeline.steps, Math.max(0, timeline.startBlock + p * (timeline.endBlock - timeline.startBlock)));
+  const lead = timeline.startBlock > 0 && timeline.lead && timeline.lead > 0 ? timeline.lead : 0;
+  const raw =
+    lead > 0 && p < lead
+      ? (p / lead) * timeline.startBlock
+      : timeline.startBlock + ((p - lead) / (1 - lead)) * (timeline.endBlock - timeline.startBlock);
+  const block = Math.min(timeline.steps, Math.max(0, raw));
   return Math.floor(block + 1e-9);
 }
 

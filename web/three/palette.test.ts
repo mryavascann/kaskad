@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { hex } from "@/design/tokens";
-import { buildHeroModel, TIMING, type HeroDomino } from "./model";
+import { buildHeroModel, PRE_WARMTH, TIMING, type HeroDomino } from "./model";
 import { BAD_DEBT_FACE, dominoLook, EDGE, heatOf, hexToLinear, linearToHex, SCENE_COLORS, type Rgb } from "./palette";
 
 const same = (a: Rgb, b: Rgb) => a.every((v, i) => Math.abs(v - b[i]) < 1e-9);
@@ -41,8 +41,11 @@ describe("dominoLook", () => {
     expect(dominoLook(model.dominoes[0], 0).intensity).toBe(EDGE.upright);
   });
 
-  it("warms an upright edge toward amber as the price nears its threshold", () => {
+  it("pre-glows an upright edge faintly as the price nears its threshold, full amber once under it", () => {
     expect(dominoLook(nearSafe, 0.18 - TIMING.warmWindow - 0.01).intensity).toBe(EDGE.upright);
+    const close = dominoLook(nearSafe, 0.18 - 0.001);
+    expect(close.intensity).toBeGreaterThan(EDGE.upright);
+    expect(close.intensity).toBeLessThan(EDGE.upright + (EDGE.warm - EDGE.upright) * (PRE_WARMTH + 0.01));
     const warm = dominoLook(nearSafe, 0.18);
     expect(same(warm.top, SCENE_COLORS.warn)).toBe(true);
     expect(warm.intensity).toBe(EDGE.warm);

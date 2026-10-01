@@ -39,8 +39,19 @@
  * (gutter + max-w-lg + 2rem), so no domino is drawn under the panel.
  */
 .stage {
-  --stage-shift-y: 9svh;
-  transform: translate3d(0, calc(var(--panel) * var(--stage-shift-y)), 0);
+  /* Phones: the row starts low, under the top-aligned copy (--stage-rest-y), and moves a little
+     further down as the panel arrives. */
+  --stage-rest-y: 0px;
+  --stage-shift-y: 6svh;
+  transform: translate3d(0, calc(var(--stage-rest-y) + var(--panel) * var(--stage-shift-y)), 0);
+}
+
+@media (width < 48rem) {
+  .stage {
+    /* Already below the copy at rest: it stays there under the shock panel too. */
+    --stage-rest-y: 22svh;
+    --stage-shift-y: 0px;
+  }
 }
 
 /* Desktop: the row sits right of the copy column and fades in from the left. */
@@ -48,29 +59,34 @@
   .stage {
     --panel-column: calc(max(0px, (100vw - var(--container-page)) / 2) + var(--page-gutter) + 32rem + 2rem);
     --stage-shift-x: max(0px, calc(var(--panel-column) - 30vw));
+    /* At rest the first domino clears the hero CTAs (gutter + 26rem), which 30% alone does not at ~1024 px. */
+    --stage-rest-x: max(0px, calc(max(0px, (100vw - var(--container-page)) / 2) + var(--page-gutter) + 26rem - 30vw));
     left: 30%;
     mask-image: linear-gradient(to right, transparent 0%, #000 22%);
-    transform: translate3d(calc(var(--panel) * var(--stage-shift-x)), 0, 0);
+    transform: translate3d(calc(var(--stage-rest-x) + var(--panel) * (var(--stage-shift-x) - var(--stage-rest-x))), 0, 0);
   }
 }
 
 /*
- * Phones: the copy block is bottom-anchored, but never pushed under the sticky header; if it is
- * taller than the space it starts at the top instead (safe alignment).
+ * Phones and portrait tablets: the copy block starts at the top (badge and headline first, both
+ * CTAs inside the first screen) and the row sits below it (see the stage shift further down).
+ * Desktop: centred beside the row.
  */
 .introBody {
-  justify-content: safe flex-end;
+  justify-content: flex-start;
+  padding-top: clamp(1rem, 3svh, 1.75rem);
 }
 
 @media (width >= 64rem) {
   .introBody {
     justify-content: safe center;
+    padding-top: 0;
   }
 }
 
 /*
- * Legibility. Phones: the headline sits low (dark from the bottom), the shock panel sits high (dark
- * from the top); each scrim follows its copy. Desktop: copy on the left, one scrim.
+ * Legibility. Phones and tablets: the headline and the shock panel both sit high (dark from the
+ * top), the row below them. Desktop: copy on the left, one scrim.
  */
 .scrim,
 .scrimTop {
@@ -82,7 +98,7 @@
 
 .scrim {
   opacity: var(--intro);
-  background: linear-gradient(to top, var(--color-bg) 0%, color-mix(in oklab, var(--color-bg) 72%, transparent) 30%, transparent 62%);
+  background: linear-gradient(to bottom, var(--color-bg) 0%, color-mix(in oklab, var(--color-bg) 80%, transparent) 46%, transparent 72%);
 }
 
 .scrimTop {
@@ -199,12 +215,10 @@
  */
 @media (width >= 48rem) and (width < 64rem) and (orientation: portrait) {
   .stage {
-    --stage-shift-y: 6svh;
-    transform: translate3d(0, calc(8svh + var(--panel) * var(--stage-shift-y)), 0);
+    --stage-rest-y: 8svh;
   }
 
   .introBody {
-    justify-content: flex-start;
     padding-top: clamp(2rem, 7svh, 5rem);
   }
 

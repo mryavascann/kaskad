@@ -14,6 +14,7 @@
  * - `LiveWaveCounter`, `LivePriceLine`, `LiveReplayStrip`: the readouts, per whole block.
  */
 import { createElement, useLayoutEffect, useRef } from "react";
+import type { HeroTimeline } from "@/three/data";
 import type { HeroPosition } from "@/three/model";
 import type { LiveReadoutProps } from "./shock-live";
 import type { PriceLineView, ReadoutProps, ReplayStripView } from "./shock-readouts";
@@ -23,7 +24,7 @@ export const LiveWaveCounter = takeover<LiveReadoutProps<ReadoutProps>>(() => im
 export const LivePriceLine = takeover<LiveReadoutProps<Parameters<typeof PriceLineView>[0]>>(() => import("./shock-live").then((m) => m.PriceLine));
 export const LiveReplayStrip = takeover<LiveReadoutProps<Parameters<typeof ReplayStripView>[0]>>(() => import("./shock-live").then((m) => m.ReplayStrip));
 
-type StageProps = { positions?: readonly HeroPosition[] | null; placeholderCount: number };
+type StageProps = { positions?: readonly HeroPosition[] | null; placeholderCount: number; timeline?: HeroTimeline | null };
 
 /** Mounts the live stage after intent, over the server's static poster (its previous sibling), and hides that poster. */
 export function LiveStage(props: StageProps) {

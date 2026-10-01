@@ -24,6 +24,12 @@ export type HeroTimeline = {
   startBlock: number;
   /** Continuous block at progress 1 (≥ `steps`). */
   endBlock: number;
+  /**
+   * Share of the progress (0–1) that walks the price from block 0 to `startBlock`, so progress 0 is
+   * the frame before the shock (block 0, nothing moved) and the first tip still comes early. 0 or
+   * absent: progress 0 is `startBlock`.
+   */
+  lead?: number;
 };
 
 export type HeroData = { positions: HeroPosition[]; timeline: HeroTimeline };
@@ -77,7 +83,7 @@ function crossingBlock(p: ClassifiedPosition, scenario: Scenario, prices: number
 export function heroFromClassification(
   positions: readonly ClassifiedPosition[],
   scenario: Scenario,
-  { result, start = "first-tip" }: { result?: Result; start?: TimelineStart } = {},
+  { result, start = "first-tip", lead = 0 }: { result?: Result; start?: TimelineStart; lead?: number } = {},
 ): HeroData {
   const sorted = [...positions].sort((a, b) => distance(a) - distance(b) || a.index - b.index);
   const moves = scenario.shockBps > 0 && scenario.steps > 0;
@@ -114,23 +120,32 @@ export function heroFromClassification(
     return Math.max(tip, p.firstLiquidationStep);
   });
   const blocksPerDrop = moves ? (scenario.steps * 10_000) / scenario.shockBps : Infinity;
+  // The whole block from which the price sits under the position's liquidation price, the block a
+  // readout counts it "under the threshold" in: its crossing block when it tips, else the first
+  // logged price under it, else the straight-line path (past `steps` for positions that never cross).
   const thresholdBlock = sorted.map((p, i) => {
     if (!moves || p.thresholdDrop === null || p.thresholdDrop >= 1) return null;
-    const linear = Math.max(0, p.thresholdDrop * blocksPerDrop);
-    const tip = tipBlock[i];
-    return tip === null ? linear : Math.min(linear, tip);
+    const k = crossing[i];
+    if (k !== null) return k;
+    if (p.thresholdDrop <= 0) return 0;
+    if (prices && p.liquidationPrice > 0) {
+      for (let b = 1; b <= scenario.steps; b++) if (prices[b] < p.liquidationPrice) return b;
+    }
+    return Math.floor(p.thresholdDrop * blocksPerDrop) + 1;
   });
 
   const tips = tipBlock.filter((b): b is number => b !== null);
   const hits = hitBlock.filter((b): b is number => b !== null);
   const startBlock = start === "first-tip" && tips.length ? Math.max(0, Math.min(...tips) - TIP_LEAD_BLOCKS) : 0;
+  const leadShare = startBlock > 0 ? clamp(lead, 0, LAST_TIP / 2) : 0;
   const lastTip = tips.length ? Math.max(...tips) : startBlock;
   const lastHit = hits.length ? Math.max(...hits) : startBlock;
   // Long enough to reach the final price, to start the last tip by LAST_TIP (so it settles by 1)
   // and to show the last liquidation.
-  const span = Math.max(scenario.steps - startBlock, (lastTip - startBlock) / LAST_TIP, lastHit - startBlock, 1e-9);
+  const span = Math.max(scenario.steps - startBlock, ((1 - leadShare) * (lastTip - startBlock)) / (LAST_TIP - leadShare), lastHit - startBlock, 1e-9);
   const timeline: HeroTimeline = { steps: scenario.steps, shockBps: scenario.shockBps, startBlock, endBlock: startBlock + span };
-  const toProgress = (block: number) => (block - startBlock) / span;
+  if (leadShare > 0) timeline.lead = leadShare;
+  const toProgress = (block: number) => progressAtBlock(timeline, block);
 
   return {
     timeline,
@@ -151,16 +166,26 @@ export function heroFromClassification(
   };
 }
 
+/** The lead share in use: only when the timeline starts after block 0. */
+const leadOf = (timeline: HeroTimeline) => (timeline.startBlock > 0 && timeline.lead && timeline.lead > 0 ? timeline.lead : 0);
+
 /** Continuous engine block at `progress`, clamped to [0, steps]. */
 export function blockAt(timeline: HeroTimeline, progress: number): number {
-  const block = timeline.startBlock + clamp(progress) * (timeline.endBlock - timeline.startBlock);
+  const p = clamp(progress);
+  const lead = leadOf(timeline);
+  const block =
+    lead > 0 && p < lead
+      ? (p / lead) * timeline.startBlock
+      : timeline.startBlock + ((p - lead) / (1 - lead)) * (timeline.endBlock - timeline.startBlock);
   return clamp(block, 0, timeline.steps);
 }
 
-/** Timeline progress at which `block` begins (may fall outside 0–1 for blocks before the start). */
+/** Timeline progress at which `block` begins (may fall outside 0–1 for blocks outside the timeline). */
 export function progressAtBlock(timeline: HeroTimeline, block: number): number {
   const span = timeline.endBlock - timeline.startBlock;
-  return span > 0 ? (block - timeline.startBlock) / span : 0;
+  const lead = leadOf(timeline);
+  if (lead > 0 && block < timeline.startBlock) return (lead * block) / timeline.startBlock;
+  return span > 0 ? lead + ((1 - lead) * (block - timeline.startBlock)) / span : 0;
 }
 
 /** Price drop of the straight-line path at `progress` (0.03 = −3 %), in whole blocks like the engine. */

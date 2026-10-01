@@ -98,6 +98,34 @@ describe("heroFromClassification (syrupUSDC −3 %, the landing finding)", () =>
     expect(fromShock.positions[0].tipAt).toBeCloseTo(progressAtBlock(fromShock.timeline, 7), 5);
   });
 
+  it("with a lead, starts at block 0 (before the shock) and walks to the first-tip framing", () => {
+    const led = heroFromClassification(sali.positions, sali.run.scenario, { result: sali.run.result, lead: 0.13 });
+    const tl = led.timeline;
+    expect(tl.lead).toBe(0.13);
+    expect(blockAt(tl, 0)).toBe(0);
+    expect(dropAt(tl, 0)).toBe(0);
+    expect(blockAt(tl, 0.13)).toBeCloseTo(tl.startBlock, 9);
+    expect(dropAt(tl, 1)).toBeCloseTo(0.03, 12);
+    for (const block of [0, 2.5, 6.5, 7, 14.5, 20]) expect(blockAt(tl, progressAtBlock(tl, block))).toBeCloseTo(block, 9);
+    // Same events, same blocks; the last tip still leaves room to settle.
+    led.positions.forEach((p, i) => {
+      const q = positions[i];
+      if (q.tipAt === undefined) return expect(p.tipAt).toBeUndefined();
+      expect(blockAt(tl, p.tipAt ?? 0)).toBeCloseTo(blockAt(timeline, q.tipAt), 6);
+    });
+    expect(Math.max(...led.positions.map((p) => p.tipAt ?? 0))).toBeLessThanOrEqual(LAST_TIP);
+    // Nothing is under its threshold at rest (the external oracle crosses no one before block 7).
+    expect(led.positions.every((p) => (p.thresholdAt ?? Infinity) > 0)).toBe(true);
+  });
+
+  it("puts each threshold on the whole block from which the price is under it", () => {
+    positions.forEach((p) => {
+      if (p.thresholdAt === null || p.thresholdAt === undefined) return;
+      const block = blockAt(timeline, p.thresholdAt);
+      if (block < timeline.steps) expect(block).toBeCloseTo(Math.round(block), 6);
+    });
+  });
+
   it("gives the same result without the logged prices under the external oracle", () => {
     const linear = heroFromClassification(sali.positions, sali.run.scenario);
     expect(linear.positions.map((p) => p.tipAt)).toEqual(positions.map((p) => p.tipAt));

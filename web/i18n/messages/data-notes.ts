@@ -40,12 +40,49 @@ function quotedDepth(note: string): number | null {
   return m ? Number(m[1].replace(/[.,]/g, "")) : null;
 }
 
+/** "$7,036,161" (as written in the English citations) → 7036161. */
+const usdIn = (s: string) => Number(s.replace(/[$,]/g, ""));
+
 /**
- * Pool-depth note for an asset. Measured depths keep their English source citation (tagged
- * lang="en" in Turkish pages); assumed depths are rebuilt from the data in the page's language.
+ * Turkish for a measured-depth citation (deployment.json writes them in English): the sum, the pool
+ * count and the largest pool, with every number re-read from the citation. Null when the citation
+ * has a shape this does not know; the caller then keeps the English original.
  */
-export function depthNote(asset: Pick<AssetInfo, "depthUsd" | "depthIsAssumption" | "depthNote">, locale: Locale): LocalizedNote {
-  if (!asset.depthIsAssumption) return { text: asset.depthNote, lang: "en" };
+function measuredNoteTr(note: string): string | null {
+  const fmt = formatters("tr");
+  const gecko = /^Sum of GeckoTerminal reserve_in_usd over (\d+) (\w+) DEX pool\(s\)[^;]*; largest: (.+?) on (\S+) \((\$[\d,]+)\)\./.exec(note);
+  if (gecko) {
+    const [, count, chain, pair, venue, usd] = gecko;
+    const parts = [
+      `GeckoTerminal'deki ${fmt.int(Number(count))} ${chain} DEX havuzunun reserve_in_usd toplamı; en büyüğü ${venue} üzerindeki ${pair} (${fmt.usdFull(usdIn(usd))}).`,
+      "Kayma eğrisi değil, TVL yaklaşımı.",
+    ];
+    const noDex = /DefiLlama lists no non-lending \(DEX\) pool for it on (\w+)\./.exec(note);
+    if (noDex) parts.push(`DefiLlama, ${noDex[1]} üzerinde bunun için borç verme dışı (DEX) havuz listelemiyor.`);
+    return parts.join(" ");
+  }
+  const pendle = /^Pendle AMM liquidity .*? = (\$[\d,]+); GeckoTerminal DEX pools: (\$[\d,]+)\./.exec(note);
+  if (pendle) {
+    return `Pendle AMM likiditesi (PT ↔ SY) ${fmt.usdFull(usdIn(pendle[1]))}; GeckoTerminal DEX havuzları ${fmt.usdFull(usdIn(pendle[2]))}. PT, dayanak varlığa 1:1 yalnızca vadede dönüşür.`;
+  }
+  return null;
+}
+
+/**
+ * Pool-depth note for an asset, in the page's language. Assumed-depth notes are Turkish in the data
+ * and rebuilt in English from it; measured-depth notes are English source citations, rendered in
+ * Turkish from the numbers they cite (`source` keeps the full English citation). A citation of an
+ * unknown shape stays English and is tagged lang="en".
+ */
+export function depthNote(
+  asset: Pick<AssetInfo, "depthUsd" | "depthIsAssumption" | "depthNote">,
+  locale: Locale,
+): LocalizedNote & { source?: LocalizedNote } {
+  if (!asset.depthIsAssumption) {
+    if (locale === "en") return { text: asset.depthNote, lang: "en" };
+    const tr = measuredNoteTr(asset.depthNote);
+    return tr ? { text: tr, lang: "tr", source: { text: asset.depthNote, lang: "en" } } : { text: asset.depthNote, lang: "en" };
+  }
   if (locale === "tr") return { text: asset.depthNote, lang: "tr" };
   const fmt = formatters("en");
   const assumed = fmt.usd(asset.depthUsd, 0);
