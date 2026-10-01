@@ -2,6 +2,7 @@ import { render, screen, waitFor, within } from "@testing-library/react";
 import { beforeAll, describe, expect, it, vi } from "vitest";
 import { formatters } from "@/i18n/format";
 import { landingMessages } from "@/i18n/messages/landing";
+import { depthNote } from "@/i18n/messages/data-notes";
 import { DEPLOYMENT } from "@/lib/kaskad/config";
 import { mockMatchMedia } from "@/motion/test-utils";
 
@@ -111,5 +112,32 @@ describe("Landing (TR)", () => {
     expect(screen.getAllByText(tr.usd(f.stuckDebtUsd)).length).toBeGreaterThan(0);
     expect(screen.getByRole("link", { name: "Param güvende mi?" })).toHaveAttribute("href", "/tr/cuzdan");
     expect(screen.getByText(landingMessages.tr.finding.footnote)).toBeInTheDocument();
+  });
+
+  it("shows the exit-pool depth note in Turkish", () => {
+    const { container } = render(<Landing locale="tr" data={data} />);
+    const asset = DEPLOYMENT.assets[String(f.assetId)];
+    const note = depthNote(asset, "tr");
+    expect(note.lang).toBe("tr");
+    const shown = within(container.querySelector<HTMLElement>("#finding")!).getByText(note.text);
+    expect(shown).toHaveAttribute("lang", "tr");
+    expect(container.querySelector("#finding")!.textContent).not.toContain("Sum of GeckoTerminal");
+  });
+});
+
+describe("One block number for the finding", () => {
+  it("shows the finding's read block in the hero, the finding and the on-chain card, before and after the takeover", async () => {
+    const { container } = render(<Landing locale="en" data={data} />);
+    const blocks = () =>
+      ["[data-landing-shock]", "#finding", "#on-chain"].map((sel) => {
+        const found = container.querySelector(sel)!.textContent!.match(/#\d{1,3}(?:,\d{3})+/g) ?? [];
+        return [...new Set(found)];
+      });
+    const expected = [en.block(f.blockNumber!)];
+    expect(blocks()).toEqual([expected, expected, expected]);
+    // After the reader's first intent the live islands take over with the same props: no other block.
+    await screen.findByRole("textbox", { name: "Wallet address" }, LAZY);
+    await waitFor(() => expect(container.querySelector("#finding [data-slot='gap-bars']")).not.toBeNull());
+    expect(blocks()).toEqual([expected, expected, expected]);
   });
 });

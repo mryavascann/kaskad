@@ -4,7 +4,7 @@
  * scene, so it shows the same data-true row (count, heights, outcomes at `progress`).
  * Server-safe: no client hooks (`useId` works in Server Components), no three.js.
  */
-import { useId, type CSSProperties } from "react";
+import { Fragment, useId, type CSSProperties } from "react";
 import { hex } from "@/design/tokens";
 import { cn } from "@/lib/utils";
 import styles from "./hero-poster.module.css";
@@ -74,12 +74,15 @@ function Backdrop({ id }: { id: string }) {
 
 function PosterSvg({ frame, id }: { frame: PosterFrame; id: string }) {
   const face = (kind: (typeof FACE_KINDS)[number], fog: number) => `url(#${id}-${kind}-${fogLevel(fog)})`;
+  // Only the face gradients this frame uses (the markup ships twice: HTML and RSC payload).
+  const used = new Set(frame.dominoes.flatMap((d) => d.faces.map((f) => `${f.kind}${fogLevel(f.fog)}`)));
   return (
     <svg viewBox={`0 0 ${frame.width} ${frame.height}`} preserveAspectRatio="none" focusable="false">
       <defs>
         <Backdrop id={id} />
         {FACE_KINDS.flatMap((kind) =>
           Array.from({ length: FOG_LEVELS }, (_, level) => {
+            if (!used.has(`${kind}${level}`)) return null;
             const fog = level / (FOG_LEVELS - 1);
             return (
               <linearGradient key={`${kind}${level}`} id={`${id}-${kind}-${level}`} x1="0" y1="0" x2="0" y2="1">
@@ -115,19 +118,38 @@ function PosterSvg({ frame, id }: { frame: PosterFrame; id: string }) {
         ))}
       </g>
 
+      {/* One flat run of paths in painter's order (no group per domino: ~60 fewer nodes per framing);
+          the first path of each domino carries its index. */}
       <g strokeLinejoin="round" strokeLinecap="round">
         {frame.dominoes.map((d) => (
-          <g key={d.index} data-domino={d.index}>
+          <Fragment key={d.index}>
             {d.faces.map((f, i) => (
-              <path key={i} d={f.d} fill={face(f.kind, f.fog)} />
+              <path key={i} data-domino={i === 0 ? d.index : undefined} d={f.d} fill={face(f.kind, f.fog)} />
             ))}
             {d.glow && (
-              <path d={d.glow.d} fill="none" stroke={d.glow.color} strokeOpacity={d.glow.opacity} strokeWidth="5" vectorEffect="non-scaling-stroke" />
+              <path
+                data-domino={d.faces.length === 0 ? d.index : undefined}
+                d={d.glow.d}
+                fill="none"
+                stroke={d.glow.color}
+                strokeOpacity={d.glow.opacity}
+                strokeWidth="5"
+                vectorEffect="non-scaling-stroke"
+              />
             )}
-            {d.edges.map((e) => (
-              <path key={e.color} d={e.d} fill="none" stroke={e.color} strokeOpacity={e.opacity} strokeWidth="1" vectorEffect="non-scaling-stroke" />
+            {d.edges.map((e, i) => (
+              <path
+                key={e.color}
+                data-domino={d.faces.length === 0 && !d.glow && i === 0 ? d.index : undefined}
+                d={e.d}
+                fill="none"
+                stroke={e.color}
+                strokeOpacity={e.opacity}
+                strokeWidth="1"
+                vectorEffect="non-scaling-stroke"
+              />
             ))}
-          </g>
+          </Fragment>
         ))}
       </g>
     </svg>

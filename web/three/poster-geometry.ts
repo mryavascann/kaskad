@@ -1,7 +1,7 @@
 /**
  * The poster as geometry: the hero model posed at a progress, projected through the stage camera
  * into SVG paths (painter's order, flat-shaded faces, glowing edges, floor grid and heat pools).
- * Pure and server-safe; coordinates are rounded so server and browser markup match (design rule 9).
+ * Pure and server-safe; coordinates are rounded so server and browser markup match (design rule 11).
  */
 import { lerp } from "@/motion/easing";
 import { DOMINO, type HeroModel } from "./model";
@@ -34,7 +34,12 @@ export type PosterFrame = {
 
 const r1 = (v: number) => Math.round(v * 10) / 10;
 const r2 = (v: number) => Math.round(v * 100) / 100;
-const pt = (p: Projected) => `${r1(p.x)} ${r1(p.y)}`;
+/**
+ * Path points in whole frame units: the frame is 1000 units tall, so a unit is about a CSS pixel on
+ * a phone and ≤ 0.5 px of error anywhere, and integers keep the poster's markup (in the HTML and
+ * again in the RSC payload) short.
+ */
+const pt = (p: Projected) => `${Math.round(p.x)} ${Math.round(p.y)}`;
 
 /* ------------------------------------------------------------------------------------------------
  * Boxes

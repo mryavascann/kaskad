@@ -52,7 +52,7 @@ describe("posterFrame", () => {
     }
   });
 
-  it("rounds every coordinate to one decimal (identical server and browser markup)", () => {
+  it("rounds every path coordinate to whole frame units (identical server and browser markup)", () => {
     const frame = frameAt(0.7);
     const paths = [
       ...frame.grid.map((g) => g.d),
@@ -61,7 +61,7 @@ describe("posterFrame", () => {
     for (const path of paths)
       for (const n of numbersIn(path)) {
         expect(Number.isFinite(Number(n))).toBe(true);
-        expect(n.split(".")[1]?.length ?? 0).toBeLessThanOrEqual(1);
+        expect(n).not.toContain(".");
       }
   });
 
