@@ -1,6 +1,6 @@
 import { ArrowUpRight } from "lucide-react";
 import type { ReactNode } from "react";
-import { ButtonArrow } from "@/design/ui/button";
+import { ButtonArrow } from "@/design/ui/button-arrow";
 import { ButtonLink } from "@/design/ui/button-link";
 import { Footnote } from "@/design/ui/footnote";
 import { HonestyTag } from "@/design/ui/honesty";

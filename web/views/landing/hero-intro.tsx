@@ -1,5 +1,5 @@
 import { ArrowDown } from "lucide-react";
-import { ButtonArrow } from "@/design/ui/button";
+import { ButtonArrow } from "@/design/ui/button-arrow";
 import { ButtonLink } from "@/design/ui/button-link";
 import { HonestyTag } from "@/design/ui/honesty";
 import { metricText, SkeletonMetric } from "@/design/ui/skeleton";
