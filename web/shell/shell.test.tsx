@@ -1,6 +1,6 @@
 import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { commonMessages } from "@/i18n/messages/common";
 import { DEPLOYMENT } from "@/lib/kaskad/config";
 
@@ -13,6 +13,12 @@ vi.mock("@/lib/chain/hooks/useLiveBlock", () => ({
 const { SiteNav } = await import("./site-nav");
 const { SiteFooter } = await import("./site-footer");
 const { LocaleSwitch } = await import("./locale-switch");
+
+// The phone menu sheet is a lazy chunk; load it once up front so the tests don't race the import
+// (a cold import of Radix Dialog can outlast findByRole's timeout on a busy machine).
+beforeAll(async () => {
+  await import("./mobile-menu-sheet");
+});
 
 beforeEach(() => {
   pathname = "/wallet";
