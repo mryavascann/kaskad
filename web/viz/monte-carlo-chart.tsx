@@ -208,7 +208,7 @@ export function MonteCarloChart({
                     y={round((1 - b.h) * H)}
                     height={round(b.h * H)}
                     fill="var(--color-calm)"
-                    fillOpacity={0.22}
+                    fillOpacity={0.16}
                   />
                 ) : null,
               )}

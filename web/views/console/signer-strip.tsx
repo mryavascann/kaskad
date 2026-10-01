@@ -112,13 +112,20 @@ export const SignerStrip = memo(function SignerStrip({ locale }: { locale: Local
           {balance === null ? <Skeleton className={cn("h-4 w-20", still)} /> : <span className="font-mono text-body-sm text-fg-1">{fmt.mon(mon(balance))}</span>}
         </Cell>
         <Cell label={t.sponsor}>
+          {/* The caption has its own line in both states; before the read an invisible copy of it (the
+              reserve stands in as 0, never shown) holds the same lines, so the value lands without a shift. */}
           {sponsor ? (
             <>
               <span className={cn("font-mono text-body-sm", sponsorLow ? "text-warn-hi" : "text-fg-1")}>{fmt.mon(mon(sponsor.spendableWei))}</span>
-              <span className="text-caption text-fg-3">{t.sponsorCaption({ reserve })}</span>
+              <span className="basis-full text-caption text-fg-3">{t.sponsorCaption({ reserve })}</span>
             </>
           ) : (
-            <Skeleton className={cn("h-4 w-28", still)} />
+            <>
+              <Skeleton className={cn("h-4 w-28", still)} />
+              <span aria-hidden className="invisible basis-full text-caption">
+                {t.sponsorCaption({ reserve: fmt.mon(0) })}
+              </span>
+            </>
           )}
         </Cell>
         <div className="col-span-2 flex flex-wrap items-center gap-2 bg-elev-1 px-4 py-3 sm:col-span-1 lg:justify-end">
