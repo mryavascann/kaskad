@@ -32,6 +32,7 @@ import { GAUNTLET_AAVE_FEE_USD_PER_YEAR, GAUNTLET_FEE_SOURCE_URL, MONAD_BLOCK_TI
 import { HeroIntro, type FindingMeta } from "./hero-intro";
 import { GuardTeaserStatic } from "./guard-cards";
 import { OnchainUnlock } from "./onchain-unlock";
+import { RiskMapTable } from "./risk-map";
 import { ShockScene } from "./shock-scene";
 import type { WalletSample } from "./wallet-links";
 import { WalletTeaserStatic } from "./wallet-teaser-static";
@@ -86,6 +87,9 @@ export function Landing({ locale, data }: { locale: Locale; data: LandingData })
   const c = commonMessages[locale];
   const fmt = formatters(locale);
   const { finding, positions, scale, markets } = data;
+  const riskMap = data.riskMap ?? null;
+  // The risk map shows only once checked against the chain; the sections after it number on from it.
+  const after = riskMap ? 1 : 0;
   const meta = findingMeta();
   const asset = DEPLOYMENT.assets[String(meta.assetId)];
   const depth = depthNote(asset, locale);
@@ -189,8 +193,15 @@ export function Landing({ locale, data }: { locale: Locale; data: LandingData })
         </div>
       </Section>
 
-      {/* 02 · Why on-chain */}
-      <Section id="on-chain" index={2} kicker={t.onchain.kicker} title={t.onchain.title} lead={t.onchain.lead}>
+      {/* 02 · The risk map (only when it matches the chain) */}
+      {riskMap && (
+        <Section id="risk-map" index={2} kicker={t.riskMap.kicker} title={t.riskMap.title} lead={t.riskMap.lead}>
+          <RiskMapTable locale={locale} map={riskMap} finding={{ assetId: meta.assetId, shockBps: Math.round(meta.shock * 10_000) }} />
+        </Section>
+      )}
+
+      {/* 02/03 · Why on-chain */}
+      <Section id="on-chain" index={2 + after} kicker={t.onchain.kicker} title={t.onchain.title} lead={t.onchain.lead}>
         <OnchainUnlock
           missing={t.onchain.missing}
           copy={{
@@ -217,7 +228,7 @@ export function Landing({ locale, data }: { locale: Locale; data: LandingData })
       </Section>
 
       {/* 03 · Why Monad */}
-      <Section id="monad" index={3} kicker={t.monad.kicker} title={t.monad.title} lead={t.monad.lead}>
+      <Section id="monad" index={3 + after} kicker={t.monad.kicker} title={t.monad.title} lead={t.monad.lead}>
         <div className="grid gap-4 lg:grid-cols-12">
           <article aria-labelledby="monad-gas" className="flex min-w-0 flex-col gap-5 rounded-panel border border-line-2 bg-elev-1 p-5 sm:p-7 lg:col-span-12">
             <div className="flex flex-wrap items-center justify-between gap-3">
@@ -282,7 +293,7 @@ export function Landing({ locale, data }: { locale: Locale; data: LandingData })
       </Section>
 
       {/* 04 · Guard */}
-      <Section id="guard" index={4} kicker={t.guard.kicker} title={t.guard.title} lead={t.guard.lead}>
+      <Section id="guard" index={4 + after} kicker={t.guard.kicker} title={t.guard.title} lead={t.guard.lead}>
         <div className="flex flex-col gap-5">
           <Island Live={LiveGuardTeaser} Static={GuardTeaserStatic} props={{ locale, markets, guarded: { a: MARKETS.a.guarded, b: MARKETS.b.guarded } }} />
           <div className="flex flex-wrap items-center justify-between gap-4">
@@ -296,7 +307,7 @@ export function Landing({ locale, data }: { locale: Locale; data: LandingData })
       </Section>
 
       {/* 05 · Is my position safe? */}
-      <Section id="wallet" index={5} kicker={t.wallet.kicker} title={t.wallet.title} lead={t.wallet.lead}>
+      <Section id="wallet" index={5 + after} kicker={t.wallet.kicker} title={t.wallet.title} lead={t.wallet.lead}>
         <div className="grid gap-10 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)] lg:items-center lg:gap-16">
           <Island Live={LiveWalletTeaser} Static={WalletTeaserStatic} props={{ locale, samples: WALLET_SAMPLES }} />
           <figure className="flex flex-col items-center gap-3 rounded-panel border border-line-2 bg-elev-1 p-6" data-landing-dial="">
@@ -312,7 +323,7 @@ export function Landing({ locale, data }: { locale: Locale; data: LandingData })
       </Section>
 
       {/* 06 · How it works */}
-      <Section id="how" index={6} kicker={t.how.kicker} title={t.how.title}>
+      <Section id="how" index={6 + after} kicker={t.how.kicker} title={t.how.title}>
         <div className="flex flex-col gap-14">
           <ol className="grid gap-px overflow-hidden rounded-panel border border-line-2 bg-line-2 md:grid-cols-3">
             {t.how.steps.map(([title, body], i) => (
