@@ -29,6 +29,7 @@ import { shortAddr } from "@/lib/kaskad/format";
 import { cn } from "@/lib/utils";
 import { HealthDial } from "@/viz/health-dial";
 import { PanelHeading } from "../shared/panel-heading";
+import { WatchlistPanel } from "./watchlist-panel";
 
 /** Legacy symbols carry a maturity suffix (PT-AUSD-8OCT2026); show the base symbol. */
 const base = (symbol: string) => symbolParts({ symbol }).base;
@@ -362,6 +363,7 @@ export function WalletRisk({ locale }: { locale: Locale }) {
           </div>
         )}
       </div>
+      <WatchlistPanel locale={locale} current={pos?.address ?? null} onCheck={submit} />
     </div>
   );
 }

@@ -14,6 +14,7 @@ import {
   type UserPosition,
 } from "../wallet";
 import { readInjectedAddress, readMeraAddress, type AddressLookup } from "../wallet-client";
+import { signerIfLoaded } from "../signer";
 import { isAddressLoose } from "../units";
 
 type LookupState = {
@@ -75,10 +76,19 @@ export function useWalletRisk() {
     }
   }, []);
 
-  /** Mera passkey or browser wallet address -> lookup (read only, signer unchanged). */
+  /**
+   * Mera passkey or browser wallet address -> lookup (read only, signer unchanged). A passkey already
+   * signed in (signer strip, PasskeyGate) is used as is: no second passkey prompt.
+   */
   const lookupWith = useCallback(
     async (source: "mera" | "injected") => {
-      const res = source === "mera" ? await readMeraAddress() : await readInjectedAddress();
+      const signed = source === "mera" ? signerIfLoaded()?.signerStore.get() : null;
+      const res: AddressLookup =
+        signed?.kind === "mera" && signed.address
+          ? { ok: true, address: signed.address }
+          : source === "mera"
+            ? await readMeraAddress()
+            : await readInjectedAddress();
       setIdentity(res);
       if (res.ok) await lookup(res.address);
     },

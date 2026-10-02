@@ -6,6 +6,7 @@ import { HDKey } from "@scure/bip32";
 import { entropyToMnemonic, mnemonicToSeedSync } from "@scure/bip39";
 import { wordlist } from "@scure/bip39/wordlists/english.js";
 import type { LocalAccount } from "viem";
+import { derivePasskeyKeys, type PasskeyKeys } from "./passkey-keys";
 
 // Mera (Category Labs) passkey wallet: the EVM key is derived from the passkey's WebAuthn PRF
 // output; nothing is stored server-side. We only need the address here (read-only screen).
@@ -27,8 +28,14 @@ export async function connectMera(mode: "login" | "create" = "login"): Promise<L
   return (await connectMeraSession(mode)).account;
 }
 
-/** Same as connectMera, plus `end`: zeroes the session's key copy (sign out); later signing throws. */
-export async function connectMeraSession(mode: "login" | "create" = "login"): Promise<{ account: LocalAccount; end: () => void }> {
+/**
+ * Same as connectMera, plus `end`: zeroes the session's key copy (sign out); later signing throws.
+ * `keys`: the private-watchlist keys derived from the same PRF output (passkey-keys.ts), so one
+ * passkey prompt gives the wallet and the watchlist.
+ */
+export async function connectMeraSession(
+  mode: "login" | "create" = "login",
+): Promise<{ account: LocalAccount; keys: PasskeyKeys; end: () => void }> {
   const rpId = location.hostname;
   let prf: Uint8Array;
   let stored: string | null = null;
@@ -48,9 +55,11 @@ export async function connectMeraSession(mode: "login" | "create" = "login"): Pr
     prf = created.prfOutput;
   }
   const key = deriveEvmKey(prf);
+  const keys = await derivePasskeyKeys(prf);
+  prf.fill(0);
   const session = createSecp256k1SigningSession({ privateKey: key });
   key.fill(0);
-  return { account: toViemAccount(session), end: () => session.end() };
+  return { account: toViemAccount(session), keys, end: () => session.end() };
 }
 
 export function hasStoredMeraPasskey(): boolean {
