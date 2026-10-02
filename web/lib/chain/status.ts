@@ -138,22 +138,34 @@ export function txError(e: unknown, phase: TxStep | null = null): TxError {
   return { code: "unknown", raw };
 }
 
-export type ConnectErrorCode = "no-wallet" | "rejected" | "failed";
+export type ConnectErrorCode = "no-wallet" | "rejected" | "unsupported" | "failed";
 export type ConnectError = { code: ConnectErrorCode; raw: string };
+
+/** WebAuthn cancel / timeout: a DOMException named NotAllowedError, possibly wrapped (MeraError's `cause`). */
+function isPasskeyCancel(e: unknown): boolean {
+  let c: unknown = e;
+  for (let depth = 0; c && depth < 10; depth++) {
+    const x = c as { name?: unknown; cause?: unknown };
+    if (x.name === "NotAllowedError" || x.name === "AbortError") return true;
+    c = x.cause;
+  }
+  return false;
+}
 
 /**
  * Wallet / passkey connection errors (app/(legacy)/baglan/Connect.tsx:90-100 showed the message).
- * WebAuthn cancel / timeout is a DOMException named NotAllowedError.
+ * `unsupported`: the browser or authenticator cannot give Mera a PRF output (MeraError codes
+ * PRF_UNAVAILABLE, CRYPTO_UNAVAILABLE) or has no WebAuthn at all.
  */
 export function connectError(e: unknown): ConnectError {
   const raw = String((e as Error)?.message ?? e);
+  const meraCode = (e as { code?: unknown })?.code;
+  if (meraCode === "PRF_UNAVAILABLE" || meraCode === "CRYPTO_UNAVAILABLE") return { code: "unsupported", raw };
   if (raw === SIGNER_ERRORS.noWallet) return { code: "no-wallet", raw };
-  if (
-    raw === SIGNER_ERRORS.noAccount ||
-    isUserRejection(e) ||
-    (e as { name?: unknown })?.name === "NotAllowedError" ||
-    /user (rejected|denied)/i.test(raw)
-  )
+  if (raw === SIGNER_ERRORS.noAccount || isUserRejection(e) || isPasskeyCancel(e) || /user (rejected|denied)/i.test(raw))
     return { code: "rejected", raw };
   return { code: "failed", raw };
 }
+
+/** False when this browser has no WebAuthn, so a passkey can never be made here (checked before asking). */
+export const passkeysAvailable = (): boolean => typeof window !== "undefined" && typeof window.PublicKeyCredential === "function";

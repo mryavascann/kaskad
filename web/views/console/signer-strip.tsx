@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, Fingerprint, LogOut } from "lucide-react";
 import { createElement, memo, useCallback, useEffect, useState } from "react";
 import type { Address } from "viem";
 import { buttonStyles } from "@/design/ui/button-styles";
@@ -19,6 +19,7 @@ import { useSigner, type SignerKind } from "@/lib/chain/hooks/useSigner";
 import { useSignerBalances } from "@/lib/chain/hooks/useSignerBalances";
 import { useSignerConnect } from "@/lib/chain/hooks/useSignerConnect";
 import { loadSigner } from "@/lib/chain/signer";
+import { DEFAULT_SIGNER, DEV_SIGNERS } from "@/lib/chain/signer-mode";
 import { FAUCET_URL, fetchSponsor, isSponsorLow, type SponsorStatus } from "@/lib/chain/sponsor";
 import { formatEther } from "@/lib/chain/units";
 import { addrUrl } from "@/lib/kaskad/config";
@@ -66,10 +67,11 @@ function Cell({ label, children, className }: { label: string; children: React.R
 
 /**
  * What the strip reads: the signer's address, its balance and the sponsor budget (null: not read yet).
- * `fresh`: no temporary wallet exists yet (no key in this browser), so it has no address or balance to read.
+ * `fresh`: no address to read yet: no temporary wallet in this browser (development builds), or nobody
+ * signed in with a passkey (production).
  */
 type Readings = { kind: SignerKind; address: Address | null; balance: bigint | null; sponsor: SponsorStatus | null; sponsorLow: boolean; fresh: boolean };
-const UNREAD: Readings = { kind: "burner", address: null, balance: null, sponsor: null, sponsorLow: false, fresh: false };
+const UNREAD: Readings = { kind: DEFAULT_SIGNER, address: null, balance: null, sponsor: null, sponsorLow: false, fresh: false };
 
 /**
  * A reading over the previous one: for the same signer, values not read yet keep the previous ones (the
@@ -90,11 +92,14 @@ const merge = (prev: Readings, next: Readings): Readings =>
 /** The reads, from the signer module and the balance poll; reports them with `onRead`. Renders nothing. */
 function LiveReadings({ injected, mera, onRead }: { injected: Address | null; mera: Address | null; onRead: (r: Readings) => void }) {
   const signer = useSigner({ load: "idle" });
-  const { burner, balances, sponsor, sponsorLow } = useSignerBalances({ injected, mera });
+  // A passkey signed in through another button (PasskeyGate) is the signer's address, not this strip's `mera`.
+  const meraAddress = signer.kind === "mera" ? (signer.address ?? mera) : mera;
+  const { burner, balances, sponsor, sponsorLow } = useSignerBalances({ injected, mera: meraAddress });
   const address = signer.kind === "burner" ? (signer.address ?? burner) : signer.address;
   const balance = balances[signer.kind];
   const kind = signer.kind;
-  useEffect(() => onRead({ kind, address, balance, sponsor, sponsorLow, fresh: false }), [kind, address, balance, sponsor, sponsorLow, onRead]);
+  const fresh = kind === "mera" && !address;
+  useEffect(() => onRead({ kind, address, balance, sponsor, sponsorLow, fresh }), [kind, address, balance, sponsor, sponsorLow, fresh, onRead]);
   return null;
 }
 
@@ -108,6 +113,15 @@ function LiveReadings({ injected, mera, onRead }: { injected: Address | null; me
 function FirstReadings({ onRead, onNeedSigner }: { onRead: (r: Readings) => void; onNeedSigner: () => void }) {
   useEffect(() => {
     let live = true;
+    if (!DEV_SIGNERS) {
+      // Production: nobody is signed in on a fresh page load, so only the sponsor budget is read.
+      void fetchSponsor().then((sponsor) => {
+        if (live) onRead({ kind: "mera", address: null, balance: null, sponsor, sponsorLow: isSponsorLow(sponsor?.spendableWei ?? null), fresh: true });
+      });
+      return () => {
+        live = false;
+      };
+    }
     const burner = peekBurner();
     if (burner.kind === "unknown") {
       onNeedSigner();
@@ -147,7 +161,8 @@ function FirstReadings({ onRead, onNeedSigner }: { onRead: (r: Readings) => void
  * scroll, touch, press, key or mouse move, or as soon as they reach for the strip. Until the first read
  * lands the cells show their skeletons (same boxes as the values: no shift). The signer menu's code still
  * waits for intent (the stand-in button looks the same and opens it). The kind of signer is exact
- * from the start: every page load begins with the sponsored burner.
+ * from the start: every page load begins with DEFAULT_SIGNER (production: Mera, not signed in, with a
+ * "Sign in with passkey" button and no menu; development builds: the sponsored burner and the menu).
  */
 export const SignerStrip = memo(function SignerStrip({ locale }: { locale: Locale }) {
   const t = consoleMessages[locale].signer;
@@ -176,7 +191,7 @@ export const SignerStrip = memo(function SignerStrip({ locale }: { locale: Local
       {/* Phones: signer full width, balance | sponsor, actions full width. sm–lg: 2 × 2 (no empty cell). lg: one row. */}
       <div className="grid grid-cols-2 gap-px overflow-hidden rounded-panel border border-line-2 bg-line lg:grid-cols-[1.3fr_0.8fr_1.1fr_auto]">
         <Cell label={t.active} className="col-span-2 sm:col-span-1">
-          <StatusDot tone={signer.kind === "burner" ? "monad" : "safe"} />
+          <StatusDot tone={signer.kind === "burner" || !address ? "monad" : "safe"} />
           <span className="text-body-sm font-medium text-fg-1">{t.kinds[signer.kind]}</span>
           {address ? (
             <a
@@ -191,7 +206,7 @@ export const SignerStrip = memo(function SignerStrip({ locale }: { locale: Local
             </a>
           ) : fresh ? (
             // As wide as the skeleton and the address, so it wraps (or not) the same way.
-            <NotCreated label={t.notCreated} className="inline-block w-24 text-caption" />
+            <NotCreated label={signer.kind === "mera" ? t.notSignedIn : t.notCreated} className="inline-block w-24 text-caption" />
           ) : (
             <Hold text="text-caption" className={cn("h-4 w-24", still)} />
           )}
@@ -200,7 +215,7 @@ export const SignerStrip = memo(function SignerStrip({ locale }: { locale: Local
           {balance !== null ? (
             <span className="font-mono text-body-sm text-fg-1">{fmt.mon(mon(balance))}</span>
           ) : fresh ? (
-            <NotCreated label={t.notCreated} />
+            <NotCreated label={signer.kind === "mera" ? t.notSignedIn : t.notCreated} />
           ) : (
             <Hold className={cn("h-4 w-20", still)} />
           )}
@@ -223,7 +238,20 @@ export const SignerStrip = memo(function SignerStrip({ locale }: { locale: Local
           )}
         </Cell>
         <div className="col-span-2 flex flex-wrap items-center gap-2 bg-elev-1 px-4 py-3 sm:col-span-1 lg:justify-end">
-          {Menu ? (
+          {!DEV_SIGNERS ? (
+            // Production: Mera is the only signer, so the actions are signing in and out (nothing to switch to).
+            signer.kind === "mera" && signer.address ? (
+              <Button size="sm" variant="ghost" onClick={conn.signOut}>
+                <LogOut aria-hidden />
+                {t.signOut}
+              </Button>
+            ) : (
+              <Button size="sm" variant="primary" loading={conn.busy} onClick={() => void conn.signIn()} onPointerEnter={conn.preloadSignIn} onFocus={conn.preloadSignIn}>
+                <Fingerprint aria-hidden />
+                {t.signIn}
+              </Button>
+            )
+          ) : Menu ? (
             // createElement: `Menu` is a loaded module export (stable), not a component made during render.
             createElement(Menu, { locale, conn, kind: signer.kind, defaultOpen: wantMenu })
           ) : (
@@ -245,7 +273,7 @@ export const SignerStrip = memo(function SignerStrip({ locale }: { locale: Local
       )}
       {conn.error && <Callout tone="liq" title={t.errors[conn.error.code]} className="py-2.5" />}
       <div className="flex flex-col gap-x-6 gap-y-1 sm:flex-row sm:items-start sm:justify-between">
-        <p className="text-caption text-fg-3 sm:flex sm:min-h-8 sm:items-center">{t.free}</p>
+        <p className="text-caption text-fg-3 sm:flex sm:min-h-8 sm:items-center">{signer.kind === "mera" && !address ? t.signInNote : t.free}</p>
         <Disclosure summary={t.feesTitle} className="shrink-0 text-caption sm:max-w-md">
           <p className="text-caption text-fg-2">{t.fees}</p>
         </Disclosure>

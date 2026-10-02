@@ -20,7 +20,28 @@ const previewCalls: Scenario[] = [];
 const previewInitials: unknown[] = [];
 let preview: PreviewState;
 const proveMock = vi.fn();
-const connect = { busy: false, error: null as null | { code: string; raw: string }, injected: null, mera: null, connectInjected: vi.fn(), connectMera: vi.fn(), selectBurner: vi.fn() };
+const connect = {
+  busy: false,
+  error: null as null | { code: string; raw: string },
+  injected: null,
+  mera: null,
+  connectInjected: vi.fn(),
+  connectMera: vi.fn(),
+  selectBurner: vi.fn(),
+  signIn: vi.fn(),
+  signOut: vi.fn(),
+  preloadSignIn: vi.fn(),
+};
+// Signer mode (lib/chain/signer-mode.ts): most tests here run as a development build (burner + menu);
+// the "production" tests switch it to Mera only.
+const mode = vi.hoisted(() => ({ DEV_SIGNERS: true, DEFAULT_SIGNER: "burner" as "burner" | "mera", ENABLED_SIGNERS: ["burner", "injected", "mera"] }));
+vi.mock("@/lib/chain/signer-mode", () => mode);
+const BURNER_SIGNER = { kind: "burner" as "burner" | "injected" | "mera", address: "0x1111111111111111111111111111111111111111" as string | null };
+const signerState = { ...BURNER_SIGNER };
+const useProduction = () => {
+  Object.assign(mode, { DEV_SIGNERS: false, DEFAULT_SIGNER: "mera", ENABLED_SIGNERS: ["mera"] });
+  Object.assign(signerState, { kind: "mera", address: null });
+};
 
 const cueMock = vi.fn<(cue: string, volume?: number) => boolean>(() => true);
 vi.mock("@/audio/use-cue", () => ({ useCue: () => cueMock }));
@@ -41,7 +62,7 @@ vi.mock("@/lib/chain/hooks/usePositionMap", () => ({
     return { classification: eligible ? classification : null, eligible, error: null, loading: false };
   },
 }));
-vi.mock("@/lib/chain/hooks/useSigner", () => ({ useSigner: () => ({ kind: "burner", address: "0x1111111111111111111111111111111111111111" }) }));
+vi.mock("@/lib/chain/hooks/useSigner", () => ({ useSigner: () => signerState }));
 // One object, as the hook keeps its reads in state (a fresh sponsor object per render would never settle).
 const balances = {
   burner: "0x1111111111111111111111111111111111111111",
@@ -104,6 +125,10 @@ beforeEach(() => {
   proveMock.mockReset();
   cueMock.mockClear();
   connect.error = null;
+  connect.signIn.mockReset();
+  connect.signOut.mockReset();
+  Object.assign(mode, { DEV_SIGNERS: true, DEFAULT_SIGNER: "burner", ENABLED_SIGNERS: ["burner", "injected", "mera"] });
+  Object.assign(signerState, BURNER_SIGNER);
   search = new URLSearchParams();
   openIntent(); // what waited on the previous test's intent (a lazy chunk) is let through
   intent = new Promise<void>((resolve) => (openIntent = resolve));
@@ -376,6 +401,54 @@ describe("Console signer and tabs", () => {
       localStorage.clear();
       vi.unstubAllGlobals();
     }
+  });
+
+  it("production: Mera is the only signer; the strip offers a passkey sign-in and no signer menu", async () => {
+    useProduction();
+    const calls = stubFetch();
+    try {
+      localStorage.clear();
+      const user = userEvent.setup();
+      renderConsole();
+      const strip = screen.getByRole("region", { name: "Signer and gas" });
+      expect(within(strip).getByText("Mera passkey")).toBeInTheDocument();
+      expect(await within(strip).findByText("5.00 MON")).toBeInTheDocument(); // sponsor budget, read on idle
+      expect(within(strip).getAllByText(/Not signed in/)).toHaveLength(2);
+      expect(calls).toEqual(["/api/fund"]); // no burner key read or made
+      expect(localStorage.getItem("kaskad.burner.v1")).toBeNull();
+      expect(within(strip).queryByRole("button", { name: /Switch signer/ })).toBeNull();
+      await user.click(within(strip).getByRole("button", { name: "Sign in with passkey" }));
+      expect(connect.signIn).toHaveBeenCalledTimes(1);
+    } finally {
+      localStorage.clear();
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("production: proving takes two clicks, a passkey sign-in first, then the proof", async () => {
+    useProduction();
+    const user = userEvent.setup();
+    const { rerender } = renderConsole();
+    expect(screen.queryByRole("button", { name: "Prove on chain" })).toBeNull();
+    await user.click(screen.getByRole("button", { name: "Sign in with passkey to prove" }));
+    expect(connect.signIn).toHaveBeenCalledTimes(1);
+    expect(proveMock).not.toHaveBeenCalled();
+    // Signed in: the real action takes the sign-in button's place.
+    Object.assign(signerState, { address: "0x4444444444444444444444444444444444444444" });
+    rerender(consoleEl("en", null));
+    expect(await screen.findByRole("button", { name: "Prove on chain" })).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "Sign in with passkey to prove" })).toBeNull();
+  });
+
+  it("production: once signed in, the strip shows the passkey address and a sign-out", async () => {
+    useProduction();
+    Object.assign(signerState, { address: "0x4444444444444444444444444444444444444444" });
+    const user = userEvent.setup();
+    renderConsole();
+    const strip = screen.getByRole("region", { name: "Signer and gas" });
+    expect(within(strip).queryByRole("button", { name: "Sign in with passkey" })).toBeNull();
+    await user.click(within(strip).getByRole("button", { name: "Sign out" }));
+    expect(connect.signOut).toHaveBeenCalledTimes(1);
   });
 
   it("offers browser wallet and Mera passkey from the signer menu", async () => {

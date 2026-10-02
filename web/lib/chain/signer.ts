@@ -4,19 +4,21 @@
 // (viem accounts, secp256k1) and, through it, the Mera SDK path, so it is loaded with a dynamic
 // import() only when needed: an action that sends (runTx, borrow), a signer switch, or the signer
 // strip's idle load for its address and balances. Until then the state is the server snapshot
-// `{ kind: "burner", address: null }`, which is also the only state the store can be in before the
-// module ran (a page load always starts on the burner, and only the module can switch it).
+// `{ kind: DEFAULT_SIGNER, address: null }`, which is also the only state the store can be in before
+// the module ran (a page load always starts there: Mera not signed in yet, or the burner in
+// development builds; only the module can switch it).
 
 import type { Address } from "viem";
 import type { SignerKind } from "@/lib/kaskad/signer";
 import { onIdle } from "./idle";
+import { DEFAULT_SIGNER } from "./signer-mode";
 
 export type { SignerKind };
 export type SignerModule = typeof import("@/lib/kaskad/signer");
 export type SignerState = { kind: SignerKind; address: Address | null };
 
 /** Snapshot before the module loaded, and on the server (components/ui/use-signer.ts:6-8). */
-export const SIGNER_SERVER_SNAPSHOT: SignerState = Object.freeze({ kind: "burner", address: null }) as SignerState;
+export const SIGNER_SERVER_SNAPSHOT: SignerState = Object.freeze({ kind: DEFAULT_SIGNER, address: null }) as SignerState;
 
 let loaded: SignerModule | null = null;
 let loading: Promise<SignerModule> | null = null;

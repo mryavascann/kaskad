@@ -11,7 +11,9 @@ import { consoleMessages } from "@/i18n/messages/console";
 import { txMessages } from "@/i18n/messages/tx";
 import { proveScenarioGasLimit } from "@/lib/chain/actions/gas";
 import { quoteCost } from "@/lib/chain/cost";
+import { DEFAULT_SIGNER } from "@/lib/chain/signer-mode";
 import { cn } from "@/lib/utils";
+import { PasskeyGate } from "../shared/tx/passkey-gate";
 import type { PreviewState } from "./result-stage";
 
 /** "Prove it on chain": title and body, the action (button + cost line), the badge row, then `children` (progress). */
@@ -58,24 +60,27 @@ export function PreviewBadges({ locale, preview, positions }: { locale: Locale; 
 
 /**
  * The panel before its flow code has loaded (`LazyProvePanel`): same layout and state, the cost for
- * the signer every page load starts with (the sponsored burner; only the signer module can switch it,
- * and it loads later). A press asks for the flow (`onProve`), which starts once it has loaded.
+ * the signer every page load starts with (DEFAULT_SIGNER; only the signer module can switch it, and it
+ * loads later). A press asks for the flow (`onProve`), which starts once it has loaded. With Mera not
+ * signed in yet, the press is "Sign in with passkey" instead (PasskeyGate).
  */
 export function StaticProvePanel({ locale, preview, onProve }: { locale: Locale; preview: PreviewState; onProve: () => void }) {
   const t = consoleMessages[locale].prove;
   const tc = txMessages[locale].cost;
   const fmt = formatters(locale);
-  const q = preview.result ? quoteCost(proveScenarioGasLimit(preview.result), "burner") : null;
+  const q = preview.result ? quoteCost(proveScenarioGasLimit(preview.result), DEFAULT_SIGNER) : null;
   return (
     <ProveFrame
       locale={locale}
       badges={<PreviewBadges locale={locale} preview={preview} />}
       action={
         <>
-          <Button variant="primary" size="lg" disabled={!preview.result || preview.loading} onClick={onProve}>
-            {t.cta}
-            <ArrowUpRight aria-hidden />
-          </Button>
+          <PasskeyGate locale={locale}>
+            <Button variant="primary" size="lg" disabled={!preview.result || preview.loading} onClick={onProve}>
+              {t.cta}
+              <ArrowUpRight aria-hidden />
+            </Button>
+          </PasskeyGate>
           {q ? (
             <p className={cn("label-mono text-fg-3 md:text-right", q.heavy && "text-warn")}>
               {tc.label}: <span className="text-fg-2">{q.belowMinDisplay ? fmt.mon(q.mon) : `~${fmt.mon(q.mon)}`}</span> · {tc.payer[q.payer]}

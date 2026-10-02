@@ -5,6 +5,7 @@ import type { Address } from "viem";
 import { rememberBurnerAddress } from "../burner-peek";
 import { onIdle } from "../idle";
 import { pollWhileVisible } from "../poll";
+import { DEV_SIGNERS } from "../signer-mode";
 import { BALANCE_POLL_MS, fetchSponsor, isSponsorLow, type SponsorStatus } from "../sponsor";
 
 /**
@@ -22,11 +23,16 @@ export function useSignerBalances(wallets: { injected?: Address | null; mera?: A
   const [sponsor, setSponsor] = useState<SponsorStatus | null>(null);
 
   const refresh = useCallback(async () => {
-    const [{ getBurner }, { defaultReader }] = await Promise.all([import("@/lib/kaskad/burner"), import("../reader")]);
-    const b = getBurner().address;
-    // So the next page load's signer strip can show it without loading the burner (burner-peek.ts).
-    rememberBurnerAddress(b);
-    setBurner(b);
+    const { defaultReader } = await import("../reader");
+    // Production never makes a burner key (signer-mode.ts): only development builds read one.
+    let b: Address | null = null;
+    if (DEV_SIGNERS) {
+      const { getBurner } = await import("@/lib/kaskad/burner");
+      b = getBurner().address;
+      // So the next page load's signer strip can show it without loading the burner (burner-peek.ts).
+      rememberBurnerAddress(b);
+      setBurner(b);
+    }
     const reader = defaultReader();
     const addrs = [b, injected, mera].filter((a): a is Address => Boolean(a));
     fetchSponsor().then((s) => {

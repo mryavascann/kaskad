@@ -2,19 +2,22 @@
 
 import { createWalletClient, custom, numberToHex, type Address, type Hex, type LocalAccount, type TransactionReceipt } from "viem";
 import { monadTestnet } from "viem/chains";
+import { DEFAULT_SIGNER, DEV_SIGNERS } from "../chain/signer-mode";
 import { ensureFunded, getBurner, publicClient, sendBurnerTx } from "./burner";
 import { MAX_FEE_PER_GAS, MAX_PRIORITY_FEE_PER_GAS, sendRawSync } from "./tx";
 
-// Who signs the app's transactions. Default: the sponsored in-browser burner. Judges can switch to
-// their own browser wallet or a Mera passkey wallet, paying their own testnet MON.
+// Who signs the app's transactions. Production: a Mera passkey wallet, its gas paid by the sponsor
+// (lib/chain/signer-mode.ts). Development builds (NEXT_PUBLIC_DEV_SIGNERS=1) also offer the
+// sponsored in-browser burner and the browser wallet, which pays its own testnet MON.
 
 export type SignerKind = "burner" | "injected" | "mera";
 type Eip1193 = { request: (a: { method: string; params?: unknown[] }) => Promise<unknown> };
 
 type SignerState = { kind: SignerKind; address: Address | null };
 
-let state: SignerState = { kind: "burner", address: null };
+let state: SignerState = { kind: DEFAULT_SIGNER, address: null };
 let meraAccount: LocalAccount | null = null;
+let endMeraSession: (() => void) | null = null;
 let meraNonce: number | null = null;
 let meraQueue: Promise<unknown> = Promise.resolve();
 const listeners = new Set<() => void>();
@@ -34,11 +37,13 @@ export const signerStore = {
     return state;
   },
   server(): SignerState {
-    return { kind: "burner", address: null };
+    return { kind: DEFAULT_SIGNER, address: null };
   },
 };
 
+/** Development builds only: production never creates a burner key. */
 export function selectBurner() {
+  if (!DEV_SIGNERS) return;
   set({ kind: "burner", address: getBurner().address });
 }
 
@@ -48,8 +53,9 @@ function injected(): Eip1193 {
   return eth;
 }
 
-/** Connects the browser wallet and makes sure it is on Monad testnet (adds the chain if missing). */
+/** Connects the browser wallet and makes sure it is on Monad testnet (adds the chain if missing). Development builds only. */
 export async function connectInjected(): Promise<Address> {
+  if (!DEV_SIGNERS) throw new Error("Tarayıcı cüzdanı bulunamadı (MetaMask, Rabby…).");
   const eth = injected();
   const [addr] = (await eth.request({ method: "eth_requestAccounts" })) as Address[];
   if (!addr) throw new Error("Hesap seçilmedi.");
@@ -80,11 +86,35 @@ async function ensureMonadChain(eth: Eip1193) {
 }
 
 export async function connectMeraSigner(mode: "login" | "create"): Promise<Address> {
-  const { connectMera } = await import("./mera");
-  meraAccount = await connectMera(mode);
+  const { connectMeraSession } = await import("./mera");
+  const next = await connectMeraSession(mode);
+  endMeraSession?.(); // a new passkey replaces the previous session
+  meraAccount = next.account;
+  endMeraSession = next.end;
   meraNonce = null;
   set({ kind: "mera", address: meraAccount.address });
   return meraAccount.address;
+}
+
+/**
+ * Sign out: zeroes the passkey session's key copy and forgets the account. Signing in again asks for
+ * the passkey. (Reloading the page does the same: the key only ever lived in memory.)
+ */
+export function signOutMera() {
+  endMeraSession?.();
+  endMeraSession = null;
+  meraAccount = null;
+  meraNonce = null;
+  set({ kind: DEFAULT_SIGNER, address: null });
+}
+
+/** Fetches the Mera SDK ahead of the click, so the passkey prompt follows the gesture without a wait. */
+export const preloadMera = (): Promise<unknown> => import("./mera");
+
+/** One button for both cases: sign in with the passkey this browser remembers, or make the first one. */
+export async function signInMera(): Promise<Address> {
+  const { hasStoredMeraPasskey } = await import("./mera");
+  return connectMeraSigner(hasStoredMeraPasskey() ? "login" : "create");
 }
 
 export type Sent = { receipt: TransactionReceipt; ms: number; sync: boolean };
@@ -112,7 +142,8 @@ export async function sendTx(to: Address, data: Hex, gas: bigint, onStatus: (s: 
   if (s.kind === "mera") {
     if (!meraAccount) throw new Error("Mera oturumu kapalı: Cüzdan sekmesinden yeniden giriş yap.");
     const acct = meraAccount;
-    await needBalance(acct.address, gas);
+    // The sponsor tops up the passkey address like the burner's: it only sends gas, it never holds a key.
+    await ensureFunded(gas * MAX_FEE_PER_GAS, onStatus, acct.address);
     onStatus("Mera ile imzalanıyor ve gönderiliyor (eth_sendRawTransactionSync)…");
     const job = meraQueue.then(async () => {
       if (meraNonce === null) meraNonce = await publicClient.getTransactionCount({ address: acct.address, blockTag: "pending" });

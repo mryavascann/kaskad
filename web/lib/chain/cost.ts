@@ -9,9 +9,9 @@ export const MIN_DISPLAY_MON = 0.01;
 /** At or above this a tx is "heavy" and must be confirmed first (CostTag.tsx:20, :32). */
 export const CONFIRM_THRESHOLD_MON = 1;
 
-/** Who pays: the sponsored burner, or the user's own wallet / Mera key (CostTag.tsx:17, :33). */
+/** Who pays: the sponsor (burner and Mera passkey are topped up by /api/fund), or the user's browser wallet. */
 export type Payer = "sponsor" | "wallet";
-export const payerFor = (kind: SignerKind): Payer => (kind === "burner" ? "sponsor" : "wallet");
+export const payerFor = (kind: SignerKind): Payer => (kind === "injected" ? "wallet" : "sponsor");
 
 export type CostQuote = {
   gasLimit: bigint;

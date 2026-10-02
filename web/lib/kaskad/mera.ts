@@ -24,6 +24,11 @@ function deriveEvmKey(prfOutput: Uint8Array, index = 0): Uint8Array {
  * signing session, in memory; nothing secret is stored.
  */
 export async function connectMera(mode: "login" | "create" = "login"): Promise<LocalAccount> {
+  return (await connectMeraSession(mode)).account;
+}
+
+/** Same as connectMera, plus `end`: zeroes the session's key copy (sign out); later signing throws. */
+export async function connectMeraSession(mode: "login" | "create" = "login"): Promise<{ account: LocalAccount; end: () => void }> {
   const rpId = location.hostname;
   let prf: Uint8Array;
   let stored: string | null = null;
@@ -45,7 +50,7 @@ export async function connectMera(mode: "login" | "create" = "login"): Promise<L
   const key = deriveEvmKey(prf);
   const session = createSecp256k1SigningSession({ privateKey: key });
   key.fill(0);
-  return toViemAccount(session);
+  return { account: toViemAccount(session), end: () => session.end() };
 }
 
 export function hasStoredMeraPasskey(): boolean {

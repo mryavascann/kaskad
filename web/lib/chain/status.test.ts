@@ -69,4 +69,14 @@ describe("connectError", () => {
     expect(connectError(Object.assign(new Error("x"), { code: 4001 })).code).toBe("rejected");
     expect(connectError(new Error("chain add failed"))).toEqual({ code: "failed", raw: "chain add failed" });
   });
+
+  it("tells a browser without passkey PRF apart from a cancelled prompt (Mera error codes)", () => {
+    const mera = (code: string, cause?: unknown) => Object.assign(new Error(code), { name: "MeraError", code, cause });
+    expect(connectError(mera("PRF_UNAVAILABLE")).code).toBe("unsupported");
+    expect(connectError(mera("CRYPTO_UNAVAILABLE")).code).toBe("unsupported");
+    // The cancel arrives wrapped: MeraError PASSKEY_OPERATION_FAILED with the NotAllowedError as its cause.
+    const cancelled = mera("PASSKEY_OPERATION_FAILED", Object.assign(new Error("not allowed"), { name: "NotAllowedError" }));
+    expect(connectError(cancelled).code).toBe("rejected");
+    expect(connectError(mera("PASSKEY_OPERATION_FAILED")).code).toBe("failed");
+  });
 });

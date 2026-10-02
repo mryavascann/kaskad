@@ -42,7 +42,8 @@ describe("lazy signer store", () => {
   it("returns the server snapshot until the module loads, then follows the module's store", async () => {
     const { lazySignerStore, loadSigner, signerIfLoaded, SIGNER_SERVER_SNAPSHOT } = await import("./signer");
     expect(lazySignerStore.get()).toBe(SIGNER_SERVER_SNAPSHOT);
-    expect(lazySignerStore.get()).toEqual({ kind: "burner", address: null });
+    // Production build (no NEXT_PUBLIC_DEV_SIGNERS): every page load starts on Mera, not signed in.
+    expect(lazySignerStore.get()).toEqual({ kind: "mera", address: null });
     expect(lazySignerStore.server()).toBe(SIGNER_SERVER_SNAPSHOT);
     expect(signerIfLoaded()).toBeNull();
     expect(loads).toBe(0);

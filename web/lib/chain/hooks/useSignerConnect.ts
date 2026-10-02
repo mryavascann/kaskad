@@ -3,7 +3,7 @@
 import { useCallback, useState } from "react";
 import type { Address } from "viem";
 import { loadSigner, type SignerModule } from "../signer";
-import { connectError, type ConnectError } from "../status";
+import { connectError, passkeysAvailable, type ConnectError } from "../status";
 
 /**
  * Signer switching for the connect page (app/(legacy)/baglan/Connect.tsx:90-100): busy flag, typed
@@ -37,6 +37,29 @@ export function useSignerConnect() {
     connectInjected: useCallback(() => run((m) => m.connectInjected(), setInjected), [run]),
     /** WebAuthn passkey prompt; the key lives only in memory. */
     connectMera: useCallback((mode: "login" | "create") => run((m) => m.connectMeraSigner(mode), setMera), [run]),
+    /**
+     * "Sign in with passkey": the remembered passkey, or a new one on first use. Call it straight from a
+     * click (Safari only shows the passkey sheet for a direct user gesture).
+     */
+    signIn: useCallback(() => {
+      if (!passkeysAvailable()) {
+        setError({ code: "unsupported", raw: "no WebAuthn" });
+        return Promise.resolve();
+      }
+      return run((m) => m.signInMera(), setMera);
+    }, [run]),
+    /** Ends the passkey session (the key copy is zeroed); the next transaction asks for the passkey again. */
+    signOut: useCallback(() => {
+      setMera(null);
+      setError(null);
+      void loadSigner().then((m) => m.signOutMera(), () => {});
+    }, []),
+    /** Loads the signer module and the Mera SDK on hover / focus of a sign-in button. */
+    preloadSignIn: useCallback(() => {
+      void loadSigner()
+        .then((m) => m.preloadMera())
+        .catch(() => {});
+    }, []),
     /** Back to the sponsored in-browser burner. */
     selectBurner: useCallback(() => {
       void loadSigner().then((m) => m.selectBurner(), () => {});

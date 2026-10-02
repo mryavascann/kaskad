@@ -10,6 +10,7 @@ import { formatters } from "@/i18n/format";
 import { consoleMessages } from "@/i18n/messages/console";
 import { preloadAction, proveScenario, proveScenarioGasLimit, type ProveScenarioOutcome } from "@/lib/chain/actions/lazy";
 import { txUrl } from "@/lib/kaskad/config";
+import { PasskeyGate } from "../shared/tx/passkey-gate";
 import { CostLine, TxProgress, useConfirmCost, useTxFlow } from "../shared/tx/tx-parts";
 import { PreviewBadges, ProveFrame } from "./prove-frame";
 import type { PreviewState } from "./result-stage";
@@ -61,10 +62,12 @@ export function ProvePanel({ locale, preview, startOnMount = false }: { locale: 
       locale={locale}
       action={
         <>
-          <Button variant="primary" size="lg" loading={flow.busy} disabled={!result || loading || flow.busy} onClick={prove} onPointerEnter={preloadProve} onFocus={preloadProve}>
-            {t.cta}
-            <ArrowUpRight aria-hidden />
-          </Button>
+          <PasskeyGate locale={locale}>
+            <Button variant="primary" size="lg" loading={flow.busy} disabled={!result || loading || flow.busy} onClick={prove} onPointerEnter={preloadProve} onFocus={preloadProve}>
+              {t.cta}
+              <ArrowUpRight aria-hidden />
+            </Button>
+          </PasskeyGate>
           <CostLine gasLimit={result ? proveScenarioGasLimit(result) : null} locale={locale} className="md:text-right" />
         </>
       }

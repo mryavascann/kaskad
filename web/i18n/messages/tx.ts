@@ -20,7 +20,7 @@ const en = {
   steps: {
     check: "Free pre-check (eth_call)",
     prepare: "Preparing the scenario",
-    fund: "Funding the temporary wallet",
+    fund: "Sponsor tops up the gas",
     sign: "Signing",
     send: "Sending",
     confirm: "Receipt",
@@ -35,10 +35,10 @@ const en = {
   errors: {
     "borrow-paused": "Reverted: BorrowIsPaused. The Guard has paused this market.",
     "out-of-gas": "Does not fit in one transaction (30M gas).",
-    "funding-failed": "The temporary wallet could not be funded.",
+    "funding-failed": "The sponsor could not top up the gas.",
     "insufficient-balance": "Not enough testnet MON in this wallet.",
     "no-wallet": "No browser wallet found.",
-    "mera-locked": "The Mera passkey wallet is locked. Unlock it and try again.",
+    "mera-locked": "Sign in with your passkey and try again.",
     rejected: "The request was rejected in the wallet.",
     "rate-limited": "Too many requests. Try again in a few seconds.",
     unknown: "Something went wrong.",
@@ -76,7 +76,7 @@ const tr = {
   steps: {
     check: "Ücretsiz ön kontrol (eth_call)",
     prepare: "Senaryo hazırlanıyor",
-    fund: "Geçici cüzdan fonlanıyor",
+    fund: "Sponsor gas'ı yüklüyor",
     sign: "İmzalanıyor",
     send: "Gönderiliyor",
     confirm: "Receipt",
@@ -91,10 +91,10 @@ const tr = {
   errors: {
     "borrow-paused": "Revert: BorrowIsPaused. Guard bu piyasayı durdurdu.",
     "out-of-gas": "Tek işleme sığmıyor (30M gas).",
-    "funding-failed": "Geçici cüzdan fonlanamadı.",
+    "funding-failed": "Sponsor gas'ı yükleyemedi.",
     "insufficient-balance": "Bu cüzdanda yeterli testnet MON yok.",
     "no-wallet": "Tarayıcı cüzdanı bulunamadı.",
-    "mera-locked": "Mera passkey cüzdanı kilitli. Kilidi açıp tekrar dene.",
+    "mera-locked": "Passkey ile giriş yapıp tekrar dene.",
     rejected: "İstek cüzdanda reddedildi.",
     "rate-limited": "Çok fazla istek. Birkaç saniye sonra tekrar dene.",
     unknown: "Bir şeyler ters gitti.",
