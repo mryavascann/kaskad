@@ -73,7 +73,7 @@ describe("CommandMenu", () => {
     for (const name of ["Pages", "Scenarios", "Language"]) expect(within(dialog).getByRole("group", { name })).toBeInTheDocument();
     expect(within(dialog).queryByRole("group", { name: "Address lookup" })).not.toBeInTheDocument();
     const pages = within(within(dialog).getByRole("group", { name: "Pages" })).getAllByRole("option");
-    expect(pages.map((o) => o.textContent)).toEqual(["Home", "Console", "Is my position safe?", "Guard", "10 Oct replay", "How it works"]);
+    expect(pages.map((o) => o.textContent)).toEqual(["Home", "Console", "Is my position safe?", "Guard", "Perps", "10 Oct replay", "How it works"]);
   });
 
   it("navigates to the chosen page and closes", async () => {

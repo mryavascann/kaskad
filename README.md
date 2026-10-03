@@ -98,6 +98,7 @@ Kontratlar Sourcify / MonadVision'da doğrulandı:
 - **DEX derinliği:** GeckoTerminal ve Pendle'dan ölçüldü. syrupUSDC $7,0M (Uniswap v4), PT-AUSD $2,1M. Ölçülemeyen ya da ~$5k olan varlıklar için varsayım kullanıldı ve arayüzde etiketlendi.
 - **Ethereum karşılaştırması:** Aave V3 Core'dan WETH, USDe, USDC ve syrupUSDT teminatlı borçlular okundu (salt okuma, Envio HyperSync + public RPC).
 - **Kalibre defter:** 10.000 pozisyonluk ölçek testi için gerçek syrupUSDC HF dağılımından örneklendi; toplam borç gerçekle aynı. Arayüzde "Kalibre veri" olarak etiketli.
+- **Perpl (Perps paneli, `/perps`):** Monad mainnet'teki Perpl Exchange'in (`0x34B6…2a6F`) herkese açık view fonksiyonlarından her piyasanın tüm açık pozisyonları (`getPositionsV2`), bakım teminatı (`getMarginFractions`), sigorta fonu (`getPerpetualInfoV2`) ve likidasyon paylaşımı (`getLiquidationInfo`) okunuyor. L2 order book Perpl'ın herkese açık REST API'sinden geliyor (`GET /api/v1/market-data/:id/book`). API anahtarı gerekmiyor. Okuma sunucuda yapılıyor (`/api/perpl`, piyasa başına 8 sn önbellek); panel 10 saniyede bir yeniliyor. Likidasyon ve iflas fiyatları Perpl'ın kendi SDK'sındaki formüllerle hesaplanıyor (`web/lib/chain/perpl-model.ts`).
 
 ## Varsayımlar ve sınırlamalar
 
