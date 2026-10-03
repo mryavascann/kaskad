@@ -10,6 +10,7 @@ import { Readout, ReadoutRow } from "@/design/ui/readout";
 import { Skeleton } from "@/design/ui/skeleton";
 import type { Locale } from "@/i18n/config";
 import { formatters } from "@/i18n/format";
+import { consoleMessages } from "@/i18n/messages/console";
 import { guardMessages } from "@/i18n/messages/guard";
 import { borrow, preloadAction, runGuard, type BorrowOutcome, type RunGuardOutcome } from "@/lib/chain/actions/lazy";
 import { BORROW_AMOUNT, BORROW_GAS, MARKETS, type MarketId } from "@/lib/chain/guard";
@@ -21,6 +22,7 @@ import { addrUrl, DEPLOYMENT } from "@/lib/kaskad/config";
 import { shortAddr } from "@/lib/kaskad/format";
 import { cn } from "@/lib/utils";
 import { PanelHeading } from "../shared/panel-heading";
+import { PasskeyGate } from "../shared/tx/passkey-gate";
 import { CostLine, TxProgress, useConfirmCost, useTxFlow } from "../shared/tx/tx-parts";
 import { Breaker } from "./breaker";
 
@@ -77,9 +79,19 @@ function MarketCard({ id, market, locale, onChange }: { id: MarketId; market: Ma
         </Readout>
 
         <div className="mt-auto flex flex-col gap-3">
-          <Button variant={paused ? "alarm" : "secondary"} loading={flow.busy} onClick={tryBorrow} onPointerEnter={preloadBorrow} onFocus={preloadBorrow} disabled={market === null}>
-            {t.tryBorrow({ amount: fmt.int(UNITS) })}
-          </Button>
+          {/* A paused market fails at the free pre-check and sends nothing: no sign-in needed to see it.
+              Until the market is read, the disabled button stands in (its state decides which one shows). */}
+          {paused || market === null ? (
+            <Button variant={paused ? "alarm" : "secondary"} loading={flow.busy} onClick={tryBorrow} onPointerEnter={preloadBorrow} onFocus={preloadBorrow} disabled={market === null}>
+              {t.tryBorrow({ amount: fmt.int(UNITS) })}
+            </Button>
+          ) : (
+            <PasskeyGate locale={locale} variant="secondary" size="md" label={consoleMessages[locale].signer.signIn}>
+              <Button variant="secondary" loading={flow.busy} onClick={tryBorrow} onPointerEnter={preloadBorrow} onFocus={preloadBorrow} disabled={market === null}>
+                {t.tryBorrow({ amount: fmt.int(UNITS) })}
+              </Button>
+            </PasskeyGate>
+          )}
           {paused ? <CostLine free locale={locale} /> : <CostLine gasLimit={BORROW_GAS} locale={locale} />}
           {blocked ? (
             <div className="flex flex-col gap-2" role="status">
@@ -218,9 +230,11 @@ export function GuardLive({ locale }: { locale: Locale }) {
               <h3 className="text-title-3 text-fg-1">{t.run.title}</h3>
               <p className="text-body-sm text-fg-2">{t.run.body}</p>
             </div>
-            <Button variant="primary" loading={run.busy} onClick={runIt} onPointerEnter={preloadRun} onFocus={preloadRun} disabled={!info}>
-              {t.run.cta}
-            </Button>
+            <PasskeyGate locale={locale} size="md" label={consoleMessages[locale].signer.signIn}>
+              <Button variant="primary" loading={run.busy} onClick={runIt} onPointerEnter={preloadRun} onFocus={preloadRun} disabled={!info}>
+                {t.run.cta}
+              </Button>
+            </PasskeyGate>
           </div>
           <CostLine gasLimit={info?.gasLimit ?? null} locale={locale} />
           <TxProgress flow={run.flow} outcome={run.outcome} locale={locale} />

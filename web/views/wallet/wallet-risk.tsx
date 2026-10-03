@@ -23,6 +23,7 @@ import { useWalletRisk } from "@/lib/chain/hooks/useWalletRisk";
 import { isAddressLoose } from "@/lib/chain/units";
 import { symbolParts } from "@/lib/chain/scenario";
 import { HEADLINE_CASCADE, SAMPLES, SURVIVE_HF_TARGET, SURVIVE_SHOCK_PCT, WALLET_CASCADE_SHOCK_BPS, type SupplyLine } from "@/lib/chain/wallet";
+import { DEV_SIGNERS } from "@/lib/chain/signer-mode";
 import { DEPLOYMENT } from "@/lib/kaskad/config";
 import { shortAddr } from "@/lib/kaskad/format";
 import { cn } from "@/lib/utils";
@@ -121,10 +122,13 @@ export function WalletRisk({ locale }: { locale: Locale }) {
               <Fingerprint aria-hidden />
               {t.search.mera}
             </Button>
-            <Button variant="secondary" size="sm" onClick={() => void w.lookupWith("injected")}>
-              <WalletIcon aria-hidden />
-              {t.search.injected}
-            </Button>
+            {/* Mera is the account layer in production (signer-mode.ts); the browser wallet is development-only. */}
+            {DEV_SIGNERS && (
+              <Button variant="secondary" size="sm" onClick={() => void w.lookupWith("injected")}>
+                <WalletIcon aria-hidden />
+                {t.search.injected}
+              </Button>
+            )}
             {identityError && <span className="text-caption text-liq-hi">{identityError}</span>}
           </div>
 

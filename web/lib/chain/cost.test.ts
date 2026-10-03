@@ -17,7 +17,8 @@ describe("cost quote", () => {
       expect(renderTr(quoteCost(g, "burner"))).toBe(legacyFmtMon(g));
     }
     expect(quoteCost(80_000n, "burner")).toEqual({ gasLimit: 80_000n, mon: monCost(80_000n), belowMinDisplay: true, heavy: false, payer: "sponsor" });
-    expect(quoteCost(30_000_000n, "mera")).toMatchObject({ heavy: true, payer: "wallet" });
+    // The sponsor tops up the Mera passkey address too; only a browser wallet pays its own gas.
+    expect(quoteCost(30_000_000n, "mera")).toMatchObject({ heavy: true, payer: "sponsor" });
     expect(payerFor("injected")).toBe("wallet");
     expect([MIN_DISPLAY_MON, CONFIRM_THRESHOLD_MON]).toEqual([0.01, 1]);
   });

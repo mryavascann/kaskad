@@ -36,16 +36,19 @@ export function getBurner(): PrivateKeyAccount {
 
 export type Status = (s: string) => void;
 
-/** Makes sure the burner can pay `needWei` of gas: asks the sponsor route and waits for the balance. */
-export async function ensureFunded(needWei: bigint, onStatus: Status): Promise<void> {
-  const acct = getBurner();
-  let bal = await publicClient.getBalance({ address: acct.address });
+/**
+ * Makes sure `address` (default: the burner) can pay `needWei` of gas: asks the sponsor route and waits
+ * for the balance. The status string is the one lib/chain/status.ts maps to the "fund" step.
+ */
+export async function ensureFunded(needWei: bigint, onStatus: Status, address?: Address): Promise<void> {
+  const target = address ?? getBurner().address;
+  let bal = await publicClient.getBalance({ address: target });
   if (bal >= needWei) return;
   onStatus("Burner cüzdan hazırlanıyor (sponsor fonluyor)…");
   const res = await fetch("/api/fund", {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ address: acct.address, needWei: needWei.toString() }),
+    body: JSON.stringify({ address: target, needWei: needWei.toString() }),
   });
   const body = (await res.json().catch(() => ({}))) as { error?: string };
   if (!res.ok) throw new Error(body.error ?? `fonlama başarısız (${res.status})`);
@@ -53,7 +56,7 @@ export async function ensureFunded(needWei: bigint, onStatus: Status): Promise<v
   const t0 = Date.now();
   while (Date.now() - t0 < 20_000) {
     await new Promise((r) => setTimeout(r, 400));
-    bal = await publicClient.getBalance({ address: acct.address });
+    bal = await publicClient.getBalance({ address: target });
     if (bal >= needWei) {
       await new Promise((r) => setTimeout(r, 1_000));
       return;

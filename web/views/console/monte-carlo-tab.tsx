@@ -17,6 +17,7 @@ import { MONAD_MEMORY_LIMIT, MONAD_TX_GAS_LIMIT } from "@/lib/chain/limits";
 import { monteCarloBase } from "@/lib/chain/scenario";
 import type { Settings } from "@/lib/chain/types";
 import { MonteCarloChart } from "@/viz/monte-carlo-chart";
+import { PasskeyGate } from "../shared/tx/passkey-gate";
 import { CostLine, TxProgress, useConfirmCost, useTxFlow } from "../shared/tx/tx-parts";
 import { shockLabel } from "./model";
 
@@ -103,10 +104,12 @@ export function MonteCarloTab({ locale, settings }: { locale: Locale; settings: 
         </dl>
         <p className="text-caption text-fg-3">{t.memoryNote}</p>
         <div className="flex flex-col gap-2 border-t border-line pt-5">
-          <Button variant="secondary" loading={flow.busy} disabled={!mc.result || mc.loading || flow.busy} onClick={prove} onPointerEnter={preloadProve} onFocus={preloadProve} className="self-start">
-            {t.prove}
-            <ArrowUpRight aria-hidden />
-          </Button>
+          <PasskeyGate locale={locale} variant="secondary" size="md" className="self-start">
+            <Button variant="secondary" loading={flow.busy} disabled={!mc.result || mc.loading || flow.busy} onClick={prove} onPointerEnter={preloadProve} onFocus={preloadProve} className="self-start">
+              {t.prove}
+              <ArrowUpRight aria-hidden />
+            </Button>
+          </PasskeyGate>
           <CostLine gasLimit={mc.result ? proveMonteCarloGasLimit(mc.result) : null} locale={locale} />
           <TxProgress flow={flow.flow} outcome={flow.outcome} locale={locale} />
           {proved && <p className="text-caption text-safe">{t.proved({ paths: fmt.int(proved.paths) })}</p>}
