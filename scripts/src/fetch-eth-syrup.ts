@@ -21,6 +21,14 @@
  *        npm run fetch-eth -- --asset weth       WETH (last ~90d; ETH-debt loops + dust excluded) -> data/eth-weth.json
  *        npm run fetch-eth -- --asset usdc       USDC (last ~180d of Supply events; USDC-debt loops excluded) -> data/eth-usdc.json
  *        add --cached to reuse data/<out>.raw.json candidates
+ *
+ * Historical book (B7 replay, scripts/src/replay/): pin a past block and name the output, e.g.
+ *        npm run fetch-eth -- --asset weth --block 23549825 --out oct10-weth --extra data/oct10-liquidated.json --max-positions 400
+ *   --block N          read state at block N (archive RPCs); the candidate window ends there
+ *   --out NAME         write data/NAME.json (+ NAME.raw.json) instead of the asset's default file
+ *   --extra FILE       JSON array of extra candidate addresses (e.g. everyone liquidated in the window)
+ *   --max-positions N  cap (default 300)
+ * Without ENVIO_API_TOKEN, candidates come from eth_getLogs on an archive RPC instead of HyperSync.
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import path from "node:path";
@@ -119,10 +127,20 @@ if (!(assetArg in ASSETS)) throw new Error("--asset must be one of: " + Object.k
 const ASSET: AssetCfg = ASSETS[assetArg as keyof typeof ASSETS];
 const POOL_DEPLOY_BLOCK = 16_291_127; // Aave V3 Ethereum Pool deployment
 const HYPERSYNC_ETH = "https://eth.hypersync.xyz";
-const RPCS = ["https://ethereum-rpc.publicnode.com", "https://eth.llamarpc.com"];
+const arg = (name: string) => (process.argv.includes(name) ? process.argv[process.argv.indexOf(name) + 1] : undefined);
+const PIN_BLOCK = arg("--block") ? BigInt(arg("--block")!) : undefined;
+const OUT_NAME = arg("--out");
+const EXTRA_FILE = arg("--extra");
+// Archive endpoints (state at a past block, wide eth_getLogs ranges) for --block; else the usual ones.
+const ARCHIVE_RPCS = ["https://gateway.tenderly.co/public/mainnet", "https://eth.drpc.org", "https://eth-mainnet.public.blastapi.io"];
+const RPCS = PIN_BLOCK !== undefined ? ARCHIVE_RPCS : ["https://ethereum-rpc.publicnode.com", "https://eth.llamarpc.com"];
+const OUT_FILE = OUT_NAME ? `${OUT_NAME}.json` : ASSET.outFile;
+const RAW_FILE = OUT_NAME ? `${OUT_NAME}.raw.json` : ASSET.rawFile;
+/** eth_getLogs span on the archive RPC when HyperSync is not available. */
+const LOGS_SPAN = 50_000;
 
 const SYNTHETIC_ID = ASSET.syntheticId;
-const MAX_POSITIONS = 300;
+const MAX_POSITIONS = arg("--max-positions") ? Number(arg("--max-positions")) : 300;
 const SUPPLY_EVENT_SIG = "Supply(address,address,address,uint256,uint16)";
 
 const CFG_CHUNK = 300; // getUserConfiguration calls per multicall (cheap: one SLOAD each)
@@ -229,11 +247,39 @@ const inBitmap = (bm: bigint, i: number) => ((bm >> BigInt(i)) & 1n) === 1n;
 const extraBonus = (raw: number) => (raw > 10000 ? raw - 10000 : 0);
 
 
+/**
+ * Supply logs of the target reserves in [fromBlock, toBlock]: HyperSync when ENVIO_API_TOKEN is set
+ * (it streams to the archive head, so later logs are dropped), else eth_getLogs on the RPC in spans.
+ */
+async function supplyLogs(topic0: string, topic1s: string[], fromBlock: number, toBlock: number) {
+  if (process.env.ENVIO_API_TOKEN) {
+    console.log(`[1] HyperSync ${HYPERSYNC_ETH}: Supply logs on Pool ${ETH.POOL}, reserve in {${ASSET.members.map((m) => m.symbol).join(", ")}}`);
+    const res = await fetchLogs({ url: HYPERSYNC_ETH, address: [ETH.POOL], topic0, moreTopics: [topic1s], fromBlock }, (p) => {
+      if (p.pages % 10 === 0) console.log(`  page ${p.pages}: next_block=${p.nextBlock} / ${p.archiveHeight}, logs=${p.logs}`);
+    });
+    return { ...res, logs: res.logs.filter((l) => l.blockNumber <= toBlock) };
+  }
+  console.log(`[1] eth_getLogs (no ENVIO_API_TOKEN): Supply logs on Pool ${ETH.POOL}, blocks ${fromBlock}..${toBlock}, ${LOGS_SPAN}-block spans`);
+  const logs: { blockNumber: number; topics: (string | null)[] }[] = [];
+  let pages = 0;
+  for (let a = fromBlock; a <= toBlock; a += LOGS_SPAN) {
+    const b = Math.min(toBlock, a + LOGS_SPAN - 1);
+    const got = (await client.request({
+      method: "eth_getLogs",
+      params: [{ address: ETH.POOL, fromBlock: `0x${a.toString(16)}`, toBlock: `0x${b.toString(16)}`, topics: [topic0 as `0x${string}`, topic1s as `0x${string}`[]] }],
+    })) as { blockNumber: string; topics: string[] }[];
+    for (const l of got) logs.push({ blockNumber: Number(l.blockNumber), topics: l.topics });
+    pages++;
+    await sleep(PAUSE_MS);
+  }
+  return { logs, archiveHeight: toBlock, pages, transport: "eth_getLogs" as const };
+}
+
 // ---------------------------------------------------------------------------------------------
 // Step 1: candidates via HyperSync (Supply logs whose reserve is one of the target members)
 
 async function getCandidates(): Promise<{ candidates: Address[]; meta: Record<string, unknown> }> {
-  const cachePath = path.join(DATA_DIR, ASSET.rawFile);
+  const cachePath = path.join(DATA_DIR, RAW_FILE);
   if (process.argv.includes("--cached") && existsSync(cachePath)) {
     const cached = JSON.parse(readFileSync(cachePath, "utf8")) as { candidates: Address[] } & Record<string, unknown>;
     console.log(`[1] using cached candidates: ${cached.candidates.length}`);
@@ -242,15 +288,10 @@ async function getCandidates(): Promise<{ candidates: Address[]; meta: Record<st
   }
   const topic0 = keccak256(toBytes(SUPPLY_EVENT_SIG));
   const topic1s = ASSET.members.map((m) => pad(m.address.toLowerCase() as Address, { size: 32 }).toLowerCase());
-  console.log(`[1] HyperSync ${HYPERSYNC_ETH}: Supply logs on Pool ${ETH.POOL}, reserve in {${ASSET.members.map((m) => m.symbol).join(", ")}}`);
-  const fromBlock = ASSET.recentBlocks ? Number(await client.getBlockNumber()) - ASSET.recentBlocks : POOL_DEPLOY_BLOCK;
+  const headBlock = PIN_BLOCK !== undefined ? Number(PIN_BLOCK) : Number(await client.getBlockNumber());
+  const fromBlock = ASSET.recentBlocks ? headBlock - ASSET.recentBlocks : POOL_DEPLOY_BLOCK;
   console.log(`[1] fromBlock ${fromBlock}${ASSET.recentBlocks ? ` (last ${ASSET.recentBlocks} blocks ~ ${Math.round((ASSET.recentBlocks * 12) / 86400)} days)` : " (Pool deployment)"}`);
-  const res = await fetchLogs(
-    { url: HYPERSYNC_ETH, address: [ETH.POOL], topic0, moreTopics: [topic1s], fromBlock },
-    (p) => {
-      if (p.pages % 10 === 0) console.log(`  page ${p.pages}: next_block=${p.nextBlock} / ${p.archiveHeight}, logs=${p.logs}`);
-    },
-  );
+  const res = await supplyLogs(topic0, topic1s, fromBlock, headBlock);
   const set = new Set<string>();
   const perMember: Record<string, number> = {};
   let wrongReserve = 0;
@@ -265,6 +306,15 @@ async function getCandidates(): Promise<{ candidates: Address[]; meta: Record<st
     if (t2) set.add(getAddress(`0x${t2.slice(-40)}`));
   }
   if (wrongReserve) console.warn(`[1] WARNING: ${wrongReserve} logs with unexpected topic1 ignored`);
+  let extra = 0;
+  if (EXTRA_FILE) {
+    for (const a of JSON.parse(readFileSync(EXTRA_FILE, "utf8")) as string[]) {
+      const addr = getAddress(a);
+      if (!set.has(addr)) extra++;
+      set.add(addr);
+    }
+    console.log(`[1] --extra ${EXTRA_FILE}: ${extra} candidates added`);
+  }
   const candidates = [...set].sort() as Address[];
   const firstBlock = res.logs.length ? res.logs.reduce((m, l) => Math.min(m, l.blockNumber), Infinity) : null;
   const lastBlock = res.logs.length ? res.logs.reduce((m, l) => Math.max(m, l.blockNumber), 0) : null;
@@ -281,6 +331,7 @@ async function getCandidates(): Promise<{ candidates: Address[]; meta: Record<st
     firstBlock,
     lastBlock,
     transport: res.transport,
+    ...(EXTRA_FILE ? { extraFile: EXTRA_FILE, extraCandidates: extra } : {}),
   };
   console.log(
     `[1] ${meta.supplyEvents} Supply events (${JSON.stringify(perMember)}) in ${res.pages} pages via ${res.transport}; blocks ${firstBlock}..${lastBlock}; unique suppliers (onBehalfOf) = ${candidates.length}`,
@@ -564,8 +615,8 @@ const BORROW_MASK = BigInt("0x" + "5".repeat(64));
 async function main() {
   const { candidates, meta } = await getCandidates();
 
-  blockNumber = await client.getBlockNumber();
-  console.log(`[2] pinned block ${blockNumber}`);
+  blockNumber = PIN_BLOCK ?? (await client.getBlockNumber());
+  console.log(`[2] pinned block ${blockNumber}${PIN_BLOCK !== undefined ? " (--block, archive RPC)" : ""}`);
   const { provider, dataProvider, oracle } = await resolveAddresses();
   const reserves = await loadReserves(dataProvider, oracle);
   const targets = ASSET.members.map((m) => {
@@ -788,7 +839,7 @@ async function main() {
     notes: {
       scope:
         `Aave V3 Ethereum Core borrowers (debt > 0) whose dominant collateral (largest USD among collateral-enabled aToken balances) is ${chosen.symbol}. ` +
-        `Candidates = unique onBehalfOf of Pool Supply events with reserve in {${ASSET.members.map((m) => m.symbol).join(", ")}} (HyperSync, blocks ${meta.firstBlock}..${meta.lastBlock}), ` +
+        `Candidates = unique onBehalfOf of Pool Supply events with reserve in {${ASSET.members.map((m) => m.symbol).join(", ")}} (${meta.transport === "eth_getLogs" ? "eth_getLogs" : "HyperSync"}, blocks ${meta.firstBlock}..${meta.lastBlock})${meta.extraCandidates ? ` plus ${meta.extraCandidates} extra candidates from ${meta.extraFile}` : ""}, ` +
         `pre-filtered by getUserConfiguration (borrowing any reserve AND a target enabled as collateral). Holders who only received the aToken by transfer are not covered.` +
         (ASSET.recentBlocks
           ? ` Candidate window limited to the last ${ASSET.recentBlocks} blocks (~${Math.round((ASSET.recentBlocks * 12) / 86400)} days, from block ${meta.fromBlock}) because the full Supply history is very large; positions whose owner has not supplied ${ASSET.members[0].symbol} in that window are missed.`
@@ -868,7 +919,7 @@ async function main() {
     depth: { depthUsd: depth.depthUsd, source: depth.source, isAssumption: depth.isAssumption, note: depth.note, pools: depth.pools },
     positions,
   };
-  const outPath = path.join(DATA_DIR, ASSET.outFile);
+  const outPath = path.join(DATA_DIR, OUT_FILE);
   writeFileSync(outPath, JSON.stringify(out, null, 1));
 
   const secs = ((Date.now() - t0) / 1000).toFixed(1);
