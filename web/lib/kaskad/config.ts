@@ -1,5 +1,6 @@
 import type { Address } from "viem";
 import deployment from "./deployment.json";
+import riskDeployment from "./risk-deployment.json";
 
 export type AssetInfo = {
   id: number;
@@ -31,6 +32,19 @@ export const DEPLOYMENT = deployment as unknown as {
 
 export const CALIBRATED = 256;
 export const UI_ASSET_ORDER = [9, 12, 2, 5, 8, 15, 14, 13, 7]; // 7, 13-15: books read from Aave on Ethereum
+/** A6 contracts on Monad testnet (copy of contracts/deployments/risk-testnet.json, kept equal by a test). */
+export const RISK = riskDeployment as {
+  chainId: number;
+  block: number;
+  kaskadMCv3: Address;
+  riskOracle: Address;
+  guardV2: Address;
+  kUSD: Address;
+  marketSyrupUSDC: Address;
+  marketWETH: Address;
+  riskVault: Address;
+};
+
 export const UI_ASSETS: AssetInfo[] = UI_ASSET_ORDER.map((id) => DEPLOYMENT.assets[id]).filter(Boolean);
 
 // The browser talks to our own /api/rpc proxy so the Alchemy key stays on the server.

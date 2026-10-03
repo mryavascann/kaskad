@@ -46,6 +46,7 @@ export type TxStep = "preparing" | "funding" | "signing" | "sending" | "confirmi
 
 export type TxErrorCode =
   | "borrow-paused"
+  | "too-soon"
   | "out-of-gas"
   | "funding-failed"
   | "insufficient-balance"
@@ -126,6 +127,7 @@ function isUserRejection(e: unknown): boolean {
 export function txError(e: unknown, phase: TxStep | null = null): TxError {
   const raw = String((e as Error)?.message ?? e);
   if (/BorrowIsPaused/.test(raw)) return { code: "borrow-paused", raw };
+  if (/TooSoon/.test(raw)) return { code: "too-soon", raw };
   if (isUserRejection(e) || raw === SIGNER_ERRORS.noAccount || /user (rejected|denied)/i.test(raw)) return { code: "rejected", raw };
   if (raw.startsWith(SIGNER_ERRORS.insufficientPrefix)) return { code: "insufficient-balance", raw };
   if (raw === SIGNER_ERRORS.noWallet) return { code: "no-wallet", raw };
