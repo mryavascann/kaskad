@@ -77,6 +77,14 @@ export type ReplayResult = {
   stuckDebt: bigint;
   startPrice: bigint;
   finalPrice: bigint;
+  /**
+   * Pool spot price at the end (KaskadMCv3.previewWithHidden): what selling the collateral pays now.
+   * Equals `finalPrice` when the oracle follows the pool (feedback 100 %).
+   */
+  spotPrice: bigint;
+  /** `_badDebt` with collateral valued at `spotPrice`, and the part of it the oracle does not show. */
+  badDebtAtSpot: bigint;
+  hiddenBadDebt: bigint;
   rounds: number;
   liquidations: number;
   positionsUsed: number;
@@ -313,6 +321,14 @@ export function replay(book: ReplayBook, s: ReplayScenario): ReplayResult {
     }
   }
 
+  // KaskadMCv3.previewWithHidden: the same end state valued at the pool's spot price.
+  const spotPrice = impact(finalBase, x0, x);
+  let badDebtAtSpot = 0n;
+  for (let i = 0; i < n; i++) {
+    const v = (coll[i] * spotPrice) / WAD + other[i];
+    if (debt[i] > v) badDebtAtSpot += debt[i] - v;
+  }
+
   return {
     totalDebt,
     totalCollateral,
@@ -322,6 +338,9 @@ export function replay(book: ReplayBook, s: ReplayScenario): ReplayResult {
     stuckDebt,
     startPrice: p0,
     finalPrice,
+    spotPrice,
+    badDebtAtSpot,
+    hiddenBadDebt: badDebtAtSpot > badDebt ? badDebtAtSpot - badDebt : 0n,
     rounds: log.length,
     liquidations,
     positionsUsed: n,

@@ -18,7 +18,8 @@ export const RISK_MAP_MIN_DEBT_USD = 250_000;
 /** Ethereum comparison books (deployment.json ids 7, 13-15): Aave on Ethereum, simulated on Monad. */
 const ETHEREUM_BOOKS = new Set([7, 13, 14, 15]);
 
-export type RiskCell = { shockBps: number; stuckDebtUsd: number; badDebtUsd: number; liquidatedUsd: number };
+/** `hiddenBadDebtUsd`: underwater at the pool's spot price but solvent on the oracle (replay.ts). */
+export type RiskCell = { shockBps: number; stuckDebtUsd: number; badDebtUsd: number; liquidatedUsd: number; hiddenBadDebtUsd: number };
 export type RiskRow = { assetId: number; symbol: string; group: "monad" | "ethereum"; debtUsd: number; positions: number; cells: RiskCell[] };
 export type RiskMap = { rows: RiskRow[]; shocksBps: readonly number[]; steps: number; rounds: number };
 
@@ -43,7 +44,13 @@ export function riskRow(book: Book, group: "monad" | "ethereum", shocksBps: read
       maxPositions: slots.length,
       oracleFeedbackBps: ORACLE_FEEDBACK_BPS.external,
     });
-    return { shockBps, stuckDebtUsd: wadToNum(r.stuckDebt), badDebtUsd: wadToNum(r.badDebt), liquidatedUsd: wadToNum(r.totalLiquidated) };
+    return {
+      shockBps,
+      stuckDebtUsd: wadToNum(r.stuckDebt),
+      badDebtUsd: wadToNum(r.badDebt),
+      liquidatedUsd: wadToNum(r.totalLiquidated),
+      hiddenBadDebtUsd: wadToNum(r.hiddenBadDebt),
+    };
   });
   const asset = DEPLOYMENT.assets[String(book.assetId)];
   return {

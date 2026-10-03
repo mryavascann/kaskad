@@ -10,7 +10,7 @@ vi.mock("../finding", () => ({ fetchFinding: () => fetchFinding(), fetchFindingP
 const { isNewerFinding, useFinding } = await import("./useFinding");
 
 const at = (block: number | null) => ({ blockNumber: block === null ? null : BigInt(block), stuckDebtUsd: block ?? 0 }) as unknown as Finding;
-const consistent = { consistent: true, bookId: 9, positions: [], counts: { "bad-debt": 0, stuck: 0, liquidated: 0, safe: 0 }, belowThreshold: 0, everLiquidated: 0 } as Classification;
+const consistent = { consistent: true, bookId: 9, positions: [], counts: { "bad-debt": 0, stuck: 0, liquidated: 0, safe: 0 }, belowThreshold: 0, everLiquidated: 0, hiddenBadDebtUsd: 0, spotPrice: 1 } as Classification;
 const inconsistent = { consistent: false, bookId: 9, mismatches: [] } as Classification;
 
 const server = at(67_066_762);

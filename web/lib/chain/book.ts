@@ -167,6 +167,14 @@ export type Classification =
       belowThreshold: number;
       /** Positions liquidated at least once (any outcome). */
       everLiquidated: number;
+      /**
+       * Bad debt with collateral valued at the pool's spot price at the end, minus the run's bad debt at
+       * the oracle's price (replay.ts `hiddenBadDebt`): underwater at the market, solvent on the oracle.
+       * 0 when the oracle follows the pool.
+       */
+      hiddenBadDebtUsd: number;
+      /** Pool spot price at the end (USD), next to `finalPrice` (the oracle's). */
+      spotPrice: number;
     }
   | { consistent: false; bookId: number; mismatches: ClassificationMismatch[] };
 
@@ -273,6 +281,8 @@ export function classifyPositions(book: Book, result: Result, scenario: Scenario
     counts,
     belowThreshold: counts["bad-debt"] + counts.stuck,
     everLiquidated: positions.filter((p) => p.liquidationEvents > 0).length,
+    hiddenBadDebtUsd: wadToNum(rep.hiddenBadDebt),
+    spotPrice: wadToNum(rep.spotPrice),
   };
 }
 

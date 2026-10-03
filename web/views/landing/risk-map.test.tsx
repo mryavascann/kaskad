@@ -24,7 +24,11 @@ describe("RiskMapTable", () => {
     expect(cells[0]).toHaveTextContent("clears");
     expect(cells[1]).toHaveTextContent(/\$111\.0M\s*stuck/);
     expect(cells[1].className).toMatch(/outline/);
-    expect(cells[3]).toHaveTextContent(/^\$96\.8M\s*stuck\s*\+ \$17\.7K bad debt$/); // the larger amount leads
+    // The larger amount leads; what the oracle hides at −10 % follows on its own line.
+    expect(cells[3]).toHaveTextContent(/^\$96\.8M\s*stuck\s*\+ \$17\.7K bad debt\s*\+ \$8\.8M hidden$/);
+    expect(cells[1]).toHaveTextContent(/^\$111\.0M\s*stuck\s*\+ \$\d+(\.\d)?K hidden$/); // −3 %: a few hundred thousand
+    expect(cells[0]).toHaveTextContent(/^clears$/); // −1 %: nothing stuck, bad or hidden
+
     expect(cells[4]).toHaveTextContent(/\$13\.3M\s*bad debt/);
     expect(Number(cells[4].dataset.severity)).toBeGreaterThan(Number(cells[1].dataset.severity));
   });
@@ -38,7 +42,7 @@ describe("RiskMapTable", () => {
 
 describe("severity", () => {
   it("ranks a realised loss above debt that is only stuck", () => {
-    const cell = (stuck: number, bad: number) => ({ shockBps: 300, stuckDebtUsd: stuck, badDebtUsd: bad, liquidatedUsd: 0 });
+    const cell = (stuck: number, bad: number) => ({ shockBps: 300, stuckDebtUsd: stuck, badDebtUsd: bad, liquidatedUsd: 0, hiddenBadDebtUsd: 0 });
     expect(severity(cell(0, 0), 100e6)).toBe(0);
     expect(severity(cell(1e6, 0), 100e6)).toBe(1);
     expect(severity(cell(10e6, 0), 100e6)).toBe(2);
