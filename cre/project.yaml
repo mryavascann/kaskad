@@ -1,0 +1,16 @@
+# ==========================================================================
+# CRE PROJECT SETTINGS FILE (cre init layout)
+# ==========================================================================
+# RPC URLs support ${VAR_NAME} from .env or the shell; the public Monad testnet RPC needs no key.
+
+# ==========================================================================
+staging-settings:
+  rpcs:
+    - chain-name: monad-testnet
+      url: https://testnet-rpc.monad.xyz
+
+# ==========================================================================
+production-settings:
+  rpcs:
+    - chain-name: monad-testnet
+      url: https://testnet-rpc.monad.xyz
