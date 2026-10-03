@@ -210,3 +210,58 @@ describe("readBook", () => {
     expect(ok.multicall).toHaveBeenCalledTimes(2);
   });
 });
+
+describe("hidden bad debt: underwater at the pool's price, solvent on the oracle", () => {
+  const rb = (id: "9" | "14") => {
+    const b = fixtureBook(id);
+    return { priceWad: b.priceWad, depthUsdWad: b.depthUsdWad, bookDebt1e6: b.bookDebt1e6, recoveryBps: b.recoveryBps, slots: b.positions.map((p) => p.raw) };
+  };
+  const run = (id: "9" | "14", shockBps: number, oracleFeedbackBps: number) => {
+    const book = rb(id);
+    return replay(book, { shockBps, steps: 20, maxRoundsPerStep: 3, maxPositions: book.slots.length, oracleFeedbackBps });
+  };
+
+  it("is zero when the oracle follows the pool: the oracle already sees the market price", () => {
+    for (const shock of [300, 1_000, 2_000]) {
+      const r = run("9", shock, 10_000);
+      expect(r.hiddenBadDebt).toBe(0n);
+      expect(r.spotPrice).toBe(r.finalPrice);
+      expect(r.badDebtAtSpot).toBe(r.badDebt);
+    }
+  });
+
+  it("shows what an exchange-rate oracle hides on the real syrupUSDC book", () => {
+    // −10 %: the oracle reports about $18K of bad debt, but $8.8M more is underwater at the pool's price.
+    const r = run("9", 1_000, 0);
+    expect(wadToNum(r.badDebt)).toBeLessThan(100_000);
+    expect(wadToNum(r.hiddenBadDebt) / 1e6).toBeCloseTo(8.8, 1);
+    // Liquidators stop at break-even, so the pool ends a few percent under the oracle, never above it.
+    expect(r.spotPrice).toBeLessThan(r.finalPrice);
+    expect(wadToNum(r.spotPrice) / wadToNum(r.finalPrice)).toBeGreaterThan(0.9);
+    // −3 %: the story there is stuck debt; little is underwater yet.
+    expect(wadToNum(run("9", 300, 0).hiddenBadDebt) / 1e6).toBeLessThan(1);
+  });
+
+  it("never goes negative and does not change the engine's own fields", () => {
+    for (const id of ["9", "14"] as const) {
+      for (const shock of [100, 500, 2_000]) {
+        const r = run(id, shock, 0);
+        expect(r.hiddenBadDebt).toBeGreaterThanOrEqual(0n);
+        expect(r.badDebtAtSpot).toBeGreaterThanOrEqual(r.badDebt);
+      }
+    }
+    // The recorded on-chain preview still matches field by field with the new fields present.
+    const sali = fixtureRun("sali");
+    expect(compareWithEngine(sali.result, replay(rb("9"), sali.scenario))).toEqual([]);
+  });
+
+  it("reaches the classification the console uses", () => {
+    const sali = fixtureRun("sali");
+    const c = classifyPositions(sali.book, sali.result, sali.scenario);
+    if (!c.consistent) throw new Error("fixture run must classify");
+    expect(c.hiddenBadDebtUsd).toBeGreaterThanOrEqual(0);
+    // syrupUSDC trades near its Maple rate (~1.06): the pool ends under the oracle's final price.
+    expect(c.spotPrice).toBeLessThan(wadToNum(sali.result.finalPrice));
+    expect(c.spotPrice).toBeGreaterThan(0.9 * wadToNum(sali.result.finalPrice));
+  });
+});

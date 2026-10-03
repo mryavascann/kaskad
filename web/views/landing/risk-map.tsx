@@ -22,6 +22,9 @@ export function severity(c: RiskCell, debtUsd: number): 0 | 1 | 2 | 3 | 4 {
   return Math.max(fromBad, fromStuck) as 0 | 1 | 2 | 3 | 4;
 }
 
+/** Hidden bad debt under this is not worth a line (rounding on a few dust positions). */
+const HIDDEN_MIN_USD = 1_000;
+
 const TINT = ["bg-elev-1", "bg-sev-1/12", "bg-sev-2/16", "bg-sev-3/20", "bg-sev-4/24"] as const;
 const INK = ["text-fg-3", "text-sev-1", "text-sev-2", "text-sev-3", "text-sev-4"] as const;
 
@@ -47,6 +50,11 @@ function Cell({ c, row, locale, finding }: { c: RiskCell; row: RiskRow; locale: 
         </div>
       ) : (
         <span className="text-caption text-fg-3">{t.clear}</span>
+      )}
+      {c.hiddenBadDebtUsd >= HIDDEN_MIN_USD && (
+        <span className="mt-0.5 block font-mono text-caption text-sev-3">
+          + {fmt.usd(c.hiddenBadDebtUsd)} {t.hidden}
+        </span>
       )}
     </td>
   );
@@ -120,6 +128,10 @@ export function RiskMapTable({ locale, map, finding }: { locale: Locale; map: Ri
         <li className="flex items-center gap-2">
           <span aria-hidden className="size-3 rounded-sm border border-line-2 bg-elev-1" />
           {t.legendClear}
+        </li>
+        <li className="flex items-center gap-2">
+          <span aria-hidden className="font-mono text-sev-3">+</span>
+          {t.legendHidden}
         </li>
       </ul>
 

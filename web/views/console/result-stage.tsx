@@ -38,6 +38,9 @@ export type PreviewState = {
   resultScenario: Scenario | null;
 };
 
+
+/** Hidden bad debt under this is not worth a line (rounding on a few dust positions). */
+const HIDDEN_MIN_USD = 1_000;
 /**
  * The cascade timeline (its code and Motion's spring and presence engine) is a separate chunk, loaded
  * with the reader's first scroll, touch, press, key or mouse move. The server renders it in full; in
@@ -139,6 +142,10 @@ export function ResultStage({
       })
     : "";
   const status = error ? "error" : loading || !result ? "loading" : "ready";
+  // Hidden bad debt comes from the per-position replay, which is shown only when it matches the
+  // on-chain preview field by field (book.ts classifyPositions). Same read as the position tiles (cached).
+  const map = usePositionMap(resultScenario, result);
+  const hiddenUsd = map.classification?.consistent && !loading ? map.classification.hiddenBadDebtUsd : null;
   const shareCaption = (share: number | undefined) =>
     share === undefined ? undefined : `${t.share({ pct: fmt.pct(share) })}${facts?.scaled ? ` · ${t.scaled}` : ""}`;
   // `animate-rise` fills backwards (motion/tokens.css): no translate3d layer is left after the rise,
@@ -190,6 +197,7 @@ export function ResultStage({
               skeletonChars={6}
             />
             <p className="max-w-sm text-caption text-fg-3">{t.badDebtHelp}</p>
+            {hiddenUsd !== null && hiddenUsd >= HIDDEN_MIN_USD && <p className="max-w-sm font-mono text-caption text-warn-hi">{t.hidden({ amount: fmt.usd(hiddenUsd) })}</p>}
           </div>
           <div className="flex flex-col gap-2">
             <UsdMetric
