@@ -1,0 +1,351 @@
+{
+ "generatedAt": "2026-10-03T23:14:58.319Z",
+ "event": "Aave V3 Ethereum, 10-11 October 2025",
+ "book": {
+  "block": 23549825,
+  "asset": "WETH",
+  "positions": 4640,
+  "debtUsd": 1782844825,
+  "priceUsd": 4010.35937534,
+  "scope": "Borrowers whose dominant collateral is WETH; ETH-correlated debt loops and dust < $100 excluded (fetch-eth-syrup.ts)."
+ },
+ "scenario": {
+  "shockBps": 1381,
+  "lowUsd": 3456.7046,
+  "lowAt": "2025-10-10T21:20:59.000Z",
+  "lowBlock": 23549973,
+  "steps": 100,
+  "rounds": 3,
+  "oracle": "external (Chainlink ETH/USD follows CEX prices, not the on-chain pool)",
+  "depthUsd": 1403731037,
+  "depthIsAssumption": true,
+  "depthNote": "Ethereum ETH/stable DEX depth measured at fetch time (2026), not on 10 October 2025.",
+  "recoveryBps": 9000
+ },
+ "predicted": {
+  "liquidatedUsd": 48317229,
+  "positions": 283,
+  "liquidations": 289,
+  "badDebtUsd": 0,
+  "stuckDebtUsd": 0,
+  "hiddenBadDebtUsd": 0,
+  "finalPoolPriceUsd": 3445.393355
+ },
+ "actual": {
+  "liquidatedUsdInBook": 26901384,
+  "positionsInBook": 158,
+  "crashWindowTo": 23550050,
+  "allAave": {
+   "liquidations": 799,
+   "debtUsd": 117353248
+  },
+  "allWethCollateral": {
+   "liquidations": 200,
+   "debtUsd": 21561197
+  },
+  "wethCollateralOutsideBook": {
+   "liquidations": 48,
+   "users": 21,
+   "debtUsd": 1533517
+  },
+  "crashShareOfWeth": 0.9918227175213732,
+  "usde": {
+   "liquidations": 3,
+   "debtUsd": 39863
+  }
+ },
+ "match": {
+  "both": {
+   "positions": 130,
+   "actualUsd": 19006237,
+   "predictedUsd": 23928678
+  },
+  "onlyPredicted": {
+   "positions": 153,
+   "predictedUsd": 24388552
+  },
+  "onlyActual": {
+   "positions": 28,
+   "actualUsd": 7895147
+  },
+  "missed": [
+   {
+    "user": "0x8d8B3010808E0864eC3392B5fDCC192497787f8B",
+    "debtUsd": 4257527.27,
+    "actualRepaidUsd": 1814836.7100000002,
+    "hfOnchain": 1.141834,
+    "hfModel": 1.187569,
+    "modelLiqPriceUsd": 2844.65287153,
+    "otherCollateralUsd": 2781650.95
+   },
+   {
+    "user": "0xb291F15266A525d389A467af383041753fba007e",
+    "debtUsd": 4543036.97,
+    "actualRepaidUsd": 1391503.98,
+    "hfOnchain": 1.093457,
+    "hfModel": 1.120433,
+    "modelLiqPriceUsd": 3292.32086218,
+    "otherCollateralUsd": 2451025.34
+   },
+   {
+    "user": "0x2F471F35C7C629656F76e318e572574339180F87",
+    "debtUsd": 4301395.01,
+    "actualRepaidUsd": 1327306.8900000001,
+    "hfOnchain": 1.146468,
+    "hfModel": 1.199287,
+    "modelLiqPriceUsd": 2940.69556671,
+    "otherCollateralUsd": 2343096.32
+   },
+   {
+    "user": "0xe2641e5De1Adb81916035ffbcc3e527A94B9300f",
+    "debtUsd": 2474950.7,
+    "actualRepaidUsd": 835952.67,
+    "hfOnchain": 1.087089,
+    "hfModel": 1.108363,
+    "modelLiqPriceUsd": 3434.93436245,
+    "otherCollateralUsd": 1053015.34
+   },
+   {
+    "user": "0x9757Eb864142EDeCa83f86FFb36d88eEA4b25537",
+    "debtUsd": 2966657.26,
+    "actualRepaidUsd": 814917.96,
+    "hfOnchain": 1.153236,
+    "hfModel": 1.199129,
+    "modelLiqPriceUsd": 2638.49515915,
+    "otherCollateralUsd": 2205393.3
+   },
+   {
+    "user": "0x321E2988C4711d20Ee43DEe0bbB0e8bAF5B56465",
+    "debtUsd": 979323.02,
+    "actualRepaidUsd": 496440.28,
+    "hfOnchain": 1.293736,
+    "hfModel": 1.33882,
+    "modelLiqPriceUsd": 2320.87726014,
+    "otherCollateralUsd": 630726.94
+   },
+   {
+    "user": "0xFc1d5E895ab8f14F856F5D52566121CFCa4d71A1",
+    "debtUsd": 720113.49,
+    "actualRepaidUsd": 280675.94,
+    "hfOnchain": 1.276924,
+    "hfModel": 1.375299,
+    "modelLiqPriceUsd": 1140.31331802,
+    "otherCollateralUsd": 738235.92
+   },
+   {
+    "user": "0x4c4eF577889Fe71e3C18B35da50197d5069deE35",
+    "debtUsd": 435023.34,
+    "actualRepaidUsd": 207001.24,
+    "hfOnchain": 1.054662,
+    "hfModel": 1.087105,
+    "modelLiqPriceUsd": 3385.75209783,
+    "otherCollateralUsd": 276648.52
+   },
+   {
+    "user": "0xD2338886fe5C2C01aF6CCe4F6e2Ea0FeDBA2856c",
+    "debtUsd": 421322.46,
+    "actualRepaidUsd": 145602.22,
+    "hfOnchain": 1.10954,
+    "hfModel": 1.136092,
+    "modelLiqPriceUsd": 3273.82454494,
+    "otherCollateralUsd": 200553.09
+   },
+   {
+    "user": "0x502919D6502d9C81cd20f0A39E25F8219723e0Fb",
+    "debtUsd": 301353.78,
+    "actualRepaidUsd": 119720.25,
+    "hfOnchain": 1.145886,
+    "hfModel": 1.210727,
+    "modelLiqPriceUsd": 2827.75694672,
+    "otherCollateralUsd": 180132.19
+   },
+   {
+    "user": "0xA3834ccDC244f42a572eb7f24f8aFf478ce57308",
+    "debtUsd": 347842.44,
+    "actualRepaidUsd": 114900.24,
+    "hfOnchain": 1.153054,
+    "hfModel": 1.211981,
+    "modelLiqPriceUsd": 2953.03855127,
+    "otherCollateralUsd": 170965.88
+   },
+   {
+    "user": "0xD2665F936Fb24F2e036B4ec0bd9451f44b667298",
+    "debtUsd": 130946.33,
+    "actualRepaidUsd": 65473.34,
+    "hfOnchain": 1.087385,
+    "hfModel": 1.119808,
+    "modelLiqPriceUsd": 3449.05605025,
+    "otherCollateralUsd": 41618.7
+   },
+   {
+    "user": "0x9bafc93D0A8Cef41Eef7fE74b157DcE04E948363",
+    "debtUsd": 85543.69,
+    "actualRepaidUsd": 60615.41,
+    "hfOnchain": 1.082577,
+    "hfModel": 1.162634,
+    "modelLiqPriceUsd": 2677.74857351,
+    "otherCollateralUsd": 69384.21
+   },
+   {
+    "user": "0x18e2a1eb1738521776CD980D6E350D24C238023B",
+    "debtUsd": 153296.59,
+    "actualRepaidUsd": 46273.59,
+    "hfOnchain": 1.140033,
+    "hfModel": 1.223754,
+    "modelLiqPriceUsd": 2097.80769699,
+    "otherCollateralUsd": 139364.58
+   },
+   {
+    "user": "0xF1dF824419879Bb8a7E758173523F88EfB7Af193",
+    "debtUsd": 54889.87,
+    "actualRepaidUsd": 27439.28,
+    "hfOnchain": 1.117998,
+    "hfModel": 1.16272,
+    "modelLiqPriceUsd": 2978.79090458,
+    "otherCollateralUsd": 35059.23
+   },
+   {
+    "user": "0x132D0A35f8E97920195857d86046BCE75c71E72b",
+    "debtUsd": 48027.2,
+    "actualRepaidUsd": 20431.690000000002,
+    "hfOnchain": 1.011964,
+    "hfModel": 1.083617,
+    "modelLiqPriceUsd": 2826.4789309,
+    "otherCollateralUsd": 46311.76
+   },
+   {
+    "user": "0xe72Cf26E14177ec9a2718d65E8A04566DF2Adc13",
+    "debtUsd": 650766.14,
+    "actualRepaidUsd": 19021.03,
+    "hfOnchain": 1.21482,
+    "hfModel": 1.291779,
+    "modelLiqPriceUsd": 2076.92640917,
+    "otherCollateralUsd": 538305.66
+   },
+   {
+    "user": "0x72Ec1Fd9929A854719d9A1a2aFc7fFcd7C0C7DeE",
+    "debtUsd": 36094.43,
+    "actualRepaidUsd": 18047.23,
+    "hfOnchain": 1.027706,
+    "hfModel": 1.075983,
+    "modelLiqPriceUsd": 3423.18676143,
+    "otherCollateralUsd": 24225.29
+   },
+   {
+    "user": "0xd3b6C73Db6D81cDFEc9F25268e922a0cdbd5C36E",
+    "debtUsd": 89895.21,
+    "actualRepaidUsd": 16652.35,
+    "hfOnchain": 1.126124,
+    "hfModel": 1.186104,
+    "modelLiqPriceUsd": 2778.9243813,
+    "otherCollateralUsd": 62820.86
+   },
+   {
+    "user": "0x584754814E314d3CCFD99a2ab024D075945c56C5",
+    "debtUsd": 47138.48,
+    "actualRepaidUsd": 14592.67,
+    "hfOnchain": 1.10202,
+    "hfModel": 1.152276,
+    "modelLiqPriceUsd": 3234.17750991,
+    "otherCollateralUsd": 20760.46
+   }
+  ],
+  "why": {
+   "onlyPredicted": {
+    "defended": {
+     "positions": 121,
+     "predictedUsd": 23854463
+    },
+    "unliquidated": {
+     "positions": 31,
+     "predictedUsd": 525443
+    },
+    "model": {
+     "positions": 1,
+     "predictedUsd": 8645
+    }
+   },
+   "onlyActualSeized": {
+    "WETH": 2776800,
+    "cbBTC": 1598505,
+    "AAVE": 1264501,
+    "LINK": 1041307,
+    "USDT": 619027,
+    "WBTC": 537098,
+    "USDC": 57908
+   }
+  }
+ },
+ "curve": [
+  {
+   "shockBps": 500,
+   "liquidatedUsd": 3541510.21,
+   "liquidations": 42,
+   "positions": 42,
+   "badDebtUsd": 0,
+   "stuckDebtUsd": 0
+  },
+  {
+   "shockBps": 800,
+   "liquidatedUsd": 10008330.78,
+   "liquidations": 111,
+   "positions": 111,
+   "badDebtUsd": 0,
+   "stuckDebtUsd": 0
+  },
+  {
+   "shockBps": 1000,
+   "liquidatedUsd": 13242898.104685,
+   "liquidations": 169,
+   "positions": 169,
+   "badDebtUsd": 0,
+   "stuckDebtUsd": 0
+  },
+  {
+   "shockBps": 1200,
+   "liquidatedUsd": 29830226.709919,
+   "liquidations": 226,
+   "positions": 226,
+   "badDebtUsd": 0,
+   "stuckDebtUsd": 0
+  },
+  {
+   "shockBps": 1381,
+   "liquidatedUsd": 48317229.410341,
+   "liquidations": 289,
+   "positions": 283,
+   "badDebtUsd": 0,
+   "stuckDebtUsd": 0
+  },
+  {
+   "shockBps": 1600,
+   "liquidatedUsd": 84347937.157804,
+   "liquidations": 386,
+   "positions": 355,
+   "badDebtUsd": 0,
+   "stuckDebtUsd": 0
+  },
+  {
+   "shockBps": 2000,
+   "liquidatedUsd": 115400187.457064,
+   "liquidations": 601,
+   "positions": 476,
+   "badDebtUsd": 0,
+   "stuckDebtUsd": 0
+  }
+ ],
+ "stepsSensitivity": [
+  {
+   "steps": 20,
+   "liquidatedUsd": 48317223.262684
+  },
+  {
+   "steps": 50,
+   "liquidatedUsd": 48317226.232951
+  },
+  {
+   "steps": 100,
+   "liquidatedUsd": 48317229.410341
+  }
+ ]
+}

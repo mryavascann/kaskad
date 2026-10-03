@@ -11,7 +11,11 @@
     "smoke": "tsx src/smoke.ts",
     "reset-guard": "tsx src/reset-guard.ts",
     "fetch-eth": "tsx src/fetch-eth-syrup.ts",
-    "set-recovery": "tsx src/set-recovery.ts"
+    "set-recovery": "tsx src/set-recovery.ts",
+    "replay:events": "tsx src/replay/oct10-events.ts",
+    "replay:book": "tsx src/fetch-eth-syrup.ts --asset weth --block 23549825 --out oct10-weth --extra data/oct10-liquidated.json --max-positions 5000",
+    "replay:trough": "tsx src/replay/oct10-trough.ts",
+    "replay:compare": "tsx src/replay/oct10-compare.ts"
   },
   "dependencies": {
     "@envio-dev/hypersync-client": "^1.4.1",
