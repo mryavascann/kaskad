@@ -1,5 +1,25 @@
 # Final measurements: Metropolis frontend (QA gate)
 
+## 0. Production: PageSpeed Insights (after merge, supersedes the mobile Performance verdict below)
+
+`kaskad42.vercel.app` at merge commit `7e890bb` (PR #2), 2026-10-01, PageSpeed Insights (Lighthouse 13.5.0, emulated
+Moto G Power, slow 4G, HeadlessChromium 153). Field data: none yet.
+
+| Page | Mobile perf | Desktop perf | A11y / BP / SEO | Mobile FCP / LCP / TBT / CLS |
+|---|---|---|---|---|
+| `/` | 95 | 99 | 100 / 100 / 100 | LCP above 2.5 s (amber; value not recorded) |
+| `/app` | 96 | 100 | 100 / 100 / 100 | 1.2 s / 2.6 s / 100 ms / 0 |
+| `/guard`, `/wallet`, `/how-it-works` | 98–100 | | | user's PSI runs, not archived |
+
+- Mobile Performance ≥ 90: **PASS** on every measured page. A11y / BP / SEO: 100. CLS: 0.
+- Lab LCP < 2.5 s: **FAIL** on `/app` (2.6 s) and `/` (amber).
+- Production run from the work server before Vercel's bot protection challenged its IP (Lighthouse 12.8.2, one run
+  each): `/` 80, `/tr` 90, `/app` 83, `/tr/app` 77, `/guard` 64; observed FCP = LCP = 0.41 s; on `/app` 284 KB JS,
+  83 KB fonts, 28 KB HTML and 24 KB CSS had finished before that first paint, which is what Lantern charges to LCP.
+- A/B behind a 30 ms / 50 Mbps proxy (Lighthouse 13.5, production builds of `7e890bb`): `experimental.inlineCss`
+  added 47 KB gz HTML per page and did not move LCP (`/` 3.8–4.1 vs 3.9–4.0 s); dropping the font preloads gave CLS
+  0.042–0.051 on `/` with an inconsistent LCP change. Neither was adopted.
+
 - **Commit measured:** `25629a8` (`feat/metropolis-frontend`). Its only change on top of `cab0720` is `web/REDESIGN_PLAN.md`, so the code is the same as `cab0720`. Detached worktree, `npm ci`, `next build`, `next start --port 3200`. Server stopped by PID afterwards.
 - **Date:** 2026-10-01. Next.js 16.3.6 (Turbopack), Node 24.21.0, Lighthouse 12.8.2, Chrome for Testing 153.0.8010.12 (Playwright `chromium-1243`), `--headless=new --no-sandbox`. Local server: no CDN, HTTP/1.1, gzip from `next start`.
 - **Machine:** VPS, 12 vCPU AMD EPYC, 48 GB RAM. No other agent was running. The `:3000` dev server was idle.

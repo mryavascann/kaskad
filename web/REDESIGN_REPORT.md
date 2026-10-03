@@ -83,6 +83,36 @@ unlock card. All are transform/opacity, interruptible, and static under reduced 
 
 ## 4. Performance and Lighthouse
 
+### Production: PageSpeed Insights (after merge)
+
+`kaskad42.vercel.app`, merge commit `7e890bb`, measured 2026-10-01 with PageSpeed Insights (Lighthouse 13.5.0,
+emulated Moto G Power, slow 4G). Field data (CrUX) says "no data" yet: the site is too new.
+
+| Page | Mobile perf | Desktop perf | A11y / BP / SEO | Mobile metrics |
+|---|---|---|---|---|
+| `/` | **95** | **99** | 100 / 100 / 100 | LCP above 2.5 s (amber; exact value not recorded) |
+| `/app` | **96** | **100** | 100 / 100 / 100 | FCP 1.2 s, **LCP 2.6 s**, TBT 100 ms, CLS 0, SI 1.3 s |
+| `/guard`, `/wallet`, `/how-it-works` | 98–100 | | | from the user's PSI runs (screenshots not archived) |
+
+**Verdict:** mobile Performance ≥ 90, Accessibility / Best Practices / SEO ≥ 95 and CLS < 0.05 are met on every
+measured page. **Lab LCP < 2.5 s is not met on `/app` (2.6 s) and `/`**, by about 0.1 s on `/app`.
+
+Why the lab LCP sits above the observed one: on production the page paints once, at ~0.41 s, and that first paint
+is the LCP (server-rendered text; FCP = LCP observed). By then the browser has already downloaded the page's JS (284 KB
+on `/app`, 177 KB on `/`) and the four preloaded fonts (83 KB). Lighthouse's simulation (Lantern) charges every
+request that finished before the observed LCP to the LCP on slow 4G, while its FCP model leaves the async scripts
+out; hence FCP 1.2 s vs LCP 2.6 s on `/app`.
+
+Tried and not adopted (A/B on production builds behind a 30 ms / 50 Mbps proxy, Lighthouse 13.5):
+- `experimental.inlineCss`: +47 KB gz HTML per page (styles also repeat in the RSC payload); the first paint still
+  came after all JS, so LCP didn't move (`/` 3.8–4.1 s vs 3.9–4.0 s on that host) and TBT got worse.
+- No font preloads: the late font swap brought back layout shift on `/` (CLS 0.042–0.051, target < 0.05; 0 with the
+  preloads) and the LCP change was inconsistent.
+
+What would still move it: fewer bytes before the first paint, mainly JS (React/Next runtime plus page islands).
+
+### Work server (before production)
+
 Production build on the work server (`FINAL_MEASUREMENTS.md`, mobile median of 3, machine otherwise idle):
 
 | Page | Perf | A11y / BP / SEO | LCP (lab) | TBT | CLS | Initial JS gz |
@@ -105,12 +135,9 @@ LCP = FCP on every page (server-rendered text).
 From the first measurement: landing initial JS 398.5 → 190 KB, landing TBT 22 s → 2.5 s, `/app` TBT 11.6 s → 2.7 s,
 a11y 96 → 100, SEO 90 → 100, CLS ≤ 0.024 → 0.
 
-**Not met: mobile Performance ≥ 90 and lab LCP < 2.5 s.** On this host a near-empty page scores ~81 without the
-site shell and ~66 inside it (Lighthouse's CPU benchmark varies 895–1,807 between runs here), so most of the gap is
-the shared shell plus React/Next boot under 4× CPU throttling. Shell-level cuts (server-rendered nav with small
-client islands, lazy mobile menu, lazy audio engine, tokens out of the client path) are the last round on this
-branch; the final numbers will be taken with PageSpeed Insights on production after merge (the preview is behind
-Vercel deployment protection).
+These work-server numbers were far below production because Lighthouse's CPU benchmark on that VPS swung 895–1,807
+between runs and a near-empty page scored only ~81 there (~66 inside the site shell); the shell cuts above were made
+from that baseline before measuring production.
 
 ## 5. Tests
 
@@ -122,7 +149,8 @@ transaction, call `/api/fund` or reach an external RPC: no test spends MON. The 
 
 ## 6. Known limits
 
-- Mobile Lighthouse Performance and lab LCP (above). INP and scroll fps were not measured in the field.
+- Lab LCP on mobile is slightly above 2.5 s on `/` and `/app` (section 4). INP and scroll fps were not measured
+  in the field.
 - The default console preview and the landing finding are cached server reads (10 min ISR); a failed read keeps the
   last good page, and the build retries before publishing.
 - Market B on testnet is already paused at 70 % max LTV; re-arming it needs the owner's reset script (costs MON).
