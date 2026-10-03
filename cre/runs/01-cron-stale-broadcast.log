@@ -1,0 +1,17 @@
+$ cre workflow simulate kaskad-risk --target staging-settings --non-interactive --trigger-index 0 --broadcast
+2026-10-04T01:47:40Z [SIMULATION] Running trigger trigger=cron-trigger@1.0.0
+2026-10-04T01:47:40Z [USER LOG] asset 9: -10% preview bad $17.7K, hidden $8.8M, stuck $96.8M of $123.7M -> loss 7.1%, stuck 78.2%, AT RISK (stored: at risk, LTV 85%) => publish (stale)
+2026-10-04T01:47:40Z [USER LOG] asset 5: -10% preview bad $0, hidden $0, stuck $0 of $2.1M -> loss 0%, stuck 0%, clear (stored: clear, LTV 90%) => publish (stale)
+2026-10-04T01:47:40Z [USER LOG] market 0x80E3c0a78E86686CA6309A3CAdA587c2DCf45074 (asset 9): paused, vault keeps out, vault deposit 0
+2026-10-04T01:47:40Z [USER LOG] market 0x03AC872EF1A2a77ECa869A0F8aC7c9b9F9727842 (asset 5): open, vault may lend, vault deposit 1000000000000
+2026-10-04T01:47:40Z [USER LOG] report (stale): publish [9, 5], guard true, vault true, gas limit 5700000
+2026-10-04T01:47:42Z [USER LOG] report written: 0x07161a3ab2b540af3e1177e40161027893e800a9551df37bb019f8e38f89c5b5
+✓ Workflow Simulation Result:
+"sent stale 0x07161a3ab2b540af3e1177e40161027893e800a9551df37bb019f8e38f89c5b5"
+
+# On chain (KaskadCREReceiver 0xfdef473e3C03F42A2bC9ad5eC1e4f3b02f9c2e86, tx status 1):
+#   ReportReceived reason=3 (stale), publishes=2
+#   Published asset 9: atRisk=true, recommended LTV 8000 (85% -> 80%, one bounded step)
+#   Published asset 5: atRisk=false, recommended LTV 9000
+#   GuardRefreshed tripped=1 recovered=0 (syrupUSDC market stays paused)
+#   VaultRebalanced totalAssets=1,000,000 kUSD (all in the WETH market)

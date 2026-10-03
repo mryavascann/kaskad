@@ -2,7 +2,7 @@
 //
 // Triggers: a cron schedule, and Kaskad's own book events (AssetSet / PositionsLoaded / BookReset),
 // so a price or book change is re-assessed right away. Each run reads everything for free
-// (finalized eth_calls through the EVM capability), previews the rule's trigger shock on
+// (two finalized Multicall3 eth_calls through the EVM capability), previews the rule's trigger shock on
 // KaskadMCv3, decides with decide.ts and sends ONE report only when it changes something. The report
 // lands in KaskadCREReceiver, which runs publish() for the assets that need it, then GuardV2.refresh()
 // and RiskVault.rebalance().
@@ -37,6 +37,7 @@ export const configSchema = z.object({
   contracts: z.object({
     kaskad: address,
     kaskadMCv3: address,
+    multicall3: address,
     riskOracle: address,
     guardV2: address,
     riskVault: address,
@@ -80,13 +81,62 @@ const evmFor = (config: Config) => {
   return new EVMClient(network.chainSelector.selector);
 };
 
-/** One finalized eth_call through the EVM capability, decoded with viem. */
-function read<T>(runtime: Runtime<Config>, evm: EVMClient, to: string, abi: Abi, functionName: string, args: readonly unknown[] = []): T {
-  const data = encodeFunctionData({ abi, functionName, args } as never);
+/** Multicall3.aggregate3, declared view: the workflow only eth_calls it. */
+export const MULTICALL3_ABI = [
+  {
+    type: "function",
+    name: "aggregate3",
+    stateMutability: "view",
+    inputs: [
+      {
+        name: "calls",
+        type: "tuple[]",
+        components: [
+          { name: "target", type: "address" },
+          { name: "allowFailure", type: "bool" },
+          { name: "callData", type: "bytes" },
+        ],
+      },
+    ],
+    outputs: [
+      {
+        name: "returnData",
+        type: "tuple[]",
+        components: [
+          { name: "success", type: "bool" },
+          { name: "returnData", type: "bytes" },
+        ],
+      },
+    ],
+  },
+] as const;
+
+type Call = { to: string; abi: Abi; functionName: string; args?: readonly unknown[] };
+
+/**
+ * Many reads in ONE finalized eth_call through Multicall3: production allows 15 chain reads per
+ * execution, and a run needs ~19 values. Results are decoded with each call's own ABI.
+ */
+function readAll(runtime: Runtime<Config>, evm: EVMClient, calls: readonly Call[]): unknown[] {
+  const data = encodeFunctionData({
+    abi: MULTICALL3_ABI,
+    functionName: "aggregate3",
+    args: [
+      calls.map((c) => ({
+        target: c.to as Address,
+        allowFailure: false,
+        callData: encodeFunctionData({ abi: c.abi, functionName: c.functionName, args: c.args ?? [] } as never),
+      })),
+    ],
+  });
   const reply = evm
-    .callContract(runtime, { call: encodeCallMsg({ from: zeroAddress, to: to as Address, data }), blockNumber: LAST_FINALIZED_BLOCK_NUMBER })
+    .callContract(runtime, {
+      call: encodeCallMsg({ from: zeroAddress, to: runtime.config.contracts.multicall3 as Address, data }),
+      blockNumber: LAST_FINALIZED_BLOCK_NUMBER,
+    })
     .result();
-  return decodeFunctionResult({ abi, functionName, data: bytesToHex(reply.data) } as never) as T;
+  const results = decodeFunctionResult({ abi: MULTICALL3_ABI, functionName: "aggregate3", data: bytesToHex(reply.data) });
+  return results.map((r, i) => decodeFunctionResult({ abi: calls[i].abi, functionName: calls[i].functionName, data: r.returnData } as never));
 }
 
 type RuleOut = {
@@ -100,28 +150,10 @@ type RuleOut = {
   stuckThresholdBps: number;
   minInterval: number;
 };
+type StateOut = readonly [boolean, number, bigint, number, number];
+type StatsOut = readonly [bigint, bigint, bigint, number];
 type ResultOut = { totalDebt: bigint; badDebt: bigint; stuckDebt: bigint };
 type HiddenOut = { hiddenBadDebt: bigint };
-
-/** Rule, state, book size and the trigger-shock preview of one asset (4 calls). */
-function readAsset(runtime: Runtime<Config>, evm: EVMClient, assetId: number): AssetView {
-  const c = runtime.config.contracts;
-  const rule = read<RuleOut>(runtime, evm, c.riskOracle, riskOracleAbi, "rule", [assetId]);
-  const [atRisk, recommendedLtvBps, lastPublished] = read<readonly [boolean, number, bigint, number, number]>(runtime, evm, c.riskOracle, riskOracleAbi, "state", [
-    BigInt(assetId),
-  ]);
-  let n = rule.maxPositions;
-  if (n === 0) n = Number(read<readonly [bigint, bigint, bigint, number]>(runtime, evm, c.kaskad, kaskadAbi, "bookStats", [BigInt(assetId)])[3]);
-  const [res, hidden] = read<readonly [ResultOut, HiddenOut]>(runtime, evm, c.kaskadMCv3, kaskadMCv3Abi, "previewWithHidden", [
-    { assetId, shockBps: rule.triggerShockBps, steps: rule.steps, maxRoundsPerStep: rule.rounds, maxPositions: n, oracleFeedbackBps: rule.oracleFeedbackBps },
-  ]);
-  return {
-    assetId,
-    rule,
-    state: { atRisk, recommendedLtvBps, lastPublished: Number(lastPublished) },
-    preview: { totalDebt: res.totalDebt, badDebt: res.badDebt, stuckDebt: res.stuckDebt, hiddenBadDebt: hidden.hiddenBadDebt },
-  };
-}
 
 /** Reads, decides, and sends the report when the plan does anything. Returns a one-line summary. */
 export function assess(runtime: Runtime<Config>, changed: ReadonlySet<number> = new Set()): string {
@@ -130,18 +162,72 @@ export function assess(runtime: Runtime<Config>, changed: ReadonlySet<number> = 
   const evm = evmFor(cfg);
   const nowSec = Math.floor(runtime.now().getTime() / 1000);
 
-  const assets = cfg.assets.map((id) => readAsset(runtime, evm, id));
-  const markets: MarketView[] = c.markets.map((m) => ({
-    address: m.address,
-    assetId: m.assetId,
-    paused: read<boolean>(runtime, evm, m.address, mockMarketV2Abi, "borrowPaused"),
-    lastAtRisk: Number(read<bigint>(runtime, evm, c.guardV2, guardV2Abi, "lastAtRisk", [m.address])),
-    flagged: read<boolean>(runtime, evm, c.riskVault, riskVaultAbi, "flagged", [m.address]),
-    vaultDeposit: read<bigint>(runtime, evm, m.address, mockMarketV2Abi, "deposits", [c.riskVault]),
-  }));
-  const token = read<Address>(runtime, evm, c.riskVault, riskVaultAbi, "asset");
-  const vaultIdle = read<bigint>(runtime, evm, token, mockUSDAbi, "balanceOf", [c.riskVault]);
-  const recoveryDelay = Number(read<number>(runtime, evm, c.guardV2, guardV2Abi, "recoveryDelay"));
+  // Read 1: rules, states, book sizes, markets, vault token, recovery delay.
+  const one = readAll(runtime, evm, [
+    ...cfg.assets.flatMap((id): Call[] => [
+      { to: c.riskOracle, abi: riskOracleAbi, functionName: "rule", args: [id] },
+      { to: c.riskOracle, abi: riskOracleAbi, functionName: "state", args: [BigInt(id)] },
+      { to: c.kaskad, abi: kaskadAbi, functionName: "bookStats", args: [BigInt(id)] },
+    ]),
+    ...c.markets.flatMap((m): Call[] => [
+      { to: m.address, abi: mockMarketV2Abi, functionName: "borrowPaused" },
+      { to: c.guardV2, abi: guardV2Abi, functionName: "lastAtRisk", args: [m.address] },
+      { to: c.riskVault, abi: riskVaultAbi, functionName: "flagged", args: [m.address] },
+      { to: m.address, abi: mockMarketV2Abi, functionName: "deposits", args: [c.riskVault] },
+    ]),
+    { to: c.riskVault, abi: riskVaultAbi, functionName: "asset" },
+    { to: c.guardV2, abi: guardV2Abi, functionName: "recoveryDelay" },
+  ]);
+  const A = cfg.assets.length;
+  const rules = cfg.assets.map((_, i) => one[i * 3] as RuleOut);
+  const states = cfg.assets.map((_, i) => one[i * 3 + 1] as StateOut);
+  const sizes = cfg.assets.map((_, i) => (one[i * 3 + 2] as StatsOut)[3]);
+  const markets: MarketView[] = c.markets.map((m, j) => {
+    const k = A * 3 + j * 4;
+    return {
+      address: m.address,
+      assetId: m.assetId,
+      paused: one[k] as boolean,
+      lastAtRisk: Number(one[k + 1] as bigint),
+      flagged: one[k + 2] as boolean,
+      vaultDeposit: one[k + 3] as bigint,
+    };
+  });
+  const token = one[A * 3 + c.markets.length * 4] as Address;
+  const recoveryDelay = Number(one[A * 3 + c.markets.length * 4 + 1]);
+
+  // Read 2: each rule's trigger-shock preview on KaskadMCv3, and the vault's idle balance.
+  const two = readAll(runtime, evm, [
+    ...cfg.assets.map(
+      (assetId, i): Call => ({
+        to: c.kaskadMCv3,
+        abi: kaskadMCv3Abi,
+        functionName: "previewWithHidden",
+        args: [
+          {
+            assetId,
+            shockBps: rules[i].triggerShockBps,
+            steps: rules[i].steps,
+            maxRoundsPerStep: rules[i].rounds,
+            maxPositions: rules[i].maxPositions === 0 ? sizes[i] : rules[i].maxPositions,
+            oracleFeedbackBps: rules[i].oracleFeedbackBps,
+          },
+        ],
+      }),
+    ),
+    { to: token, abi: mockUSDAbi, functionName: "balanceOf", args: [c.riskVault] },
+  ]);
+  const assets: AssetView[] = cfg.assets.map((assetId, i) => {
+    const [res, hidden] = two[i] as readonly [ResultOut, HiddenOut];
+    const [atRisk, recommendedLtvBps, lastPublished] = states[i];
+    return {
+      assetId,
+      rule: rules[i],
+      state: { atRisk, recommendedLtvBps, lastPublished: Number(lastPublished) },
+      preview: { totalDebt: res.totalDebt, badDebt: res.badDebt, stuckDebt: res.stuckDebt, hiddenBadDebt: hidden.hiddenBadDebt },
+    };
+  });
+  const vaultIdle = two[A] as bigint;
 
   const p = plan({ assets, markets, vaultIdle, recoveryDelay, nowSec, refreshAfter: cfg.refreshAfterSec, changed });
   for (const a of assets) {

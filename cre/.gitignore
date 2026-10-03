@@ -2,3 +2,4 @@
 node_modules/
 *.wasm
 dist/
+.cre_build_tmp.js

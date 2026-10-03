@@ -1,9 +1,9 @@
 import { describe, expect } from "bun:test";
 import { addContractMock, EvmMock, newTestRuntime, REPORT_METADATA_HEADER_LENGTH, test } from "@chainlink/cre-sdk/test";
-import { decodeAbiParameters, type Hex, bytesToHex } from "viem";
+import { type Abi, bytesToHex, decodeAbiParameters, decodeFunctionData, encodeFunctionResult, type Hex } from "viem";
 import { guardV2Abi, kaskadAbi, kaskadMCv3Abi, mockMarketV2Abi, mockUSDAbi, riskOracleAbi, riskVaultAbi } from "./abi";
 import config from "./config.staging.json";
-import { BOOK_EVENTS, type Config, initWorkflow, onBookEvent, onCron } from "./workflow";
+import { BOOK_EVENTS, type Config, initWorkflow, MULTICALL3_ABI, onBookEvent, onCron } from "./workflow";
 
 const MONAD_TESTNET = 2183018362218727504n;
 const WAD = 10n ** 18n;
@@ -47,35 +47,48 @@ const hidden = (h: bigint) => ({ oraclePrice: WAD, spotPrice: WAD, badDebtAtSpot
 
 type World = { syrupStored: boolean; syrupPreviewRisky: boolean; syrupPaused: boolean };
 
+type Fn = (...args: readonly unknown[]) => unknown;
+
 /** The testnet system after the first demo run, with knobs. Returns the captured report payloads. */
 function mockChain(w: World) {
   const evm = EvmMock.testInstance(MONAD_TESTNET);
   const c = cfg.contracts;
-  const kaskad = addContractMock(evm, { address: c.kaskad as Hex, abi: kaskadAbi });
-  kaskad.bookStats = (id: unknown) => [0n, 0n, 0n, id === 9n ? 57 : 42];
-  const mc = addContractMock(evm, { address: c.kaskadMCv3 as Hex, abi: kaskadMCv3Abi });
-  mc.previewWithHidden = (s: unknown) =>
-    (s as { assetId: number }).assetId === 9 && w.syrupPreviewRisky
-      ? [result(123_685_701n, 17_749n, 96_777_238n), hidden(8_817_433n)]
-      : [result(1_000_000n, 0n, 0n), hidden(0n)];
-  const oracle = addContractMock(evm, { address: c.riskOracle as Hex, abi: riskOracleAbi });
-  oracle.rule = () => rule;
-  oracle.state = (id: unknown) => (id === 9n ? [w.syrupStored, w.syrupStored ? 8_500 : 9_000, BigInt(T), 0, 0] : [false, 9_000, BigInt(T), 0, 0]);
-  const guard = addContractMock(evm, { address: c.guardV2 as Hex, abi: guardV2Abi });
-  guard.lastAtRisk = () => BigInt(T);
-  guard.recoveryDelay = () => 1_800;
-  for (const [m, paused, deposit] of [
-    [SYRUP_MARKET, w.syrupPaused, 0n],
-    [WETH_MARKET, false, 10n ** 12n],
-  ] as const) {
-    const mm = addContractMock(evm, { address: m, abi: mockMarketV2Abi });
-    mm.borrowPaused = () => paused;
-    mm.deposits = () => deposit;
-  }
-  const vault = addContractMock(evm, { address: c.riskVault as Hex, abi: riskVaultAbi });
-  vault.flagged = (m: unknown) => (m as string).toLowerCase() === SYRUP_MARKET.toLowerCase() && w.syrupStored;
-  vault.asset = () => KUSD;
-  addContractMock(evm, { address: KUSD, abi: mockUSDAbi }).balanceOf = () => 0n;
+  // Every read goes through Multicall3.aggregate3: route each call to a per-contract handler.
+  const routes = new Map<string, { abi: Abi; fns: Record<string, Fn> }>();
+  const route = (address: string, abi: Abi, fns: Record<string, Fn>) => routes.set(address.toLowerCase(), { abi, fns });
+
+  route(c.kaskad, kaskadAbi, { bookStats: (id) => [0n, 0n, 0n, id === 9n ? 57 : 42] });
+  route(c.kaskadMCv3, kaskadMCv3Abi, {
+    previewWithHidden: (s) =>
+      (s as { assetId: number }).assetId === 9 && w.syrupPreviewRisky
+        ? [result(123_685_701n, 17_749n, 96_777_238n), hidden(8_817_433n)]
+        : [result(1_000_000n, 0n, 0n), hidden(0n)],
+  });
+  route(c.riskOracle, riskOracleAbi, {
+    rule: () => rule,
+    state: (id) => (id === 9n ? [w.syrupStored, w.syrupStored ? 8_500 : 9_000, BigInt(T), 0, 0] : [false, 9_000, BigInt(T), 0, 0]),
+  });
+  route(c.guardV2, guardV2Abi, { lastAtRisk: () => BigInt(T), recoveryDelay: () => 1_800 });
+  route(SYRUP_MARKET, mockMarketV2Abi, { borrowPaused: () => w.syrupPaused, deposits: () => 0n });
+  route(WETH_MARKET, mockMarketV2Abi, { borrowPaused: () => false, deposits: () => 10n ** 12n });
+  route(c.riskVault, riskVaultAbi, {
+    flagged: (m) => (m as string).toLowerCase() === SYRUP_MARKET.toLowerCase() && w.syrupStored,
+    asset: () => KUSD,
+  });
+  route(KUSD, mockUSDAbi, { balanceOf: () => 0n });
+
+  const reads: number[] = [];
+  addContractMock(evm, { address: c.multicall3 as Hex, abi: MULTICALL3_ABI }).aggregate3 = (calls) => {
+    const list = calls as readonly { target: string; callData: Hex }[];
+    reads.push(list.length);
+    return list.map(({ target, callData }) => {
+      const r = routes.get(target.toLowerCase());
+      if (!r) throw new Error(`no mock for ${target}`);
+      const { functionName, args } = decodeFunctionData({ abi: r.abi, data: callData });
+      const out = r.fns[functionName](...((args ?? []) as unknown[]));
+      return { success: true, returnData: encodeFunctionResult({ abi: r.abi, functionName, result: out } as never) };
+    });
+  };
 
   const sent: { payload: Hex; gasLimit: bigint }[] = [];
   addContractMock(evm, { address: RECEIVER, abi: [] }).writeReport = ({ report, gasConfig }) => {
@@ -84,7 +97,7 @@ function mockChain(w: World) {
     sent.push({ payload: `0x${raw.slice(2 + REPORT_METADATA_HEADER_LENGTH * 2)}` as Hex, gasLimit: BigInt(gasConfig.gasLimit) });
     return { txStatus: "TX_STATUS_SUCCESS", txHash: Buffer.from("ab".repeat(32), "hex").toString("base64") } as never;
   };
-  return sent;
+  return Object.assign(sent, { reads });
 }
 
 const decode = (payload: Hex) =>
@@ -101,6 +114,8 @@ describe("kaskad-risk workflow", () => {
     const runtime = runtimeAt(T + 3_600);
     expect(onCron(runtime)).toBe("noop");
     expect(sent).toHaveLength(0);
+    // Two chain reads per run (production limit: 15), batching 16 + 3 calls.
+    expect(sent.reads).toEqual([16, 3]);
     const logs = runtime.getLogs().join("\n");
     expect(logs).toContain("asset 9: -10% preview bad $17.7K, hidden $8.8M, stuck $96.8M of $123.7M -> loss 7.1%, stuck 78.2%, AT RISK");
     expect(logs).toContain("no report");
