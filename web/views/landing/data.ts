@@ -12,6 +12,8 @@ import { fetchFinding, fetchFindingPositions, type Finding } from "@/lib/chain/f
 import { readMarkets } from "@/lib/chain/guard";
 import { limitFacts } from "@/lib/chain/limits";
 import { PROOF_TXS, readProof } from "@/lib/chain/proofs";
+import { fetchRiskMap, verifyCell, type RiskMap } from "@/lib/chain/risk-map";
+import type { Result } from "@/lib/chain/types";
 import { cascadeTimeline } from "@/lib/chain/timeline";
 import { DEPLOYMENT } from "@/lib/kaskad/config";
 import { wadToNum } from "@/lib/kaskad/format";
@@ -121,6 +123,11 @@ export type LandingData = {
   positions: LandingPositions | null;
   scale: LandingScale | null;
   markets: LandingMarkets | null;
+  /**
+   * Every real book × a row of shocks (lib/chain/risk-map.ts), shown only when its finding cell equals
+   * the finding's on-chain preview. Optional: not part of the hero, never blocks the page.
+   */
+  riskMap?: RiskMap | null;
   /** Local time the reads finished (ms since epoch). */
   readAt: number;
 };
@@ -201,7 +208,7 @@ async function readFinding() {
       if (c.consistent) positions = landingPositions(finding, c);
     } catch {}
   }
-  return { finding: landingFinding(finding), positions };
+  return { finding: landingFinding(finding), positions, result: finding.result, assetId: finding.assetId, shockBps: finding.scenario.shockBps };
 }
 
 async function readScale(): Promise<LandingScale | null> {
@@ -226,12 +233,25 @@ async function readMarketsView(): Promise<LandingMarkets> {
 
 const settle = <T,>(p: Promise<T>): Promise<T | null> => p.catch(() => null);
 
+/**
+ * The risk map, checked against the finding's on-chain preview: its finding cell (same book, shock,
+ * steps, waves, oracle) must give the same stuck and bad debt. No finding to check against, or a
+ * mismatch: no map.
+ */
+async function readRiskMap(check: { result: Result; assetId: number; shockBps: number } | null): Promise<RiskMap | null> {
+  if (!check) return null;
+  const map = await fetchRiskMap();
+  const row = map.rows.find((r) => r.assetId === check.assetId);
+  return row && verifyCell(row, check.shockBps, check.result) ? map : null;
+}
+
 async function build(): Promise<LandingData> {
   // Sequential on purpose: a handful of requests, spaced, on the public RPC.
   const found = await settle(readFinding());
   const scale = await settle(readScale());
   const markets = await settle(readMarketsView());
-  return { finding: found?.finding ?? null, positions: found?.positions ?? null, scale, markets, readAt: Date.now() };
+  const riskMap = await settle(readRiskMap(found));
+  return { finding: found?.finding ?? null, positions: found?.positions ?? null, scale, markets, riskMap, readAt: Date.now() };
 }
 
 /** True when every part was read (the hero has its finding and its per-position replay). */
@@ -257,6 +277,7 @@ export function mergeLanding(prev: LandingData | null, next: LandingData, now = 
     positions: keepPair ? prev.positions : next.positions,
     scale: next.scale ?? prev.scale,
     markets: next.markets ?? prev.markets,
+    riskMap: next.riskMap ?? prev.riskMap,
     readAt: keepPair ? prev.readAt : next.readAt,
   };
 }
