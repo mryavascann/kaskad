@@ -4,6 +4,7 @@ import { createWalletClient, custom, numberToHex, type Address, type Hex, type L
 import { monadTestnet } from "viem/chains";
 import { DEFAULT_SIGNER, DEV_SIGNERS } from "../chain/signer-mode";
 import { ensureFunded, getBurner, publicClient, sendBurnerTx } from "./burner";
+import type { PasskeyKeys } from "./passkey-keys";
 import { MAX_FEE_PER_GAS, MAX_PRIORITY_FEE_PER_GAS, sendRawSync } from "./tx";
 
 // Who signs the app's transactions. Production: a Mera passkey wallet, its gas paid by the sponsor
@@ -18,6 +19,8 @@ type SignerState = { kind: SignerKind; address: Address | null };
 let state: SignerState = { kind: DEFAULT_SIGNER, address: null };
 let meraAccount: LocalAccount | null = null;
 let endMeraSession: (() => void) | null = null;
+/** Private-watchlist keys from the same passkey (passkey-keys.ts); memory only, gone on sign-out. */
+let meraKeys: PasskeyKeys | null = null;
 let meraNonce: number | null = null;
 let meraQueue: Promise<unknown> = Promise.resolve();
 const listeners = new Set<() => void>();
@@ -91,6 +94,7 @@ export async function connectMeraSigner(mode: "login" | "create"): Promise<Addre
   endMeraSession?.(); // a new passkey replaces the previous session
   meraAccount = next.account;
   endMeraSession = next.end;
+  meraKeys = next.keys;
   meraNonce = null;
   set({ kind: "mera", address: meraAccount.address });
   return meraAccount.address;
@@ -104,9 +108,13 @@ export function signOutMera() {
   endMeraSession?.();
   endMeraSession = null;
   meraAccount = null;
+  meraKeys = null;
   meraNonce = null;
   set({ kind: DEFAULT_SIGNER, address: null });
 }
+
+/** The signed-in passkey's watchlist keys, or null when nobody is signed in. */
+export const getMeraKeys = (): PasskeyKeys | null => meraKeys;
 
 /** Fetches the Mera SDK ahead of the click, so the passkey prompt follows the gesture without a wait. */
 export const preloadMera = (): Promise<unknown> => import("./mera");
