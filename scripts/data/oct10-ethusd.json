@@ -14,6 +14,22 @@
  "drawdownBps": 1381,
  "from": 23549570,
  "to": 23552570,
+ "pinned": [
+  {
+   "symbol": "USDe",
+   "source": "0xC26D4a1c46d884cfF6dE9800B6aE7A8Cf48B4Ff8",
+   "description": "Capped USDT/USD",
+   "bookPriceUsd": 1.000254,
+   "lowPriceUsd": 1.000254
+  },
+  {
+   "symbol": "sUSDe",
+   "source": "0x42bc86f2f08419280a99d8fbEa4672e7c30a86ec",
+   "description": "Capped sUSDe / USDT / USD",
+   "bookPriceUsd": 1.20203368,
+   "lowPriceUsd": 1.2020373
+  }
+ ],
  "updates": [
   {
    "block": 23549826,

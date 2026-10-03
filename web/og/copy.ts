@@ -4,7 +4,7 @@
  */
 import type { Locale } from "@/i18n/config";
 
-export type OgPage = "home" | "app" | "wallet" | "guard" | "how";
+export type OgPage = "home" | "app" | "wallet" | "guard" | "replay" | "how";
 
 const en = {
   brand: "Kaskad",
@@ -30,6 +30,11 @@ const en = {
       kicker: "KaskadGuard",
       title: "A circuit breaker that reads the cascade.",
       alt: "KaskadGuard: an on-chain circuit breaker that runs the cascade and pauses borrowing when bad debt crosses its threshold.",
+    },
+    replay: {
+      kicker: "Replay · 10 October 2025",
+      title: "What Kaskad would have seen on 10 October.",
+      alt: "Kaskad's engine on the real Aave V3 Ethereum book of 10 October 2025, against every liquidation Aave executed that night.",
     },
     how: {
       kicker: "Methodology",
@@ -83,6 +88,11 @@ const tr = {
       kicker: "KaskadGuard",
       title: "Kaskadı okuyan bir devre kesici.",
       alt: "KaskadGuard: kaskadı çalıştıran ve karşılıksız borç eşiği aşılınca borç vermeyi durduran zincir üstü devre kesici.",
+    },
+    replay: {
+      kicker: "Replay · 10 Ekim 2025",
+      title: "Kaskad 10 Ekim'de neyi görürdü?",
+      alt: "Kaskad motoru 10 Ekim 2025'teki gerçek Aave V3 Ethereum defterinde; o gece Aave'nin yaptığı her likidasyonla karşılaştırmalı.",
     },
     how: {
       kicker: "Yöntem",

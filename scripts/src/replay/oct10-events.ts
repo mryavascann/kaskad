@@ -18,7 +18,7 @@ import { createPublicClient, fallback, getAddress, http, parseAbi, parseAbiItem,
 import { mainnet } from "viem/chains";
 import { DATA_DIR } from "../lib/env.js";
 import { sleep } from "../lib/hypersync.js";
-import { AAVE_ORACLE, ARCHIVE_RPCS, BOOK_BLOCK, FROM, POOL, TO, WETH } from "./oct10.js";
+import { AAVE_ORACLE, ARCHIVE_RPCS, BOOK_BLOCK, FROM, POOL, SUSDE, TO, USDE, WETH } from "./oct10.js";
 
 const client = createPublicClient({ chain: mainnet, transport: fallback(ARCHIVE_RPCS.map((u) => http(u, { retryCount: 4, retryDelay: 1000, timeout: 60_000 }))) });
 
@@ -46,9 +46,18 @@ async function main() {
   const startUsd = Number(bookPrice) / 1e8;
   const drawdownBps = Math.round((1 - low.priceUsd / startUsd) * 10_000);
   console.log(`[price] ${description} via ${source} (aggregator ${aggregator}): book block ${BOOK_BLOCK} $${startUsd}, low $${low.priceUsd} at ${low.time} (block ${low.block}) = -${drawdownBps / 100}%, ${path_.length} updates`);
+  // How AaveOracle priced USDe / sUSDe through the night (Binance printed USDe at $0.65 at ~21:36 UTC).
+  const pinned = [];
+  for (const [symbol, asset] of [["USDe", USDE], ["sUSDe", SUSDE]] as const) {
+    const src = await client.readContract({ address: AAVE_ORACLE, abi: oracleAbi, functionName: "getSourceOfAsset", args: [asset], blockNumber: BigInt(low.block) });
+    const desc = await client.readContract({ address: src, abi: feedAbi, functionName: "description", blockNumber: BigInt(low.block) });
+    const at = async (b: number) => Number(await client.readContract({ address: AAVE_ORACLE, abi: oracleAbi, functionName: "getAssetPrice", args: [asset], blockNumber: BigInt(b) })) / 1e8;
+    pinned.push({ symbol, source: src, description: desc, bookPriceUsd: await at(BOOK_BLOCK), lowPriceUsd: await at(low.block) });
+  }
+  console.log(`[price] ${pinned.map((p) => `${p.symbol} via "${p.description}": $${p.bookPriceUsd} -> $${p.lowPriceUsd}`).join(" | ")}`);
   writeFileSync(
     path.join(DATA_DIR, "oct10-ethusd.json"),
-    JSON.stringify({ feed: { description, source, aggregator }, bookBlock: BOOK_BLOCK, bookPriceUsd: startUsd, low, drawdownBps, from: FROM, to: TO, updates: path_ }, null, 1),
+    JSON.stringify({ feed: { description, source, aggregator }, bookBlock: BOOK_BLOCK, bookPriceUsd: startUsd, low, drawdownBps, from: FROM, to: TO, pinned, updates: path_ }, null, 1),
   );
 
   // Liquidations ----------------------------------------------------------------------------------

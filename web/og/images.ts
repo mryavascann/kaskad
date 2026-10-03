@@ -19,6 +19,6 @@ export async function guardImage(locale: Locale) {
   return renderOgCard(guardCard(locale, await loadGuard()), ogCopy[locale].brand);
 }
 
-export async function staticImage(page: "wallet" | "how", locale: Locale) {
+export async function staticImage(page: "wallet" | "replay" | "how", locale: Locale) {
   return renderOgCard(staticCard(page, locale, snapshotBlock()), ogCopy[locale].brand);
 }

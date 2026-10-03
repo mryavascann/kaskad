@@ -19,6 +19,7 @@ export const ROUTES = {
   app: { en: "/app", tr: "/tr/app" },
   wallet: { en: "/wallet", tr: "/tr/cuzdan" },
   guard: { en: "/guard", tr: "/tr/guard" },
+  replay: { en: "/replay", tr: "/tr/10-ekim" },
   how: { en: "/how-it-works", tr: "/tr/nasil-calisir" },
 } as const satisfies Record<string, Record<Locale, string>>;
 

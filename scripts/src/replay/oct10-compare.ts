@@ -29,12 +29,18 @@ const RECOVERY_BPS = 9_000;
 /** The crash itself: 20:51-21:35 UTC holds 99% of the WETH-collateral liquidations of the night. */
 const CRASH_TO_BLOCK = 23_550_050;
 
-type Book = { block: number; reserves: { priceUsd8: string }[]; depth: { depthUsd: number; source: string; note: string }; positions: (RealPosition & { hfOnchain: number | null })[] };
+type Book = { block: number; totals: { selfDebtExcluded: { positions: number; debtUsd: number } | null; dustDropped: { positions: number; debtUsd: number } | null }; reserves: { priceUsd8: string }[]; depth: { depthUsd: number; source: string; note: string }; positions: (RealPosition & { hfOnchain: number | null })[] };
 type Liq = { block: number; time: string; tx: string; user: string; collateral: string; collateralAsset: string; debt: string; debtUsd: number; collateralUsd: number };
 
 const read = <T>(f: string) => JSON.parse(readFileSync(path.join(DATA_DIR, f), "utf8")) as T;
 const book = read<Book>("oct10-weth.json");
-const price = read<{ bookPriceUsd: number; low: { block: number; time: string; priceUsd: number }; drawdownBps: number }>("oct10-ethusd.json");
+const price = read<{
+  bookPriceUsd: number;
+  low: { block: number; time: string; priceUsd: number };
+  drawdownBps: number;
+  pinned: { symbol: string; description: string; bookPriceUsd: number; lowPriceUsd: number }[];
+  updates: { block: number; time: string; priceUsd: number }[];
+}>("oct10-ethusd.json");
 const liqs = read<{ liquidations: Liq[] }>("oct10-liquidations.json").liquidations;
 
 const usd = (wad: bigint) => Number(wad / 10n ** 12n) / 1e6;
@@ -132,6 +138,25 @@ const curve = [500, 800, 1_000, 1_200, price.drawdownBps, 1_600, 2_000].map((bps
 });
 const stepsSensitivity = [20, 50, 100].map((steps) => ({ steps, liquidatedUsd: usd(run(price.drawdownBps, steps).totalLiquidated) }));
 
+// The night on one axis: Chainlink ETH/USD and liquidated debt per 2 minutes, 20:30-22:30 UTC.
+const T0 = Date.parse("2025-10-10T20:30:00Z");
+const T1 = Date.parse("2025-10-10T22:30:00Z");
+const BIN = 2 * 60_000;
+const bins = Array.from({ length: (T1 - T0) / BIN }, (_, i) => ({ t: new Date(T0 + i * BIN).toISOString(), allUsd: 0, wethUsd: 0 }));
+for (const l of liqs) {
+  const i = Math.floor((Date.parse(l.time) - T0) / BIN);
+  if (i < 0 || i >= bins.length) continue;
+  bins[i].allUsd += l.debtUsd;
+  if (l.collateral === "WETH") bins[i].wethUsd += l.debtUsd;
+}
+const before = price.updates.filter((u) => Date.parse(u.time) < T0).at(-1);
+const timeline = {
+  from: new Date(T0).toISOString(),
+  to: new Date(T1).toISOString(),
+  price: [...(before ? [{ ...before, time: new Date(T0).toISOString() }] : []), ...price.updates.filter((u) => Date.parse(u.time) >= T0 && Date.parse(u.time) < T1)].map((u) => ({ t: u.time, usd: u.priceUsd })),
+  liquidations: bins.map((b) => ({ t: b.t, allUsd: Math.round(b.allUsd), wethUsd: Math.round(b.wethUsd) })),
+};
+
 const out = {
   generatedAt: new Date().toISOString(),
   event: "Aave V3 Ethereum, 10-11 October 2025",
@@ -142,6 +167,8 @@ const out = {
     debtUsd: Math.round(usd(main.totalDebt)),
     priceUsd: price.bookPriceUsd,
     scope: "Borrowers whose dominant collateral is WETH; ETH-correlated debt loops and dust < $100 excluded (fetch-eth-syrup.ts).",
+    excludedLoops: book.totals.selfDebtExcluded,
+    excludedDust: book.totals.dustDropped,
   },
   scenario: {
     shockBps: price.drawdownBps,
@@ -173,6 +200,7 @@ const out = {
     allWethCollateral: { liquidations: wethLiqs.length, debtUsd: Math.round(wethLiqs.reduce((s, l) => s + l.debtUsd, 0)) },
     wethCollateralOutsideBook: { liquidations: wethOutside.length, users: new Set(wethOutside.map((l) => l.user)).size, debtUsd: Math.round(wethOutside.reduce((s, l) => s + l.debtUsd, 0)) },
     crashShareOfWeth: wethLiqs.length ? crash.filter((l) => l.collateral === "WETH").reduce((s, l) => s + l.debtUsd, 0) / wethLiqs.reduce((s, l) => s + l.debtUsd, 0) : 0,
+    pinned: price.pinned,
     usde: { liquidations: liqs.filter((l) => l.collateral === "USDe" || l.collateral === "sUSDe").length, debtUsd: Math.round(liqs.filter((l) => l.collateral === "USDe" || l.collateral === "sUSDe").reduce((s, l) => s + l.debtUsd, 0)) },
   },
   match: {
@@ -184,6 +212,7 @@ const out = {
   },
   curve,
   stepsSensitivity,
+  timeline,
 };
 writeFileSync(path.join(DATA_DIR, "oct10-replay.json"), JSON.stringify(out, null, 1));
 

@@ -16,6 +16,7 @@ const PAGE_LABEL: Record<RouteId, (t: CommonMessages) => string> = {
   app: (t) => t.nav.console,
   wallet: (t) => t.nav.wallet,
   guard: (t) => t.nav.guard,
+  replay: (t) => t.nav.replay,
   how: (t) => t.nav.how,
 };
 
