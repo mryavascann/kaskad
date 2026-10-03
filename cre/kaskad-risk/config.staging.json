@@ -12,7 +12,7 @@
     "riskOracle": "0x0275C5b49f48D4ec9aE85D50785D160aaA1161e5",
     "guardV2": "0x874d38464c5845950c8693C35034E53279C2DAfc",
     "riskVault": "0x2aEa83Fc7F9834af61F7BbbBaF03707A6472a8C4",
-    "receiver": "0x0000000000000000000000000000000000000000",
+    "receiver": "0xfdef473e3C03F42A2bC9ad5eC1e4f3b02f9c2e86",
     "markets": [
       {
         "address": "0x80E3c0a78E86686CA6309A3CAdA587c2DCf45074",
