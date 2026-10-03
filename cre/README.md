@@ -52,4 +52,11 @@ cd .. && cre workflow simulate kaskad-risk --target staging-settings --non-inter
 
 ## Run logs
 
-`runs/` holds the logs of the simulations above, with the transactions they produced.
+`runs/` holds the logs of these simulations on Monad testnet, with the transactions they produced:
+
+| Log | Trigger | Decision | On chain |
+|---|---|---|---|
+| `01-cron-stale-broadcast.log` | cron | both reports older than 6 h → publish syrupUSDC + WETH, guard, vault | [`0x0716…c5b5`](https://testnet.monadscan.com/tx/0x07161a3ab2b540af3e1177e40161027893e800a9551df37bb019f8e38f89c5b5): syrupUSDC LTV 85% → 80%, market stays paused |
+| `02-book-event-cooldown.log` | Kaskad `PositionsLoaded` (syrupUSDC) | inside the oracle's cooldown → wait, no report | — |
+| `03-book-event-broadcast.log` | same event, after the cooldown | publish syrupUSDC, guard, vault | [`0xd724…55db`](https://testnet.monadscan.com/tx/0xd7249a005920b4769d98789991c62857f90601dfa474a1c4d7692608716055db): syrupUSDC LTV 80% → 75% |
+| `04-cron-steady.log` | cron | everything agrees with the books → no report, no gas | — |

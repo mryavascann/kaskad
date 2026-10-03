@@ -1,0 +1,17 @@
+$ cre workflow simulate kaskad-risk --target staging-settings --non-interactive --trigger-index 1 --evm-tx-hash 0x3bdabbe0e5287a3cb5099ab6b9bbc9234339e191bad56aef32ce306106f47a36 --evm-event-index 0 --broadcast
+2026-10-04T01:58:30Z [SIMULATION] Running trigger trigger=evm:ChainSelector:2183018362218727504@1.0.0
+2026-10-04T01:58:30Z [USER LOG] book event for asset 9: re-assessing
+2026-10-04T01:58:31Z [USER LOG] asset 9: -10% preview bad $17.7K, hidden $8.8M, stuck $96.8M of $123.7M -> loss 7.1%, stuck 78.2%, AT RISK (stored: at risk, LTV 80%) => publish (bookChanged)
+2026-10-04T01:58:31Z [USER LOG] asset 5: -10% preview bad $0, hidden $0, stuck $0 of $2.1M -> loss 0%, stuck 0%, clear (stored: clear, LTV 90%) => steady
+2026-10-04T01:58:31Z [USER LOG] market 0x80E3c0a78E86686CA6309A3CAdA587c2DCf45074 (asset 9): paused, vault keeps out, vault deposit 0
+2026-10-04T01:58:31Z [USER LOG] market 0x03AC872EF1A2a77ECa869A0F8aC7c9b9F9727842 (asset 5): open, vault may lend, vault deposit 1000000000000
+2026-10-04T01:58:31Z [USER LOG] report (bookChanged): publish [9], guard true, vault true, gas limit 3400000
+2026-10-04T01:58:32Z [USER LOG] report written: 0xd7249a005920b4769d98789991c62857f90601dfa474a1c4d7692608716055db
+✓ Workflow Simulation Result:
+"sent bookChanged 0xd7249a005920b4769d98789991c62857f90601dfa474a1c4d7692608716055db"
+
+# On chain (tx status 1):
+#   ReportReceived reason=4 (bookChanged), publishes=1
+#   Published asset 9: atRisk=true, recommended LTV 7500 (80% -> 75%)
+#   GuardRefreshed tripped=1 recovered=0
+#   VaultRebalanced
