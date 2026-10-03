@@ -1,0 +1,9 @@
+$ cre workflow simulate kaskad-risk --target staging-settings --non-interactive --trigger-index 0
+2026-10-04T01:58:49Z [SIMULATION] Running trigger trigger=cron-trigger@1.0.0
+2026-10-04T01:58:49Z [USER LOG] asset 9: -10% preview bad $17.7K, hidden $8.8M, stuck $96.8M of $123.7M -> loss 7.1%, stuck 78.2%, AT RISK (stored: at risk, LTV 75%) => steady
+2026-10-04T01:58:49Z [USER LOG] asset 5: -10% preview bad $0, hidden $0, stuck $0 of $2.1M -> loss 0%, stuck 0%, clear (stored: clear, LTV 90%) => steady
+2026-10-04T01:58:49Z [USER LOG] market 0x80E3c0a78E86686CA6309A3CAdA587c2DCf45074 (asset 9): paused, vault keeps out, vault deposit 0
+2026-10-04T01:58:49Z [USER LOG] market 0x03AC872EF1A2a77ECa869A0F8aC7c9b9F9727842 (asset 5): open, vault may lend, vault deposit 1000000000000
+2026-10-04T01:58:49Z [USER LOG] no report: oracle, guard and vault already agree with the books
+✓ Workflow Simulation Result:
+"noop"

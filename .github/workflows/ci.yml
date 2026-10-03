@@ -48,3 +48,17 @@ jobs:
         working-directory: scripts
       - run: npx tsc --noEmit
         working-directory: scripts
+
+  cre:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: cre/kaskad-risk
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bun test
+      - run: bunx tsc --noEmit
+      # The same compile `cre workflow simulate` runs: bundles, rejects non-WASM APIs, builds the WASM.
+      - run: bun x cre-compile main.ts dist/workflow.wasm

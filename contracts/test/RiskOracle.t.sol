@@ -11,7 +11,8 @@ import {MockMarketV2} from "../src/MockMarketV2.sol";
 import {MockUSD} from "../src/MockUSD.sol";
 import {RiskVault} from "../src/RiskVault.sol";
 
-contract RiskOracleTest is Base {
+/// @dev The A6 system on a synthetic book: shared by the RiskOracle and CRE receiver tests.
+abstract contract RiskSetup is Base {
     KaskadMC internal mc;
     KaskadMCv3 internal v3;
     RiskOracle internal oracle;
@@ -23,7 +24,7 @@ contract RiskOracleTest is Base {
 
     uint16 internal constant STEP = 500;
 
-    function setUp() public override {
+    function setUp() public virtual override {
         super.setUp();
         vm.startPrank(owner);
         kaskad.setAsset(SYRUP, 1e18, 2_000_000e18); // thin exit pool: cascades get stuck
@@ -82,7 +83,9 @@ contract RiskOracleTest is Base {
             minInterval: 1 hours
         });
     }
+}
 
+contract RiskOracleTest is RiskSetup {
     // ------------------------------------------------------------------ KaskadMCv3
 
     function test_v3_sameCascadeAsKaskadMC() public view {
