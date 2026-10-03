@@ -111,7 +111,7 @@ Budget of all live checks: 26 HTTP requests / 48 JSON-RPC calls (`eth_call`, `et
 | Where | Codes |
 |---|---|
 | `TxEvent.step` | `preparing` (guard preview), `funding` (sponsor top-up), `signing` (`detail: mera | wallet`), `sending` (`detail: sync`), `confirming` (wallet tx, polling the receipt), `confirmed`, `failed` (`detail`: error code or `reverted`), `unknown` (unmapped string; `raw` keeps it) |
-| `TxErrorCode` | `borrow-paused`, `out-of-gas`, `funding-failed` (`detail`: `rate-limited`, `sponsor-empty`, `already-funded`, `unconfigured`, `invalid-request`, `timeout`, `failed`), `insufficient-balance`, `no-wallet`, `mera-locked`, `rejected`, `rate-limited`, `unknown` |
+| `TxErrorCode` | `borrow-paused`, `too-soon`, `out-of-gas`, `funding-failed` (`detail`: `rate-limited`, `sponsor-empty`, `already-funded`, `unconfigured`, `invalid-request`, `timeout`, `failed`), `insufficient-balance`, `no-wallet`, `mera-locked`, `rejected`, `rate-limited`, `unknown` |
 | `TxOutcome.status` | `confirmed` (+ decoded event / markets), `reverted` (still costs MON), `cancelled` (`declined`, `confirm-required`, `unavailable`), `failed` |
 | `PreviewErrorCode` | `out-of-gas`, `failed` (+ `raw`, `shortMessage`) |
 | `PositionErrorCode` | `invalid-address`, `rate-limited`, `unconfigured`, `upstream`, `failed` |

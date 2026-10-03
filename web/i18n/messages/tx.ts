@@ -34,6 +34,7 @@ const en = {
   },
   errors: {
     "borrow-paused": "Reverted: BorrowIsPaused. The Guard has paused this market.",
+    "too-soon": "Reverted: TooSoon. This asset was published moments ago; the cooldown is still running. Nothing was spent.",
     "out-of-gas": "Does not fit in one transaction (30M gas).",
     "funding-failed": "The sponsor could not top up the gas.",
     "insufficient-balance": "Not enough testnet MON in this wallet.",
@@ -90,6 +91,7 @@ const tr = {
   },
   errors: {
     "borrow-paused": "Revert: BorrowIsPaused. Guard bu piyasayı durdurdu.",
+    "too-soon": "Revert: TooSoon. Bu varlık az önce yayınlandı, bekleme süresi dolmadı. Hiçbir şey harcanmadı.",
     "out-of-gas": "Tek işleme sığmıyor (30M gas).",
     "funding-failed": "Sponsor gas'ı yükleyemedi.",
     "insufficient-balance": "Bu cüzdanda yeterli testnet MON yok.",

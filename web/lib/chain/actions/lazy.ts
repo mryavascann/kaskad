@@ -14,9 +14,11 @@ import type { MonteCarloResult, Result, Scenario } from "../types";
 import type { BorrowOutcome } from "./borrow";
 import type { ProveMonteCarloOutcome } from "./proveMonteCarlo";
 import type { ProveScenarioOutcome } from "./proveScenario";
+import type { RiskAsset } from "../risk-oracle";
+import type { RiskActionOutcome } from "./risk";
 import type { RunGuardOutcome } from "./runGuard";
 
-export type { BorrowOutcome, ProveMonteCarloOutcome, ProveScenarioOutcome, RunGuardOutcome };
+export type { BorrowOutcome, ProveMonteCarloOutcome, ProveScenarioOutcome, RiskActionOutcome, RunGuardOutcome };
 export { proveMonteCarloGasLimit, proveScenarioGasLimit } from "./gas";
 
 const loaders = {
@@ -24,6 +26,7 @@ const loaders = {
   proveMonteCarlo: () => import("./proveMonteCarlo"),
   runGuard: () => import("./runGuard"),
   borrow: () => import("./borrow"),
+  risk: () => import("./risk"),
 };
 
 /** Starts loading an action module (and, for sends, the signer) ahead of the click. */
@@ -74,4 +77,39 @@ export async function borrow(market: Address, opts: TxOptions & { reader?: Chain
     return failBeforeSend(e, opts);
   }
   return mod.borrow(market, opts);
+}
+
+type RiskOpts = TxOptions & { reader?: ChainReader; account?: Address };
+
+/** lib/chain/actions/risk.ts publishRisk, loaded on first use. Spends MON when the free pre-check passes. */
+export async function publishRisk(asset: Pick<RiskAsset, "assetId" | "rule" | "bookPositions">, opts: RiskOpts = {}): Promise<RiskActionOutcome> {
+  let mod: Awaited<ReturnType<typeof loaders.risk>>;
+  try {
+    mod = await loaders.risk();
+  } catch (e) {
+    return failBeforeSend(e, opts);
+  }
+  return mod.publishRisk(asset, opts);
+}
+
+/** lib/chain/actions/risk.ts refreshGuardV2, loaded on first use. Spends MON. */
+export async function refreshGuardV2(opts: RiskOpts = {}): Promise<RiskActionOutcome> {
+  let mod: Awaited<ReturnType<typeof loaders.risk>>;
+  try {
+    mod = await loaders.risk();
+  } catch (e) {
+    return failBeforeSend(e, opts);
+  }
+  return mod.refreshGuardV2(opts);
+}
+
+/** lib/chain/actions/risk.ts rebalanceVault, loaded on first use. Spends MON. */
+export async function rebalanceVault(opts: RiskOpts = {}): Promise<RiskActionOutcome> {
+  let mod: Awaited<ReturnType<typeof loaders.risk>>;
+  try {
+    mod = await loaders.risk();
+  } catch (e) {
+    return failBeforeSend(e, opts);
+  }
+  return mod.rebalanceVault(opts);
 }

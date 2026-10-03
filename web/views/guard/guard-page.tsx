@@ -7,6 +7,7 @@ import { guardMessages } from "@/i18n/messages/guard";
 import { PROOF_TXS, readProof, type ProofRecord } from "@/lib/chain/proofs";
 import { txUrl } from "@/lib/kaskad/config";
 import { GuardLive } from "./guard-live";
+import { RiskOracleLive } from "./risk-oracle-live";
 
 async function guardProof(): Promise<ProofRecord | null> {
   const entry = PROOF_TXS.find((p) => p.id === "guard");
@@ -29,9 +30,20 @@ export async function GuardPage({ locale }: { locale: Locale }) {
 
       <GuardLive locale={locale} />
 
+      <section aria-labelledby="guard-oracle" className="mt-20 flex flex-col gap-8 border-t border-line pt-12">
+        <div className="max-w-3xl">
+          <Eyebrow index="01">{t.oracle.title}</Eyebrow>
+          <h2 id="guard-oracle" className="mt-4 text-title-1 text-fg-1">
+            {t.oracle.title}
+          </h2>
+          <p className="mt-4 text-body text-fg-2">{t.oracle.lead}</p>
+        </div>
+        <RiskOracleLive locale={locale} />
+      </section>
+
       <section aria-labelledby="guard-how" className="mt-20 grid-page gap-y-8 border-t border-line pt-12">
         <div className="col-span-full lg:col-span-4">
-          <Eyebrow index="01">{t.how.title}</Eyebrow>
+          <Eyebrow index="02">{t.how.title}</Eyebrow>
           <h2 id="guard-how" className="mt-4 text-title-1 text-fg-1">
             {t.how.title}
           </h2>
@@ -50,7 +62,7 @@ export async function GuardPage({ locale }: { locale: Locale }) {
 
       <section aria-labelledby="guard-proof" className="mt-16 grid-page gap-y-6 border-t border-line pt-12">
         <div className="col-span-full lg:col-span-4">
-          <Eyebrow index="02">{t.proof.title}</Eyebrow>
+          <Eyebrow index="03">{t.proof.title}</Eyebrow>
           <h2 id="guard-proof" className="mt-4 text-title-2 text-fg-1">
             {t.proof.title}
           </h2>

@@ -32,6 +32,11 @@ describe("txError", () => {
     expect(txError(e)).toEqual({ code: "borrow-paused", raw: e.message });
   });
 
+  it("RiskOracle cooldown revert", () => {
+    const e = new Error('The contract function "publish" reverted.\n\nError: TooSoon(uint64 nextAt)\n                (1791043526)');
+    expect(txError(e)).toEqual({ code: "too-soon", raw: e.message });
+  });
+
   it("user rejection anywhere in the cause chain, or no account selected", () => {
     const inner = Object.assign(new Error("User rejected the request."), { code: 4001 });
     const outer = Object.assign(new Error("Transaction failed"), { cause: inner });
