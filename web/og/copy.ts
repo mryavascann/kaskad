@@ -4,7 +4,7 @@
  */
 import type { Locale } from "@/i18n/config";
 
-export type OgPage = "home" | "app" | "wallet" | "guard" | "replay" | "how";
+export type OgPage = "home" | "app" | "wallet" | "guard" | "perps" | "replay" | "how";
 
 const en = {
   brand: "Kaskad",
@@ -30,6 +30,11 @@ const en = {
       kicker: "KaskadGuard",
       title: "A circuit breaker that reads the cascade.",
       alt: "KaskadGuard: an on-chain circuit breaker that runs the cascade and pauses borrowing when bad debt crosses its threshold.",
+    },
+    perps: {
+      kicker: "Perpl · Monad mainnet · live",
+      title: "Where Perpl's liquidations sit.",
+      alt: "Live liquidation map of Perpl on Monad: where every open position would be liquidated and what the order book and insurance fund can absorb.",
     },
     replay: {
       kicker: "Replay · 10 October 2025",
@@ -88,6 +93,11 @@ const tr = {
       kicker: "KaskadGuard",
       title: "Kaskadı okuyan bir devre kesici.",
       alt: "KaskadGuard: kaskadı çalıştıran ve karşılıksız borç eşiği aşılınca borç vermeyi durduran zincir üstü devre kesici.",
+    },
+    perps: {
+      kicker: "Perpl · Monad mainnet · canlı",
+      title: "Perpl'ın likidasyonları nerede?",
+      alt: "Monad'daki Perpl'ın canlı likidasyon haritası: her açık pozisyon nerede likide olur, order book ve sigorta fonu ne kadarını karşılar.",
     },
     replay: {
       kicker: "Replay · 10 Ekim 2025",
