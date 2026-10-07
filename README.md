@@ -147,6 +147,16 @@ The same project evidence supports **Grand Champion** consideration. **Community
 
 The Perpl panel refreshes every 10 seconds, with an 8-second server cache per market. Its **5% order-book execution band is a model assumption**; current-book absorption and insurance calculations are stress scenarios, not a guarantee of future fills or backstop capacity.
 
+### Perpl wallet risk
+
+Below the protocol panel, **Wallet risk on Perpl** accepts a public wallet address without connecting or signing. It shows the Perpl account's available and order-locked balances, position equity, gross notional, liquidation prices, adverse distances to liquidation, and threshold exposure under ±5%, ±10%, and ±20% price moves. The section supports English and Turkish.
+
+[`/api/perpl/wallet`](web/app/api/perpl/wallet/route.ts) reads the account, active positions, marks, and maintenance parameters at **one Monad mainnet block**. It uses the existing server-only `MONAD_MAINNET_RPC`. The [reader](web/lib/kaskad/perpl-wallet.ts) follows the account bitmap and ABI in the [official Perpl SDK](https://github.com/PerplFoundation/dex-sdk/tree/01b9910761755b0a0d9c710c1ede62ab937daa7d/crates/sdk). Coverage is BTC, ETH, SOL, MON, HYPE, and ZEC; active markets outside that set produce an explicit partial-coverage warning. Missing accounts, accounts without supported open positions, and failed reads have separate states. Failed refreshes retain the last successful result with a warning and its block/time.
+
+The [wallet model](web/lib/chain/perpl-wallet-risk.ts) uses each position's isolated collateral and current funding. Free account balance is not added to position margin. Shock totals represent the **current notional of positions crossing their liquidation thresholds**, not estimated losses or executable liquidation proceeds. The same signed move applies to all supported markets; future funding, fees, borrower actions, and execution are excluded.
+
+Submitted addresses reach Kaskad's server and RPC provider; they are not saved in browser storage. The view refreshes every 10 seconds while visible. Its separate bounded server cache lasts 8 seconds, and its 30-requests/minute limit is **per server instance**, not a shared production limiter.
+
 The watchlist encrypts addresses and labels in the browser. Its storage endpoint keeps ciphertext, an opaque ID, and a write-token hash; it does not receive the plaintext list. Explicit address-risk checks still send the address being queried to `/api/position`.
 
 ## Deployments and proof transactions

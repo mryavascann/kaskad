@@ -4,6 +4,7 @@ import type { Locale } from "@/i18n/config";
 import { perpsMessages } from "@/i18n/messages/perps";
 import { PERPL_API, PERPL_EXCHANGE } from "@/lib/kaskad/perpl";
 import { PerpsPanel } from "./perps-panel";
+import { PerplWalletPanel } from "./perpl-wallet-panel";
 
 const MONADSCAN = "https://monadscan.com";
 
@@ -45,6 +46,8 @@ export function PerpsPage({ locale }: { locale: Locale }) {
           </div>
         </div>
       </section>
+
+      <PerplWalletPanel locale={locale} />
     </div>
   );
 }
