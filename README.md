@@ -223,7 +223,7 @@ Create **`web/.env.local` yourself**, using your own server-side values:
 | `MONAD_TESTNET_RPC` | Testnet RPC URL for `/api/rpc` and gas sponsorship; the project's provider setup uses Alchemy. |
 | `MONAD_MAINNET_RPC` | Mainnet RPC URL for Aave address lookups and Perpl reads. |
 | `SPONSOR_PRIVATE_KEY` | Funded testnet sponsor key, needed for gas top-ups when signing. It is separate from the user's passkey key. |
-| `KV_REST_API_URL` + `KV_REST_API_TOKEN` | Persistent encrypted watchlists through Vercel KV/Upstash. Alternatively use `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN`. |
+| `KV_REST_API_URL` + `KV_REST_API_TOKEN` | Required in production for shared RPC/sponsor protection and persistent encrypted watchlists. Use a writable Upstash REST token with Lua/SET access. Alternatively use the complete `UPSTASH_REDIS_REST_URL` + `UPSTASH_REDIS_REST_TOKEN` pair. |
 
 ```bash
 npm --prefix web run dev
@@ -232,6 +232,25 @@ npm --prefix web run dev
 Open [localhost:3000](http://localhost:3000). Restart the development server after changing environment variables. Without KV, development watchlists use process memory; production returns **503 / unconfigured**. Do not set `NEXT_PUBLIC_DEV_SIGNERS` in production: `NEXT_PUBLIC_DEV_SIGNERS=1` exposes additional development signers. Do not place private keys or authenticated RPC URLs in `NEXT_PUBLIC_*` variables.
 
 Some server-rendered previews use the public testnet RPC by default; browser reads use `/api/rpc`. The deployed contracts already contain books, so starting the web app does not require fetching or loading positions again.
+
+### API and sponsor protection
+
+`/api/rpc` and `/api/fund` share Redis counters across server instances. Quota reservations are atomic Lua operations; sponsor nonce/balance checks and broadcasts share an expiring owner-token lock. Production fails closed with **503** if KV credentials are absent, incomplete, or the store is unavailable. Only development/tests may fall back to bounded process memory when no KV credentials are configured. Existing `/api/perpl`, `/api/perpl/wallet`, `/api/position` and `/api/watchlist` rate limits are still per instance.
+
+| Control | Limit |
+|---|---|
+| RPC | 60 HTTP requests and 180 JSON-RPC items per IP per 10-second counter window; at most 10 items per batch; 256 KiB request body. Invalid requests also consume the HTTP quota. |
+| Contract calls | Deployed Kaskad testnet addresses and ABI functions only; at most 30M gas. Multicall3 `aggregate3` is allowed only after validating every inner target/function, up to 128 calls; nested multicalls and state overrides are rejected. |
+| Signed transactions | Signed EIP-1559 transactions for chain 10143, zero MON value, and the app's public simulate/publish/refresh/borrow/rebalance actions only. No contract creation, administrative calls, token transfers, legacy transactions or EIP-7702 delegations. |
+| Sponsor requests | 8 POST requests per IP per 10 minutes; 2 KiB body. Public status GETs: 20 per IP per 10 seconds. |
+| Sponsor payments | At most 1 MON per payment, 5 grant attempts per recipient per 10 minutes, and 20 grant attempts per sponsor per 24-hour counter window. The latter caps grants at 20 MON plus at most 0.063 MON transfer gas. Windows start with the first counted attempt, not at midnight. |
+| Balance protection | Recipient target at most 4.5 MON; preserve 10 MON in the sponsor plus the pending transfer's maximum gas fee. The client confirms each installment, up to five, before requesting another. |
+
+Grant quotas are reserved before signing and are not refunded after a failure or uncertain result. An uncertain broadcast retains the remaining 120-second lock; an outstanding pending nonce blocks further payments. Use a dedicated sponsor account and the **same Redis database for every deployment using that account**, including previews. This remains a public testnet gas faucet with spending caps, not recipient authentication or protection against a coordinated denial of service. Native MON already granted to a recipient cannot be restricted to Kaskad actions by this relay.
+
+Client identity prefers `x-real-ip`, normalizes IP spellings and hashes the counter key. On Vercel, the platform supplies this header; another host must strip untrusted forwarding headers at its proxy. Responses use `no-store`; upstream failure messages are replaced with safe messages while retaining revert bytes for contract-error decoding. Implementation: [`rpc-policy.ts`](web/lib/server/rpc-policy.ts), [`protection.ts`](web/lib/server/protection.ts), [`fund/route.ts`](web/app/api/fund/route.ts). Provider references: [Vercel request headers](https://vercel.com/docs/headers/request-headers), [Upstash REST API](https://upstash.com/docs/redis/features/restapi), [atomic Lua execution](https://upstash.com/docs/redis/sdks/ts/commands/scripts/eval).
+
+Before deployment, configure the writable REST credential pair in Vercel's **Preview and Production** environments using the dashboard; never commit credentials. Verify a harmless `eth_chainId` through the preview `/api/rpc` returns 10143 (`0x279f`), a foreign-target `eth_call` and an 11-item batch return 400, and `/api/fund` GET returns public status. These checks spend no MON. A real funding smoke test is a separate, approved testnet transaction. The Redis integration tests run in CI; locally, with Redis binaries installed, run `KASKAD_REDIS_BIN=/path/to/redis/bin npx vitest run lib/server/protection.redis.test.ts` from `web/`. They start a disposable Unix-socket-only Redis and remove it afterwards.
 
 ### Data scripts and historical replay
 
@@ -287,7 +306,7 @@ As of **7 October 2026**:
 
 - Complete and verify the Nansen integration after a valid API key is configured.
 - Add the continuous Envio HyperIndex/keeper pipeline and source-block freshness indicator.
-- Move API rate limits from process memory to shared storage; tighten RPC target/batch restrictions and sponsor grant limits. Existing method allowlisting is not a contract-address allowlist.
+- Extend the shared RPC/sponsor limiter to the remaining API routes, whose rate limits are still per instance.
 - Verify production Upstash/Vercel configuration for persistent watchlists and maintain the demo's testnet gas budget.
 - Add the final demo video, at most three minutes, and complete the submission materials.
 

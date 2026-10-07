@@ -5,13 +5,15 @@ import { generatePrivateKey, privateKeyToAccount, type PrivateKeyAccount } from 
 import { monadTestnet } from "viem/chains";
 import { TESTNET_RPC } from "./config";
 import { sendRawSync, MAX_FEE_PER_GAS, MAX_PRIORITY_FEE_PER_GAS, type SendResult } from "./tx";
+import { RPC_BATCH_LIMIT } from "@/lib/chain/api-policy";
+import { fundToTarget } from "@/lib/chain/funding";
 
 // Testnet-only throwaway key for this app. It only ever pays gas; it never transfers MON.
 const KEY = "kaskad.burner.v1";
 
 export const publicClient = createPublicClient({
   chain: monadTestnet,
-  transport: http(TESTNET_RPC, { batch: true }),
+  transport: http(TESTNET_RPC, { batch: { batchSize: RPC_BATCH_LIMIT } }),
 }) as PublicClient;
 
 let account: PrivateKeyAccount | null = null;
@@ -42,27 +44,23 @@ export type Status = (s: string) => void;
  */
 export async function ensureFunded(needWei: bigint, onStatus: Status, address?: Address): Promise<void> {
   const target = address ?? getBurner().address;
-  let bal = await publicClient.getBalance({ address: target });
-  if (bal >= needWei) return;
-  onStatus("Burner cüzdan hazırlanıyor (sponsor fonluyor)…");
-  const res = await fetch("/api/fund", {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ address: target, needWei: needWei.toString() }),
+  return fundToTarget(needWei, {
+    balance: () => publicClient.getBalance({ address: target }),
+    waiting: () => onStatus("Burner cüzdan hazırlanıyor (sponsor fonluyor)…"),
+    sleep: (ms) => new Promise((r) => setTimeout(r, ms)),
+    topUp: async () => {
+      const res = await fetch("/api/fund", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ address: target, needWei: needWei.toString() }),
+        signal: AbortSignal.timeout(60_000),
+      });
+      const body = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(body?.error ?? `fonlama başarısız (${res.status})`);
+      if (!body || typeof body !== "object") throw new Error("fonlama başarısız");
+      return body;
+    },
   });
-  const body = (await res.json().catch(() => ({}))) as { error?: string };
-  if (!res.ok) throw new Error(body.error ?? `fonlama başarısız (${res.status})`);
-  // Newly funded accounts need ~3 blocks before they can send; wait until we see the balance.
-  const t0 = Date.now();
-  while (Date.now() - t0 < 20_000) {
-    await new Promise((r) => setTimeout(r, 400));
-    bal = await publicClient.getBalance({ address: target });
-    if (bal >= needWei) {
-      await new Promise((r) => setTimeout(r, 1_000));
-      return;
-    }
-  }
-  throw new Error("fonlama zaman aşımı");
 }
 
 /** One tx at a time per burner; local nonce, fixed gas and fees, sync send. */
