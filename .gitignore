@@ -21,6 +21,7 @@ contracts/broadcast/**/dry-run/
 
 # data dumps
 scripts/data/*.raw.json
+scripts/.local/
 
 # Playwright MCP snapshots and logs
 .playwright-mcp/
