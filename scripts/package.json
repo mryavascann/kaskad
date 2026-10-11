@@ -3,6 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "budget": "tsx src/budget.ts",
+    "test": "tsx --test src/lib/*.test.ts",
     "fetch": "tsx src/fetch-positions.ts",
     "depth": "tsx src/fetch-depth.ts",
     "typecheck": "tsc --noEmit",

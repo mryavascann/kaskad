@@ -252,6 +252,26 @@ Client identity prefers `x-real-ip`, normalizes IP spellings and hashes the coun
 
 Before deployment, configure the writable REST credential pair in Vercel's **Preview and Production** environments using the dashboard; never commit credentials. Verify a harmless `eth_chainId` through the preview `/api/rpc` returns 10143 (`0x279f`), a foreign-target `eth_call` and an 11-item batch return 400, and `/api/fund` GET returns public status. These checks spend no MON. A real funding smoke test is a separate, approved testnet transaction. The Redis integration tests run in CI; locally, with Redis binaries installed, run `KASKAD_REDIS_BIN=/path/to/redis/bin npx vitest run lib/server/protection.redis.test.ts` from `web/`. They start a disposable Unix-socket-only Redis and remove it afterwards.
 
+### Sponsor budget check
+
+Run the read-only monitor without a signing key or any environment file:
+
+```bash
+npm --prefix web ci
+npm --prefix scripts ci
+npm --prefix scripts run budget
+npm --prefix scripts run budget -- --daily-mon 0.5 --until 2026-11-03
+npm --prefix scripts run budget -- --json --check
+```
+
+It only calls the public `GET /api/fund`. It reports the reserve, a final-transfer gas buffer, balance-limited full grants, the top-up needed for the chosen plan, and the affordable daily budget through the selected date. The default **1 MON/day including gas is a planning assumption**, not measured consumption. The default horizon includes the whole of **3 November 2026 in Istanbul (UTC+03:00)**. Future deposits/faucet receipts are not assumed. `--check` exits 2 if the plan needs more funds, 1 for an error, and 0 otherwise.
+
+Each successful check atomically saves a public balance snapshot under gitignored `scripts/.local/sponsor-budget.json`. After a matching site/sponsor sample is at least 24 hours old (and no older than seven days), the report also shows the observed net balance change and its daily equivalent. **Deposits can mask spending**; this is not gross transaction accounting and is never used as the runway forecast. No automatic schedule or alerts are installed: run the command again to collect another measurement. A stale `.lock` after a crash should only be removed after confirming no budget command is still running.
+
+Use `--site https://your-deployment.example` for another accessible deployment, `--state /path/to/history.json` for a separate history, and `--help` for options. Protected previews need authorized access; the CLI refuses redirects and does not accept credentials or tokens in site URLs. The script shares the sponsor policy constants with the API and rejects inconsistent status responses. It never funds an account, signs, or broadcasts a transaction.
+
+The budget command's planning parameters do not change the API's enforced grant limits.
+
 ### Data scripts and historical replay
 
 Scripts read **repo-root `.env`**, not `web/.env.local`. For Monad borrower discovery, configure `MONAD_MAINNET_RPC` and `ENVIO_API_TOKEN` there.
@@ -284,6 +304,7 @@ From the repository root:
 (cd contracts && forge fmt --check)
 (cd contracts && forge test --no-match-contract 'GasBench|Profile')
 (cd scripts && npx tsc --noEmit)
+(cd scripts && npm test)
 (cd cre/kaskad-risk && bun install --frozen-lockfile)
 (cd cre/kaskad-risk && bun test)
 (cd cre/kaskad-risk && bunx tsc --noEmit)
@@ -302,12 +323,12 @@ This higher limit is only for the local test harness; it does not demonstrate th
 
 ## Remaining work
 
-As of **7 October 2026**:
+As of **11 October 2026**:
 
 - Complete and verify the Nansen integration after a valid API key is configured.
 - Add the continuous Envio HyperIndex/keeper pipeline and source-block freshness indicator.
 - Extend the shared RPC/sponsor limiter to the remaining API routes, whose rate limits are still per instance.
-- Verify production Upstash/Vercel configuration for persistent watchlists and maintain the demo's testnet gas budget.
+- Verify end-to-end persistent watchlists and maintain the demo's testnet gas budget with `npm --prefix scripts run budget`.
 - Add the final demo video, at most three minutes, and complete the submission materials.
 
 ## Repository map

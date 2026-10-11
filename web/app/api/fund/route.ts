@@ -1,17 +1,17 @@
-import { createPublicClient, http, isAddress, parseEther, zeroAddress, type Hex, type PublicClient } from "viem";
+import { createPublicClient, http, isAddress, zeroAddress, type Hex, type PublicClient } from "viem";
 import { privateKeyToAccount } from "viem/accounts";
 import { monadTestnet } from "viem/chains";
 import { sendRawSync, MAX_FEE_PER_GAS, MAX_PRIORITY_FEE_PER_GAS } from "@/lib/kaskad/tx";
-import { SPONSOR_GRANT_WEI, SPONSOR_TARGET_WEI, SPONSOR_TOP_UPS } from "@/lib/chain/api-policy";
+import {
+  SPONSOR_GRANT_WEI, SPONSOR_TARGET_WEI, SPONSOR_TOP_UPS,
+  SPONSOR_RESERVE_WEI as RESERVE, SPONSOR_MIN_GRANT_WEI as MIN_GRANT,
+  SPONSOR_TRANSFER_GAS as GAS, SPONSOR_DAILY_GRANTS as DAILY_GRANTS,
+} from "@/lib/chain/api-policy";
 import { protection, type Lease } from "@/lib/server/protection";
 import { ApiError, clientKey, isRecord, json, readJson } from "@/lib/server/request";
 
-const RESERVE = parseEther("10");
-const MIN_GRANT = parseEther("0.3");
 const WINDOW_MS = 10 * 60_000;
 const DAY_MS = 24 * 60 * 60_000;
-const DAILY_GRANTS = 20; // At most 20 MON of grants per counter window, plus transfer gas.
-const GAS = 21_000n;
 const clientFor = (rpc: string) => createPublicClient({ chain: monadTestnet, transport: http(rpc, { timeout: 8_000, retryCount: 0 }) }) as PublicClient;
 function failure(error: unknown) {
   if (error instanceof ApiError) return json({ error: error.status === 429 ? "çok fazla istek, biraz bekle" : error.message }, error.status, error.retryAfter);

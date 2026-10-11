@@ -50,6 +50,8 @@ jobs:
         working-directory: web
       - run: npm ci
         working-directory: scripts
+      - run: npm test
+        working-directory: scripts
       - run: npx tsc --noEmit
         working-directory: scripts
 
