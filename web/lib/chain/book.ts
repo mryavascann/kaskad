@@ -19,7 +19,7 @@ import type { Result, Scenario } from "./types";
 export const BOOK_READ_MAX = 400;
 /** rawSlot calldata is 68 bytes: ~64 slots per multicall eth_call. */
 const MULTICALL_BYTES = 68 * 64;
-/** Fallback without Multicall3: plain reads, at most this many per JSON-RPC batch (proxy limit 20). */
+/** Fallback without Multicall3: plain reads, at most this many per JSON-RPC batch (proxy limit 10). */
 const PLAIN_READ_CHUNK = 10;
 
 export type BookPosition = PackedPosition & { index: number; raw: bigint };

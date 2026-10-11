@@ -4,6 +4,7 @@
 import { createPublicClient, http, type PublicClient } from "viem";
 import { monadTestnet } from "viem/chains";
 import { TESTNET_RPC } from "@/lib/kaskad/config";
+import { RPC_BATCH_LIMIT } from "./api-policy";
 
 /** The read surface the wrappers use. A viem PublicClient satisfies it; tests pass a stub. */
 export type ChainReader = Pick<
@@ -13,8 +14,8 @@ export type ChainReader = Pick<
 
 let shared: PublicClient | undefined;
 
-/** /api/rpc rejects JSON-RPC batches above 20 calls (app/api/rpc/route.ts:38). */
-export const MAX_BATCH_CALLS = 20;
+/** Keep both browser transports within the proxy's batch limit. */
+export const MAX_BATCH_CALLS = RPC_BATCH_LIMIT;
 
 /**
  * Same configuration as `publicClient` in lib/kaskad/burner.ts:12-15 (monadTestnet, TESTNET_RPC,

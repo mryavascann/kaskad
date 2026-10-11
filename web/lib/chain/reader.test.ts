@@ -23,6 +23,6 @@ describe("defaultReader", () => {
     expect(balances.every((b) => b === 1n)).toBe(true);
     expect(sizes.reduce((s, n) => s + n, 0)).toBe(45);
     expect(Math.max(...sizes)).toBeLessThanOrEqual(MAX_BATCH_CALLS);
-    expect(MAX_BATCH_CALLS).toBe(20);
+    expect(MAX_BATCH_CALLS).toBe(10);
   });
 });

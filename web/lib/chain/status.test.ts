@@ -7,11 +7,12 @@ const src = (p: string) => readFileSync(resolve(__dirname, "..", "..", p), "utf8
 
 describe("status strings stay in sync with the chain layer", () => {
   it("every mapped string exists verbatim where it is produced", () => {
-    const layer = src("lib/kaskad/burner.ts") + src("lib/kaskad/signer.ts");
+    const layer = src("lib/kaskad/burner.ts") + src("lib/kaskad/signer.ts") + src("lib/chain/funding.ts");
     for (const s of Object.values(SIGNER_STATUS)) expect(layer).toContain(`"${s}"`);
     for (const s of Object.values(SIGNER_ERRORS)) expect(layer).toContain(s);
     const fund = src("app/api/fund/route.ts");
-    for (const s of Object.values(FUND_ROUTE_ERRORS)) expect(fund).toContain(`"${s}"`);
+    // Older deployed clients can still receive the legacy already-funded error.
+    for (const [key, s] of Object.entries(FUND_ROUTE_ERRORS)) if (key !== "alreadyFunded") expect(fund).toContain(`"${s}"`);
   });
 });
 
