@@ -1,0 +1,9 @@
+This is Kaskad's Chainlink CRE workflow. It connects a scheduled or book-event trigger to our risk oracle, circuit breaker and demo vault on Monad testnet. The workflow first checks whether a report is actually needed.
+
+I am running the cron-trigger simulation without broadcast. It reads the books and stored reports, previews the trigger shock, and checks the oracle cooldown. The log explains the decision for each asset. This run simulates the workflow; it does not send a new transaction.
+
+Here is a separate broadcast simulation recorded on October fourth. Its testnet transaction goes through the mock forwarder to KaskadCREReceiver. The receiver attempts oracle publication, guard refresh and vault rebalance in order. The recorded events show the syrupUSDC lending recommendation moving from eighty-five to eighty percent, while its demo market stays paused.
+
+These other recorded runs show why orchestration matters. Inside cooldown, the workflow waits. When the oracle, guard and vault already agree, it sends no report. The successful steady-state result is a no-op, so there is no unnecessary on-chain write.
+
+This is simulation evidence, not a continuously deployed production CRE workflow. The markets and vault use demo assets. The source, decisions and recorded transactions are available in our repository for reviewers to inspect.

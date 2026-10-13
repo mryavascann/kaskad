@@ -1,0 +1,11 @@
+We are Marwa İpek and Rıfat Buğra Yavaşcan, the team behind Kaskad. We want lending teams to see what happens after a price shock, before a liquidation bottleneck becomes their problem.
+
+A position can cross its liquidation threshold while liquidity is too thin to clear it profitably. In our recorded syrupUSDC scenario, a three-percent drop leaves about one hundred eleven million dollars stuck. A collateral ratio alone does not explain this modeled bottleneck.
+
+Kaskad simulates the cascade on Monad. Users can preview scenarios for free, verify recorded transactions, and see a risk oracle feed a circuit breaker and demo vault. The model and its limits are open.
+
+We started at Monad Blitz Istanbul. Metropolis additions include the risk pipeline, CRE, historical replay, Perpl analytics, Nansen exposure and Mera accounts with encrypted watchlists. Our recorded Monad benchmark processes ten thousand positions in one transaction.
+
+Our intended first users are lending risk teams and vault builders. We plan to recruit design partners through reproducible case studies, compare alerts with existing monitoring, and test integrations in a sandbox. Paid monitoring could follow demonstrated usefulness; this is our proposed route to market.
+
+Today, Aave analysis uses snapshots and contract actions use testnet demo markets. We want technical feedback and pilot partners to turn verifiable stress tests into better lending decisions.

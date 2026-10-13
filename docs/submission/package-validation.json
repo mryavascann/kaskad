@@ -1,0 +1,93 @@
+{
+  "schemaVersion": 2,
+  "submissionStatus": "submitted_and_finalized",
+  "checkedOn": "2026-10-13",
+  "scope": "Local documentation checks and anonymous video metadata checks; final submission status is recorded separately in submission-status.json.",
+  "documentsChecked": 13,
+  "localLinksChecked": 169,
+  "tablesChecked": 25,
+  "shellExamplesSyntaxChecked": 9,
+  "narrationSourceMatch": true,
+  "originalNarrationsPreserved": true,
+  "preparedPanelCopyPreserved": true,
+  "preservedEvidence": {
+    "contractAddresses": 12,
+    "proofTransactions": 11
+  },
+  "videos": {
+    "count": 4,
+    "withinDurationLimits": true,
+    "youtubeOEmbedStatus": [
+      200,
+      200,
+      200,
+      200
+    ],
+    "metadataCheckedOn": "2026-10-13",
+    "durationSource": "Delivery player measurements retained in submission-status.json; not remeasured by this local document check."
+  },
+  "narrations": [
+    {
+      "video": "technical-demo",
+      "words": 320,
+      "scenes": 9,
+      "targetSeconds": 175,
+      "limitSeconds": 180,
+      "maxSceneWordsPerMinute": 125.0
+    },
+    {
+      "video": "pitch",
+      "words": 216,
+      "scenes": 6,
+      "targetSeconds": 110,
+      "limitSeconds": 120,
+      "maxSceneWordsPerMinute": 124.0
+    },
+    {
+      "video": "cre-demo",
+      "words": 203,
+      "scenes": 5,
+      "targetSeconds": 105,
+      "limitSeconds": 120,
+      "maxSceneWordsPerMinute": 132.0
+    },
+    {
+      "video": "perpl-demo",
+      "words": 215,
+      "scenes": 7,
+      "targetSeconds": 115,
+      "limitSeconds": 120,
+      "maxSceneWordsPerMinute": 124.0
+    }
+  ],
+  "narrationTimingScope": "Original storyboard targets and word rates, not final-video timestamps.",
+  "logo": {
+    "dimensions": [
+      1024,
+      1024
+    ],
+    "bytes": 31730,
+    "unchangedFromSubmissionAsset": true
+  },
+  "sensitivePatternScan": {
+    "textFilesChecked": 21,
+    "matches": 0,
+    "scope": [
+      "api_token",
+      "private_key_pem",
+      "private_contact",
+      "local_home_path",
+      "credential_url",
+      "env_value"
+    ]
+  },
+  "errors": [],
+  "readmeRendering": {
+    "renderer": "GitHub Markdown API",
+    "tables": 7,
+    "sectionHeadings": 10,
+    "logoPresent": true,
+    "mermaidCodeBlockRecognized": true,
+    "scope": "Markdown structure rendered; this API does not execute Mermaid diagram layout."
+  }
+}

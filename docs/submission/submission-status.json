@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "project": "Kaskad",
+  "event": "Monad Metropolis",
+  "track": "Track 1: Onchain Finance & Trading",
+  "status": "submitted_and_finalized",
+  "finalizedOn": "2026-10-13",
+  "timeZone": "Europe/Istanbul",
+  "portalState": "Ready for judging",
+  "submissionFields": {
+    "complete": 6,
+    "total": 6
+  },
+  "awardFields": {
+    "complete": 8,
+    "total": 8
+  },
+  "community": "PRU Blockchain Community",
+  "liveProduct": "https://kaskad42.vercel.app",
+  "repository": "https://github.com/mryavascann/kaskad",
+  "verification": {
+    "finalSubmitActionCompleted": true,
+    "statusPersistedAfterReload": true,
+    "videoMetadataCheckedOn": "2026-10-13",
+    "videoMetadataCheck": "Anonymous YouTube oEmbed: HTTP 200 for all four videos.",
+    "durationSource": "Player durations measured during the 13 October 2026 final delivery check.",
+    "scope": "Submission completion and media checks; not an award decision or a security audit."
+  },
+  "videos": [
+    {
+      "id": "technical-demo",
+      "title": "Technical demo",
+      "url": "https://youtu.be/OZ5R2g6rRJo",
+      "durationSeconds": 167.961,
+      "limitSeconds": 180,
+      "storyboard": "../video/technical-demo.md",
+      "narration": "../video/technical-voiceover.txt"
+    },
+    {
+      "id": "pitch",
+      "title": "Pitch",
+      "url": "https://youtu.be/dxSGycde_b0",
+      "durationSeconds": 110.701,
+      "limitSeconds": 120,
+      "storyboard": "../video/pitch.md",
+      "narration": "../video/pitch-voiceover.txt"
+    },
+    {
+      "id": "cre-demo",
+      "title": "Chainlink CRE",
+      "url": "https://youtu.be/BgLYiIOVSEA",
+      "durationSeconds": 92.241,
+      "limitSeconds": 120,
+      "storyboard": "../video/cre-demo.md",
+      "narration": "../video/cre-voiceover.txt"
+    },
+    {
+      "id": "perpl-demo",
+      "title": "Perpl Risk Tool",
+      "url": "https://youtu.be/styCT_l5ayU",
+      "durationSeconds": 105.461,
+      "limitSeconds": 120,
+      "storyboard": "../video/perpl-demo.md",
+      "narration": "../video/perpl-voiceover.txt"
+    }
+  ],
+  "sourceArchive": {
+    "panelCopy": "panel-fields.json",
+    "panelCopyScope": "Prepared submission text retained for provenance; not a byte-for-byte export of the final portal entry.",
+    "storyboards": "../video/README.md",
+    "narrationScope": "Original narration scripts, preserved without completion notices in the spoken text; not certified transcripts of the final videos."
+  },
+  "noResubmissionRequired": true,
+  "remainingSubmissionTasks": [],
+  "followOnEngineering": [
+    "Continuous Envio HyperIndex/keeper pipeline",
+    "Continuously deployed production CRE workflow",
+    "Shared limits for remaining per-instance API routes"
+  ]
+}

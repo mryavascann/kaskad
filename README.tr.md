@@ -1,10 +1,12 @@
 > Bu dosya, İngilizce README hazırlanırken korunan önceki Türkçe metindir. Güncel özellikler, kurulum ve Metropolis geliştirmeleri için [İngilizce README](README.md) esas alınmalıdır; aşağıdaki bazı arayüz bağlantıları ve test sayıları eski sürüme aittir.
 
+**Güncel teslim durumu: Metropolis başvurusu 13 Ekim 2026'da gönderildi ve tamamlandı (Submitted and finalized · Ready for judging).** Dört yayımlanmış video ve tamamlanan teslim kaydı [başvuru arşivindedir](docs/submission/README.md). Aşağıdaki metin Blitz döneminin tarihsel anlatımıdır.
+
 # ▼ Kaskad
 
 **"Bu varlık %3 düşerse Aave'de ne olur?" sorusunu, gerçek pozisyonlar üzerinde, zincirde ve tek bir işlemde cevaplayan likidasyon kaskadı simülatörü.**
 
-**[Canlı demo](https://kaskad42.vercel.app)** · **Video:** _eklenecek_ · Monad Blitz İstanbul, 26 Eylül 2026
+**[Canlı demo](https://kaskad42.vercel.app)** · **[Metropolis teknik demo videosu](https://youtu.be/OZ5R2g6rRJo)** · Tarihsel temel: Monad Blitz İstanbul, 26 Eylül 2026
 
 ---
 

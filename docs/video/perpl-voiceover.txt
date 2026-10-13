@@ -1,0 +1,13 @@
+This is Kaskad's Perpl risk dashboard. It reads positions from contracts on Monad mainnet and depth from Perpl's public order book. The displayed block and read time identify the data.
+
+The liquidation map groups notional into one-percent price bands. Long liquidations sit below the mark, shorts above it. We can see where liquidation demand concentrates before comparing it with available depth.
+
+The stress table separates liquidated notional, book absorption, backstop demand and deficits beyond collateral. The final column shows modeled insurance remaining. It assumes a five-percent execution band, frozen funding and no book refill. These assumptions shape the results.
+
+Switching to ETH loads that market's positions and depth. Visible views refresh every ten seconds, with their read times displayed.
+
+Now I enter a public wallet address, without connecting or signing. Its account and positions are read at one mainnet block. We can inspect position equity, notional, liquidation prices and the adverse move needed to reach each threshold.
+
+Wallet shocks apply the same price move across supported markets. The table counts positions crossing liquidation thresholds and their current notional. Those amounts are exposure, not predicted losses or guaranteed liquidation fills.
+
+Each position uses its own collateral; free balance is not added to margin. This gives protocol reviewers and wallet users a shared, inspectable view of risk.
