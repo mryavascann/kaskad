@@ -74,6 +74,7 @@ jobs:
             npm --prefix scripts run monitor
           fi
       - uses: actions/cache/save@v4
+        if: ${{ !cancelled() && hashFiles('scripts/.local/cloud-monitor.json') != '' }}
         with:
           path: scripts/.local/cloud-monitor.json
           key: kaskad-cloud-monitor-v1-${{ github.run_id }}-${{ github.run_attempt }}

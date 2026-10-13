@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { mkdtemp, readFile, readdir, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { parseEther } from "viem";
+import { runMonitor } from "../monitor.js";
 import { collectChecks, fingerprint, MONITOR_END, needsEmail, parseState, sendEmail, type Check, type State } from "./monitor.js";
 
 const NOW = Date.parse("2026-10-13T12:00:00Z");
@@ -114,4 +118,37 @@ test("email goes only to configured recipient, uses idempotency and hides provid
   } });
   await assert.rejects(sendEmail({ ...options, fetcher: async () => new Response("mail-secret", { status: 403 }) }),
     error => error instanceof Error && !error.message.includes("mail-secret") && error.message.includes("gönderilemedi"));
+});
+
+test("CLI preserves a Nansen cost stop even if email fails; failed email is not acknowledged", async () => {
+  const dir = await mkdtemp(join(tmpdir(), "kaskad-monitor-"));
+  const statePath = join(dir, "state.json");
+  const fallback = server();
+  const env = { NANSEN_API_KEY: "secret-not-for-logs", RESEND_API_KEY: "mail-secret", ALERT_EMAIL_TO: "owner@example.com" };
+  try {
+    const fetcher: typeof fetch = async (url, init) => {
+      if (String(url).includes("api.nansen.ai")) return account(99, "1");
+      if (String(url).includes("api.resend.com")) return new Response("secret error", { status: 503 });
+      return fallback(url, init);
+    };
+    await assert.rejects(runMonitor([], env, { now: () => NOW, statePath, fetcher, pause: async () => {} }), /gönderilemedi/);
+    const state = parseState(JSON.parse(await readFile(statePath, "utf8")));
+    assert.equal(state.nansenPaused, true);
+    assert.equal(state.notifiedFingerprint, null);
+    await runMonitor([], env, { now: () => NOW + 3_600_000, statePath, pause: async () => {}, fetcher: async (url, init) => {
+      assert.ok(!String(url).includes("api.nansen.ai"));
+      return String(url).includes("api.resend.com") ? Response.json({ id: "accepted" }) : fallback(url, init);
+    } });
+    assert.ok(parseState(JSON.parse(await readFile(statePath, "utf8"))).notifiedFingerprint);
+  } finally { await rm(dir, { recursive: true, force: true }); }
+});
+
+test("CLI dry-run never sends email or writes state", async () => {
+  const dir = await mkdtemp(join(tmpdir(), "kaskad-monitor-"));
+  try {
+    const report = await runMonitor(["--dry-run", "--send-test"], { NANSEN_API_KEY: "secret-not-for-logs" },
+      { now: () => NOW, statePath: join(dir, "state.json"), fetcher: server(), pause: async () => {} });
+    assert.equal(report.emailSent, false);
+    assert.deepEqual(await readdir(dir), []);
+  } finally { await rm(dir, { recursive: true, force: true }); }
 });
