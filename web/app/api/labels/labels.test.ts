@@ -47,9 +47,12 @@ describe("Nansen borrower labels", () => {
     deps.fetchImpl.mockImplementation(async () => Response.json({ data: [] }));
     expect((await borrowerLabels("10", "k", deps))?.entries.every((e) => e.labels !== null)).toBe(true);
   });
-  it("reports the provider's 403 credit failure without rejecting the key or caching false empty labels", async () => {
+  it.each([
+    { code: "insufficient_credits", error: "Account balance too low" },
+    { error: "Insufficient credits" },
+  ])("reports a 403 credit failure without rejecting the key or caching false empty labels: %j", async (error) => {
     const deps = setup(() => Response.json({
-      error: "Insufficient credits",
+      ...error,
       message: "Insufficient credits remaining to call this endpoint.",
       detail: "private-provider-detail",
     }, { status: 403 }));
