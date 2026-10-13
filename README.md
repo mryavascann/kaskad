@@ -341,3 +341,13 @@ As of **11 October 2026**:
 | [`cre/`](cre) | Chainlink CRE workflow, tests, configuration, and recorded simulations. |
 
 Licensed under the [MIT License](LICENSE).
+
+### Monad data refresh without an Envio token
+
+`npm --prefix scripts run fetch -- --rpc --borrowers-only` discovers borrowers through Monad mainnet `eth_getLogs`, without an Envio credential. With no `ENVIO_API_TOKEN`, the normal `fetch` command also selects this path. `--rpc` forces it even if an obsolete token remains configured. `MONAD_MAINNET_RPC` is optional for scripts; its default is the public Ankr endpoint `https://rpc3.monad.xyz`. Public endpoints have rate, range and historical-state limits; see [Monad RPC limits](https://docs.monad.xyz/reference/json-rpc/overview).
+
+Discovery starts with the complete active-debt positions in the shipped snapshot, validates that their debt reconciles with reserve debt, then scans **every subsequent finalized block** for Aave Borrow events. The candidate set contains the seed’s active borrowers plus later borrowers; it is **not** the all-time borrower count. Blocks with errors or invalid logs are never skipped. Each validated page is saved atomically to ignored `scripts/.local/monad-borrowers-rpc.json`; an exclusive lock prevents concurrent scans.
+
+Each invocation processes at most 200 successful pages by default, then exits nonzero if catch-up is incomplete, preserving the checkpoint and existing `positions.json`. Rerun to continue, or explicitly choose `--rpc-pages=2000` (maximum 20000). Ranges start at 1000 blocks and shrink if the provider rejects them. A long initial catch-up may take substantial time. `--borrowers-only` stops after discovery and does not replace position data. Without that flag, account reads are pinned to the same finalized target block; an RPC that cannot serve that historical state will fail rather than silently use another block.
+
+The existing HyperSync path remains available when a real token is configured. This RPC alternative does not constitute an Envio HyperIndex deployment. It also does not reload the testnet contracts or run a continuous keeper. Those are separate operations; testnet writes still need a cost estimate and approval. The recorded demo dataset stays unchanged until a complete refresh is deliberately performed.

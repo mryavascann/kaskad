@@ -1,5 +1,5 @@
 import { createPublicClient, defineChain, http, type Address } from "viem";
-import { requireEnv } from "./env.js";
+import "./env.js";
 
 export const ADDR = {
   POOL: "0x69a5F9AD4f96ebf0a0C792dD42a01cC5C0102fef",
@@ -22,7 +22,7 @@ export function makeClient() {
   // Never log the URL: it embeds the Alchemy key.
   return createPublicClient({
     chain: monad,
-    transport: http(requireEnv("MONAD_MAINNET_RPC"), { retryCount: 5, retryDelay: 750, timeout: 60_000 }),
+    transport: http(process.env.MONAD_MAINNET_RPC?.trim() || "https://rpc3.monad.xyz", { retryCount: 5, retryDelay: 750, timeout: 60_000 }),
   });
 }
 
