@@ -7,20 +7,27 @@
  *     bitmap, aToken / variableDebtToken balances, oracle prices, reserve + eMode config.
  *  3. Normalize to one "dominant collateral" position per borrower -> data/positions.json
  *
- * READ-ONLY: only eth_call / eth_blockNumber are used. Never sends transactions.
+ * READ-ONLY: RPC calls and log queries only. Never sends transactions.
  *
- * Usage: npm run fetch            (re-queries HyperSync)
- *        npm run fetch -- --cached (reuse data/borrowers.raw.json)
+ * Usage: npm run fetch            (HyperSync with a token, otherwise resumable RPC)
+ *        npm run fetch -- --cached (reuse historical borrowers; excludes newer borrowers)
+ *        npm run fetch -- --rpc --borrowers-only (token-free, resumable finalized-log discovery)
+ *        npm run fetch -- --rpc --rpc-pages=200 (bounded catch-up, then pinned state read)
  */
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { getAddress, keccak256, toBytes, type Address } from "viem";
-import { DATA_DIR } from "./lib/env.js";
+import { SCRIPTS_DIR, DATA_DIR } from "./lib/env.js";
 import { ADDR, makeClient, redact } from "./lib/chain.js";
 import { poolAbi, dataProviderAbi, oracleAbi, erc20Abi, BORROW_EVENT_SIG } from "./lib/abis.js";
 import { fetchLogs, sleep } from "./lib/hypersync.js";
+import { scanBorrowers, type RpcLog } from "./lib/rpc-borrowers.js";
+import { loadBorrowerCursor, saveBorrowerCursor } from "./lib/rpc-borrowers-file.js";
 
 const t0 = Date.now();
+const useRpc = process.argv.includes("--rpc") || !process.env.ENVIO_API_TOKEN?.trim();
+const borrowersOnly = process.argv.includes("--borrowers-only");
+let discovery: { transport: string; seedBlock?: number; scannedThrough?: number } = { transport: "hypersync" };
 const client = makeClient();
 mkdirSync(DATA_DIR, { recursive: true });
 
@@ -109,8 +116,35 @@ async function getBorrowers(): Promise<Address[]> {
   const cachePath = path.join(DATA_DIR, "borrowers.raw.json");
   if (process.argv.includes("--cached") && existsSync(cachePath)) {
     const cached = JSON.parse(readFileSync(cachePath, "utf8")) as { borrowers: Address[] };
-    console.log(`[1] using cached borrowers: ${cached.borrowers.length}`);
+    discovery = { transport: "cached-historical-borrowers" };
+    console.log(`[1] using cached borrowers: ${cached.borrowers.length} (new borrowers since the cache are excluded)`);
     return cached.borrowers;
+  }
+  if (useRpc) {
+    const file = path.join(SCRIPTS_DIR, ".local", "monad-borrowers-rpc.json");
+    const lock = `${file}.lock`;
+    mkdirSync(path.dirname(file), { recursive: true });
+    try { mkdirSync(lock); } catch { throw new Error("RPC borrower scan already running; check scripts/.local/monad-borrowers-rpc.json.lock"); }
+    try {
+      const cursor = loadBorrowerCursor(file, path.join(DATA_DIR, "positions.json"), ADDR.POOL);
+      const pageArg = process.argv.find((a) => a.startsWith("--rpc-pages="));
+      const maxPages = pageArg ? Number(pageArg.slice("--rpc-pages=".length)) : 200;
+      console.log(`[1] RPC: resuming after finalized block ${cursor.scannedThrough}; seed at ${cursor.seedBlock}; ${cursor.borrowers.length} borrower candidates`);
+      const out = await scanBorrowers({
+        getChainId: () => client.getChainId(),
+        getBlock: (args) => client.getBlock(args),
+        getLogs: async ({ address, fromBlock, toBlock, topics }) => await client.request({
+          method: "eth_getLogs", params: [{ address, fromBlock: `0x${fromBlock.toString(16)}`, toBlock: `0x${toBlock.toString(16)}`, topics }],
+        }) as RpcLog[],
+      }, cursor, {
+        maxPages, save: async (value) => saveBorrowerCursor(file, value), pause: async () => { await sleep(200); },
+        progress: (p) => { if (p.pages % 25 === 0 || p.scannedThrough === p.target) console.log(`  RPC page ${p.pages}: ${p.scannedThrough}/${p.target}; candidates ${p.borrowers}`); },
+      });
+      discovery = { transport: out.transport, seedBlock: out.cursor.seedBlock, scannedThrough: out.cursor.scannedThrough };
+      if (!out.complete) throw new Error(`RPC catch-up incomplete at ${out.cursor.scannedThrough}/${out.target}. Checkpoint saved; rerun the same command. positions.json was not changed.`);
+      blockNumber = BigInt(out.target);
+      return out.cursor.borrowers;
+    } finally { rmSync(lock, { recursive: true, force: true }); }
   }
   const topic0 = keccak256(toBytes(BORROW_EVENT_SIG));
   console.log(`[1] HyperSync: Borrow logs on Pool ${ADDR.POOL} (topic0 ${topic0})`);
@@ -277,7 +311,11 @@ const extraBonus = (raw: number) => (raw > 10000 ? raw - 10000 : 0);
 async function main() {
   const borrowers = await getBorrowers();
 
-  blockNumber = await client.getBlockNumber();
+  if (borrowersOnly) {
+    console.log(`[1] borrower discovery complete: ${borrowers.length} candidates via ${discovery.transport}; position data unchanged`);
+    return;
+  }
+  blockNumber ??= await client.getBlockNumber();
   console.log(`[2] pinned block ${blockNumber}`);
 
   const reserves = await loadReserves();
@@ -444,6 +482,7 @@ async function main() {
     chainId: 143,
     block: Number(blockNumber),
     source: "aave-v3-monad-mainnet",
+    borrowerDiscovery: discovery,
     notes: {
       hfModel:
         "hfModel = (collateralUsd + otherCollateralUsd) * ltBps / 1e4 / debtUsd, i.e. the dominant collateral's LT applied to ALL collateral (MVP approximation). hfOnchain = Pool.getUserAccountData.healthFactor / 1e18.",
@@ -468,7 +507,8 @@ async function main() {
       debtUsd: round2(totDebt),
       reserveSuppliedUsd,
       reserveDebtUsd,
-      borrowersEver: borrowers.length,
+      borrowersEver: discovery.transport === "eth_getLogs" ? null : borrowers.length,
+      borrowerCandidates: borrowers.length,
       borrowersWithDebt: withDebt.length,
       debtWithoutCollateral: { positions: noCollateral, debtUsd: round2(noCollateralDebtUsd) },
       byAsset,
@@ -482,7 +522,7 @@ async function main() {
   const secs = ((Date.now() - t0) / 1000).toFixed(1);
   console.log("\n================ SUMMARY ================");
   console.log(`block ${blockNumber} | runtime ${secs}s | RPC multicall requests ${rpcRequests}`);
-  console.log(`borrowers ever: ${borrowers.length} | with debt: ${withDebt.length} | positions: ${positions.length} | debt w/o collateral: ${noCollateral} ($${round2(noCollateralDebtUsd)})`);
+  console.log(`borrower candidates (${discovery.transport}): ${borrowers.length} | with debt: ${withDebt.length} | positions: ${positions.length} | debt w/o collateral: ${noCollateral} ($${round2(noCollateralDebtUsd)})`);
   console.log(`borrower totals: collateral $${round2(totColl).toLocaleString("en-US")} | debt $${round2(totDebt).toLocaleString("en-US")}`);
   console.log(`reserve totals:  supplied $${reserveSuppliedUsd.toLocaleString("en-US")} | debt $${reserveDebtUsd.toLocaleString("en-US")}`);
   console.log(`dominant collateral priced with eMode params: ${dominantInEMode}/${positions.length}`);
