@@ -2,7 +2,7 @@
 
 The `Kaskad cloud monitor` GitHub Actions workflow runs on GitHub-hosted runners,
 so it does not depend on a laptop or Codex being open. It checks hourly at minute
-17. GitHub may delay or drop scheduled jobs during high load: this is periodic
+37. GitHub may delay or drop scheduled jobs during high load: this is periodic
 monitoring, not a guaranteed real-time uptime service.
 
 Checks stop at **2026-11-03 23:59:59 Europe/Istanbul**. The first workflow run
@@ -51,9 +51,25 @@ with these secrets on pull-request events. The expiry job has `actions: write`
 solely to disable its own workflow; the checking job only needs `contents: read`.
 
 After merge, manually run the workflow with `send_test=true`. Confirm the run
-passes and the email arrives (including checking the spam folder). Only then
-retire the old local Codex heartbeat. Without this test, the cloud email route
-must not be described as fully verified.
+passes and the email arrives (including checking the spam folder). This verifies
+the checks and email route, but does **not** verify the automatic schedule.
+Before marking hourly monitoring verified, also observe a successful run with
+event `schedule` on a GitHub-hosted runner. Inspect subsequent scheduled runs to
+confirm continued operation; an `active` workflow alone is not evidence of this.
+Retire the old local Codex heartbeat only after both checks pass.
+
+Read the automatic run history without starting a manual check:
+
+```sh
+gh run list --repo mryavascann/kaskad --workflow cloud-monitor.yml --event schedule --limit 5
+```
+
+If no scheduled runs appear across multiple hourly windows, keep the monitoring
+setup marked unverified. Check the default branch, workflow state and GitHub
+Actions status. A fresh cron change can re-register a schedule, but is a repair
+attempt, not proof of recovery. If it remains silent, escalate to the repository
+owner or GitHub Support. A workflow that never starts cannot send its own failure
+email; do not infer health from the absence of alert emails.
 
 Local read-only validation (no email and no state write):
 

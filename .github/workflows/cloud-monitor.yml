@@ -2,7 +2,7 @@ name: Kaskad cloud monitor
 
 on:
   schedule:
-    - cron: '17 * * * *'
+    - cron: '37 * * * *'
   workflow_dispatch:
     inputs:
       send_test:
