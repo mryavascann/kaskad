@@ -1,0 +1,110 @@
+name: Kaskad cloud monitor
+
+on:
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch:
+    inputs:
+      send_test:
+        description: Send one setup test email
+        type: boolean
+        default: false
+
+concurrency:
+  group: kaskad-cloud-monitor
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  window:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    permissions:
+      actions: write
+    outputs:
+      active: ${{ steps.window.outputs.active }}
+    steps:
+      - id: window
+        name: Stop after November 3 in Istanbul
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          if [ "$(date -u +%s)" -ge "$(date -u -d '2026-11-03T21:00:00Z' +%s)" ]; then
+            gh api --method PUT "repos/$GH_REPO/actions/workflows/cloud-monitor.yml/disable"
+            echo 'active=false' >> "$GITHUB_OUTPUT"
+          else
+            echo 'active=true' >> "$GITHUB_OUTPUT"
+          fi
+
+  monitor:
+    needs: window
+    if: needs.window.outputs.active == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 8
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm ci --ignore-scripts
+        working-directory: web
+      - run: npm ci --ignore-scripts
+        working-directory: scripts
+      - uses: actions/cache/restore@v4
+        with:
+          path: scripts/.local/cloud-monitor.json
+          key: kaskad-cloud-monitor-v1-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: kaskad-cloud-monitor-v1-
+      - name: Check availability, balances and notify on changes
+        env:
+          NANSEN_API_KEY: ${{ secrets.NANSEN_API_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          ALERT_EMAIL_TO: ${{ secrets.ALERT_EMAIL_TO }}
+          SEND_TEST: ${{ inputs.send_test || false }}
+        run: |
+          if [ "$SEND_TEST" = 'true' ]; then
+            npm --prefix scripts run monitor -- --send-test
+          else
+            npm --prefix scripts run monitor
+          fi
+      - uses: actions/cache/save@v4
+        if: ${{ !cancelled() && hashFiles('scripts/.local/cloud-monitor.json') != '' }}
+        with:
+          path: scripts/.local/cloud-monitor.json
+          key: kaskad-cloud-monitor-v1-${{ github.run_id }}-${{ github.run_attempt }}
+      - name: Report a failed monitor run
+        if: failure()
+        env:
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          ALERT_EMAIL_TO: ${{ secrets.ALERT_EMAIL_TO }}
+        run: |
+          node --input-type=module <<'JS'
+          try {
+            if (!process.env.RESEND_API_KEY || !process.env.ALERT_EMAIL_TO) throw new Error();
+            const response = await fetch('https://api.resend.com/emails', {
+              method: 'POST', redirect: 'error', signal: AbortSignal.timeout(15000),
+              headers: {
+                Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+                'Content-Type': 'application/json',
+                'Idempotency-Key': `kaskad-monitor-failed-${process.env.GITHUB_RUN_ID}`,
+              },
+              body: JSON.stringify({
+                from: 'Kaskad <onboarding@resend.dev>', to: [process.env.ALERT_EMAIL_TO],
+                subject: 'Kaskad: otomatik izleme tamamlanamadı',
+                text: 'Bulut izleme çalışması hata verdi; site ve bakiyelerin durumu doğrulanamadı. Lütfen şu çalışmayı kontrol edin: ' +
+                  `https://github.com/${process.env.GITHUB_REPOSITORY}/actions/runs/${process.env.GITHUB_RUN_ID}`,
+              }),
+            });
+            if (!response.ok) throw new Error();
+            console.log('Monitor failure email accepted.');
+          } catch {
+            console.error('Monitor failure email could not be sent. Check mail configuration.');
+            process.exitCode = 1;
+          }
+          JS
