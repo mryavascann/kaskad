@@ -141,7 +141,7 @@ Pool depth was measured in **2026**, not at the 2025 event, and is explicitly an
 | **Perpl: Best Analytics / Risk Tool** | Reads open positions and margin/insurance parameters from Perpl contracts, plus the public L2 order book; models liquidation absorption, backstop demand, and residual deficits. | [Panel](https://kaskad42.vercel.app/perps), [reader](web/lib/kaskad/perpl.ts), [model](web/lib/chain/perpl-model.ts), [#12](https://github.com/mryavascann/kaskad/pull/12). Read-only analytics; no hedge bot. |
 | **Mera: Best Mera-Powered UX on Monad** | Passkeys are the production account layer; the sponsor funds gas and the user signs in the browser. | [`mera.ts`](web/lib/kaskad/mera.ts), [`signer-mode.ts`](web/lib/chain/signer-mode.ts), [passkey gate](web/views/shared/tx/passkey-gate.tsx), [#4](https://github.com/mryavascann/kaskad/pull/4). |
 | **Mera: One Passkey, Many Keys** | One PRF output also derives an AES-256-GCM encryption key, an anonymous watchlist ID, and a write token using distinct HKDF labels. | [`passkey-keys.ts`](web/lib/kaskad/passkey-keys.ts), [watchlist API](web/app/api/watchlist/route.ts), [#5](https://github.com/mryavascann/kaskad/pull/5). Production persistence requires Upstash/Vercel KV. |
-| **Nansen** | “Who is exposed” joins standard Nansen borrower labels with the cascade’s per-position results. | [`exposure.ts`](web/lib/chain/exposure.ts), [labels API](web/app/api/labels/route.ts). Real provider access verified; deployment pending review. |
+| **Nansen** | “Who is exposed” joins standard Nansen borrower labels with the cascade’s per-position results. | [`exposure.ts`](web/lib/chain/exposure.ts), [labels API](web/app/api/labels/route.ts). Deployed; uncached labels require available API credits. |
 
 The same project evidence supports **Grand Champion** consideration. **Community Team** eligibility is awaiting organizer confirmation. The separate **Best use of Perpl's API** hedge-bot bounty is outside this submission's scope.
 
@@ -325,7 +325,7 @@ This higher limit is only for the local test harness; it does not demonstrate th
 
 As of **11 October 2026**:
 
-- Deploy the verified Nansen integration after review.
+- Maintain Nansen API credits for uncached borrower labels.
 - Add the continuous Envio HyperIndex/keeper pipeline and source-block freshness indicator.
 - Extend the shared RPC/sponsor limiter to the remaining API routes, whose rate limits are still per instance.
 - Verify end-to-end persistent watchlists and maintain the demo's testnet gas budget with `npm --prefix scripts run budget`.
@@ -360,4 +360,4 @@ Set `NANSEN_API_KEY` in `web/.env.local` and in the Vercel server environment, t
 
 Each cache miss takes a shared address lock and consumes shared limits of 60 upstream calls per minute and 600 per 24-hour window across all visitors. Page requests are limited to 20/minute per client. These are request caps, not a monetary spending guarantee; provider pricing/credits still apply. A failed cache or quota check blocks upstream requests. Invalid credentials, exhausted credits, throttling and unavailable services have separate safe errors and a retry action. No Nansen request is made until this tab is opened.
 
-Validation status: automated tests and the production build pass locally. On 13 October 2026, the local API returned HTTP 200 after querying all 57 syrupUSDC borrowers with the real provider. No standard labels were returned for those addresses; the UI retains their addresses and reports them as unlabelled. Deployment remains subject to review.
+Validation status: the deployed API and UI were verified on 13 October 2026 for all 57 syrupUSDC borrowers. No standard labels were returned for those addresses; the UI retains their addresses and reports them as unlabelled. Later uncached lookups received Nansen's `403 / Insufficient credits` response. Existing cached labels remain available until expiry; new lookups require sufficient [Nansen API credits](https://docs.nansen.ai/getting-started/credits). Credit failures are reported separately from invalid keys and never cached as empty labels.

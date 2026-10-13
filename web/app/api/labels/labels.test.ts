@@ -47,6 +47,22 @@ describe("Nansen borrower labels", () => {
     deps.fetchImpl.mockImplementation(async () => Response.json({ data: [] }));
     expect((await borrowerLabels("10", "k", deps))?.entries.every((e) => e.labels !== null)).toBe(true);
   });
+  it.each([
+    { code: "insufficient_credits", error: "Account balance too low" },
+    { error: "Insufficient credits" },
+  ])("reports a 403 credit failure without rejecting the key or caching false empty labels: %j", async (error) => {
+    const deps = setup(() => Response.json({
+      ...error,
+      message: "Insufficient credits remaining to call this endpoint.",
+      detail: "private-provider-detail",
+    }, { status: 403 }));
+    await expect(borrowerLabels("10", "k", deps)).rejects.toMatchObject({ code: "quota-exhausted", message: "quota-exhausted" });
+    expect(deps.fetchImpl.mock.calls.length).toBeLessThanOrEqual(4);
+    deps.fetchImpl.mockClear();
+    deps.fetchImpl.mockImplementation(async () => Response.json({ data: [] }));
+    expect((await borrowerLabels("10", "k", deps))?.entries.every((e) => e.labels !== null)).toBe(true);
+    expect(deps.fetchImpl).toHaveBeenCalledTimes(3);
+  });
   it.each([{}, { data: {} }, { data: [null] }, { data: [{ label: 1 }] }])("rejects malformed successful responses: %j", async (body) => {
     const deps = setup(() => Response.json(body));
     await expect(borrowerLabels("10", "k", deps)).rejects.toMatchObject({ code: "failed" });

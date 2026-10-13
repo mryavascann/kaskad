@@ -30,8 +30,17 @@ async function lookup(address: string, chain: string, apiKey: string, fetchImpl:
     });
   } catch { throw new NansenError("failed"); }
   if (res.status === 429) throw new NansenError("rate-limited", 429);
-  if (res.status === 401 || res.status === 403) throw new NansenError("invalid-key");
+  if (res.status === 401) throw new NansenError("invalid-key");
   if (res.status === 402) throw new NansenError("quota-exhausted");
+  if (res.status === 403) {
+    // Nansen also reports insufficient credits as 403, even for a valid key.
+    const body: unknown = await res.json().catch(() => null);
+    if (isRecord(body) && (body.code === "insufficient_credits" ||
+      (typeof body.error === "string" && body.error.trim().toLowerCase() === "insufficient credits"))) {
+      throw new NansenError("quota-exhausted");
+    }
+    throw new NansenError("invalid-key");
+  }
   if (!res.ok) throw new NansenError("failed");
   const body: unknown = await res.json().catch(() => null);
   const labels = isRecord(body) ? parseLabels(body.data) : null;
