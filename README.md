@@ -14,7 +14,7 @@ Kaskad turns a collateral-price shock into a sequence of liquidations, collatera
 
 The reference syrupUSDC book contains **57 positions and $123.7M of debt**. A simulated 3% drop leaves **$111.0M below the liquidation threshold but unable to exit profitably through the modeled DEX pool**. At a 10% drop, valuing the same remaining positions at the pool's spot price reveals **$8.8M of additional bad debt hidden by the oracle price**. These are scenario results on a recorded book, not current market losses.
 
-The result can also drive contracts: **RiskOracle → GuardV2 → an ERC-4626 demo vault**. A Chainlink CRE workflow orchestrates the updates. The app adds a risk map, a historical replay, a live Perpl risk panel, and Mera passkey accounts with an encrypted watchlist.
+The result can also drive contracts: **RiskOracle → GuardV2 → an ERC-4626 demo vault**. A Chainlink CRE workflow orchestrates the updates. The app adds a risk map, a historical replay, live Perpl protocol and wallet risk views, Nansen borrower-label context, and Mera passkey accounts with an encrypted watchlist.
 
 **Network boundary:** Aave data comes from Monad mainnet and Ethereum; Kaskad's execution, proofs, circuit breakers, and demo vault are on **Monad testnet (chain ID 10143)**. The demo does not control Aave or move real Aave deposits.
 
@@ -23,10 +23,10 @@ The result can also drive contracts: **RiskOracle → GuardV2 → an ERC-4626 de
 | Page | What to inspect |
 |---|---|
 | [Home](https://kaskad42.vercel.app) | The syrupUSDC finding and a risk map of 11 eligible books × five shocks. |
-| [Console](https://kaskad42.vercel.app/app) | Change a shock, inspect liquidation waves and hidden bad debt, compare books, run Monte Carlo, then choose **Prove on chain**. |
+| [Console](https://kaskad42.vercel.app/app) | Change a shock, inspect liquidation waves and hidden bad debt, open **Who is exposed** for borrower addresses and available Nansen labels, or run Monte Carlo. **Prove on chain** is a separate signed action. |
 | [Guard](https://kaskad42.vercel.app/guard) | Read RiskOracle's four stress reports, the markets' pause/LTV state, and the vault allocation. Publish, refresh, and rebalance have separate actions with cost estimates. |
 | [10 October replay](https://kaskad42.vercel.app/replay) | Compare the engine with actual Aave liquidations during the 10–11 October 2025 ETH drawdown. |
-| [Perps](https://kaskad42.vercel.app/perps) | Inspect Perpl liquidation levels, order-book absorption, backstop exposure, and insurance coverage. |
+| [Perps](https://kaskad42.vercel.app/perps) | Inspect Perpl liquidation levels, order-book absorption, backstop exposure, and insurance coverage; look up a public wallet's positions and shock thresholds without signing. |
 | [Wallet](https://kaskad42.vercel.app/wallet) | Check an address's Aave exposure and use the passkey-encrypted private watchlist. |
 | [How it works](https://kaskad42.vercel.app/how-it-works) | Inspect the model and the transaction proof ledger. |
 
@@ -48,6 +48,13 @@ Kaskad's initial cascade engine, recorded books, scale benchmarks, and original 
 | 4 Oct 2026 | [#10](https://github.com/mryavascann/kaskad/pull/10) | Chainlink CRE workflow, receiver, cron/book-event triggers, and broadcast simulation evidence. |
 | 4 Oct 2026 | [#11](https://github.com/mryavascann/kaskad/pull/11) | Historical 10 October 2025 replay with archived Ethereum data. |
 | 7 Oct 2026 | [#12](https://github.com/mryavascann/kaskad/pull/12) | Live Perpl liquidation and backstop risk panel. |
+| 7 Oct 2026 | [#13](https://github.com/mryavascann/kaskad/pull/13) | English project guide, dated build history, model limits, and proof references. |
+| 7 Oct 2026 | [#14](https://github.com/mryavascann/kaskad/pull/14) | Perpl wallet positions, liquidation distances, and shock-threshold exposure. |
+| 11 Oct 2026 | [#15](https://github.com/mryavascann/kaskad/pull/15) | Shared RPC/sponsor quotas, RPC allowlists, payment limits, and sponsor reserve protection. |
+| 11 Oct 2026 | [#16](https://github.com/mryavascann/kaskad/pull/16) | Read-only sponsor budget planning and local balance history. |
+| 13 Oct 2026 | [#17](https://github.com/mryavascann/kaskad/pull/17) | Nansen standard borrower labels in **Who is exposed**, with shared quotas and caching. |
+| 13 Oct 2026 | [#18](https://github.com/mryavascann/kaskad/pull/18) | Resumable Monad RPC borrower discovery as a fallback for data preparation. |
+| 13 Oct 2026 | [#19](https://github.com/mryavascann/kaskad/pull/19) | Distinct Nansen credit-exhaustion errors and regression coverage. |
 
 ## What the model finds
 
@@ -138,12 +145,12 @@ Pool depth was measured in **2026**, not at the 2025 event, and is explicitly an
 | **Envio** | HyperSync discovers Aave borrowers from event history before RPC/Multicall reads their positions at a pinned block. | [`hypersync.ts`](scripts/src/lib/hypersync.ts), [`fetch-positions.ts`](scripts/src/fetch-positions.ts). HyperSync is implemented; a continuous HyperIndex/keeper pipeline is pending. |
 | **Chainlink CRE** | Cron/book-event workflow decides when to publish risk, refresh the guard, and rebalance the vault. | [`workflow.ts`](cre/kaskad-risk/workflow.ts), [`decide.ts`](cre/kaskad-risk/decide.ts), [receiver](contracts/src/KaskadCREReceiver.sol), [broadcast logs](cre/runs). Proven through broadcast simulations, as scoped above. |
 | **Alchemy** | Server-configured Monad RPC endpoints support Aave position reads, the testnet RPC proxy, and sponsored proof transactions. | [`chain.ts`](scripts/src/lib/chain.ts), [`/api/position`](web/app/api/position/route.ts), [`/api/rpc`](web/app/api/rpc/route.ts), [`/api/fund`](web/app/api/fund/route.ts). Provider credentials remain server-side. |
-| **Perpl: Best Analytics / Risk Tool** | Reads open positions and margin/insurance parameters from Perpl contracts, plus the public L2 order book; models liquidation absorption, backstop demand, and residual deficits. | [Panel](https://kaskad42.vercel.app/perps), [reader](web/lib/kaskad/perpl.ts), [model](web/lib/chain/perpl-model.ts), [#12](https://github.com/mryavascann/kaskad/pull/12). Read-only analytics; no hedge bot. |
+| **Perpl: Best Analytics / Risk Tool** | Reads open positions and margin/insurance parameters from Perpl contracts, plus the public L2 order book; combines protocol stress analysis with public-wallet positions and threshold exposure. | [Panel](https://kaskad42.vercel.app/perps), [protocol reader](web/lib/kaskad/perpl.ts), [protocol model](web/lib/chain/perpl-model.ts), [wallet reader](web/lib/kaskad/perpl-wallet.ts), [#12](https://github.com/mryavascann/kaskad/pull/12), [#14](https://github.com/mryavascann/kaskad/pull/14). Read-only analytics; no hedge bot. |
 | **Mera: Best Mera-Powered UX on Monad** | Passkeys are the production account layer; the sponsor funds gas and the user signs in the browser. | [`mera.ts`](web/lib/kaskad/mera.ts), [`signer-mode.ts`](web/lib/chain/signer-mode.ts), [passkey gate](web/views/shared/tx/passkey-gate.tsx), [#4](https://github.com/mryavascann/kaskad/pull/4). |
 | **Mera: One Passkey, Many Keys** | One PRF output also derives an AES-256-GCM encryption key, an anonymous watchlist ID, and a write token using distinct HKDF labels. | [`passkey-keys.ts`](web/lib/kaskad/passkey-keys.ts), [watchlist API](web/app/api/watchlist/route.ts), [#5](https://github.com/mryavascann/kaskad/pull/5). Production persistence requires Upstash/Vercel KV. |
 | **Nansen** | “Who is exposed” joins standard Nansen borrower labels with the cascade’s per-position results. | [`exposure.ts`](web/lib/chain/exposure.ts), [labels API](web/app/api/labels/route.ts). Deployed; uncached labels require available API credits. |
 
-The same project evidence supports **Grand Champion** consideration. **Community Team** eligibility is awaiting organizer confirmation. The separate **Best use of Perpl's API** hedge-bot bounty is outside this submission's scope.
+The same project evidence supports **Grand Champion** consideration. The **Community Team** entry lists **PRU Blockchain Community**, as confirmed by the team; separate organizer eligibility confirmation has not been recorded. The **Best use of Perpl's API** hedge-bot bounty is outside this submission's scope.
 
 The Perpl panel refreshes every 10 seconds, with an 8-second server cache per market. Its **5% order-book execution band is a model assumption**; current-book absorption and insurance calculations are stress scenarios, not a guarantee of future fills or backstop capacity.
 
@@ -158,6 +165,8 @@ The [wallet model](web/lib/chain/perpl-wallet-risk.ts) uses each position's isol
 Submitted addresses reach Kaskad's server and RPC provider; they are not saved in browser storage. The view refreshes every 10 seconds while visible. Its separate bounded server cache lasts 8 seconds, and its 30-requests/minute limit is **per server instance**, not a shared production limiter.
 
 The watchlist encrypts addresses and labels in the browser. Its storage endpoint keeps ciphertext, an opaque ID, and a write-token hash; it does not receive the plaintext list. Explicit address-risk checks still send the address being queried to `/api/position`.
+
+**Production watchlist verification, 13 October 2026:** a public sample address and label were saved, its alert threshold was changed from 5% to 7%, and the page was fully reloaded. Signing in again with the same passkey restored the label and 7% threshold; a subsequent address-risk check also succeeded. This verified persistence and decryption after a fresh passkey sign-in without a blockchain transaction.
 
 ## Deployments and proof transactions
 
@@ -323,13 +332,16 @@ This higher limit is only for the local test harness; it does not demonstrate th
 
 ## Remaining work
 
-As of **11 October 2026**:
+As of **13 October 2026**, PRs #17–#19 are merged, main CI and production checks passed, and the persistent watchlist flow has been verified as described above. Remaining delivery and operating tasks:
 
-- Maintain Nansen API credits for uncached borrower labels.
+- Record and link the final technical demo, pitch, CRE, and Perpl videos, then complete the hackathon submission. The project description, logo, live URL, integration answers, and community selection are saved as a draft.
+- Maintain Nansen API credits for uncached borrower labels and the demo's testnet gas budget with `npm --prefix scripts run budget`.
+
+Further development, not part of the recorded-snapshot demo's completed claims:
+
 - Add the continuous Envio HyperIndex/keeper pipeline and source-block freshness indicator.
-- Extend the shared RPC/sponsor limiter to the remaining API routes, whose rate limits are still per instance.
-- Verify end-to-end persistent watchlists and maintain the demo's testnet gas budget with `npm --prefix scripts run budget`.
-- Add the final demo video, at most three minutes, and complete the submission materials.
+- Deploy and operate a continuous CRE workflow beyond the existing CLI simulation evidence.
+- Extend shared limiting to the remaining API routes whose rate limits are still per instance.
 
 ## Repository map
 
@@ -360,4 +372,4 @@ Set `NANSEN_API_KEY` in `web/.env.local` and in the Vercel server environment, t
 
 Each cache miss takes a shared address lock and consumes shared limits of 60 upstream calls per minute and 600 per 24-hour window across all visitors. Page requests are limited to 20/minute per client. These are request caps, not a monetary spending guarantee; provider pricing/credits still apply. A failed cache or quota check blocks upstream requests. Invalid credentials, exhausted credits, throttling and unavailable services have separate safe errors and a retry action. No Nansen request is made until this tab is opened.
 
-Validation status: the deployed API and UI were verified on 13 October 2026 for all 57 syrupUSDC borrowers. No standard labels were returned for those addresses; the UI retains their addresses and reports them as unlabelled. Later uncached lookups received Nansen's `403 / Insufficient credits` response. Existing cached labels remain available until expiry; new lookups require sufficient [Nansen API credits](https://docs.nansen.ai/getting-started/credits). Credit failures are reported separately from invalid keys and never cached as empty labels.
+Validation status: the deployed API and UI were verified on 13 October 2026 for all 57 syrupUSDC borrowers. No standard labels were returned for those addresses; the UI retains their addresses and reports them as unlabelled. Uncached lookups subsequently exposed Nansen's `403 / Insufficient credits` response, which PR #19 now reports separately from an invalid key. A later direct check with the active provider credential returned HTTP 200 with an empty label result. Existing cached labels remain available until expiry; new lookups still require sufficient [Nansen API credits](https://docs.nansen.ai/getting-started/credits). Failed requests are never cached as empty labels.
