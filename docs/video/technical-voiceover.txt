@@ -1,0 +1,17 @@
+When collateral falls, can liquidators actually clear the debt? Kaskad simulates liquidation waves, collateral sales and price impact on Monad, using recorded Aave borrower books.
+
+Here, a three-percent syrup USDC depeg triggers a free contract preview. Liquidators repay about one hundred thirty-four thousand dollars before further sales become unprofitable. About one hundred eleven million dollars of debt remains in positions below the liquidation threshold. That is debt the model cannot clear profitably, not current losses.
+
+At a ten-percent shock, oracle-valued bad debt reaches about eighteen thousand dollars. Valuing remaining collateral at the simulated pool price reveals another eight point eight million dollars of hidden shortfall. The valuation assumption matters.
+
+Who is exposed links simulated risk to snapshot borrowers. Server-side Nansen labels add public context when available. Unlabeled addresses stay unidentified; the interface never invents an owner.
+
+The risk map compares borrower books across five shocks. Monte Carlo explores different price paths, showing a distribution of outcomes rather than one answer.
+
+RiskOracle turns stress results into bounded lending recommendations. GuardV2 pauses flagged demo markets, and the demo vault reallocates tokens. Chainlink CRE coordinates this pipeline. Our recorded proof uses a CLI broadcast simulation through a mock forwarder on Monad testnet. These are stored demo states, not a continuously deployed production workflow.
+
+Perpl adds live Monad mainnet analysis. The protocol view compares liquidation demand with order-book depth and backstop capacity. A public wallet lookup reveals positions, liquidation distances and shock exposure without signing. Wallet amounts measure notional crossing thresholds, not predicted losses.
+
+The historical replay compares our model with observed Aave liquidations during the October twenty twenty-five ETH drawdown. It exposes assumptions, including liquidity measured later. This is retrospective analysis.
+
+Previews need no login. Mera passkeys support signing and decrypt a private watchlist. The saved address and alert threshold return after signing in again. Our recorded benchmark processes ten thousand positions in one transaction. Open Kaskad and inspect the assumptions and proofs.
