@@ -4,6 +4,7 @@ import { fixtureRun } from "@/lib/chain/__fixtures__/load";
 import { classifyPositions } from "@/lib/chain/book";
 import { exposure, type BorrowerLabels } from "@/lib/chain/exposure";
 import { BASE_SETTINGS } from "@/lib/chain/scenario";
+import type { LabelsError } from "@/lib/chain/hooks/useExposure";
 import { ExposureTab } from "./exposure-tab";
 
 const sali = fixtureRun("sali");
@@ -22,7 +23,7 @@ const labels: BorrowerLabels = {
 };
 const x = exposure(classifyPositions(sali.book, sali.result, sali.scenario), slots, labels)!;
 
-const hook = { eligible: true, exposure: x as typeof x | null, labels: labels as BorrowerLabels | null, error: null as null | "unconfigured", loading: false, retry: vi.fn() };
+const hook = { eligible: true, exposure: x as typeof x | null, labels: labels as BorrowerLabels | null, error: null as null | LabelsError, loading: false, retry: vi.fn() };
 vi.mock("@/lib/chain/hooks/useExposure", () => ({ useExposure: () => hook }));
 
 const settings = { ...BASE_SETTINGS, shockPct: 3 };
@@ -54,4 +55,13 @@ it("allows retrying a failed lookup from the new panel", () => {
   render(<ExposureTab locale="tr" settings={settings} scenario={sali.scenario} result={sali.result} />);
   fireEvent.click(screen.getByRole("button", { name: "Tekrar dene" }));
   expect(hook.retry).toHaveBeenCalledOnce();
+});
+it.each([
+  ["en", "Nansen API credits are insufficient for new label lookups."],
+  ["tr", "Nansen API kredisi yeni etiket sorguları için yetersiz."],
+] as const)("explains insufficient credits in %s without asking for a replacement key", (locale, message) => {
+  Object.assign(hook, { error: "quota-exhausted", exposure: null });
+  render(<ExposureTab locale={locale} settings={settings} scenario={sali.scenario} result={sali.result} />);
+  expect(screen.getByText(message)).toBeInTheDocument();
+  expect(screen.queryByText(/NANSEN_API_KEY/)).not.toBeInTheDocument();
 });
