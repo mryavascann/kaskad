@@ -3,7 +3,7 @@
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import type { Locale } from "@/i18n/config";
 import { consoleMessages } from "@/i18n/messages/console";
-import type { Result, Settings } from "@/lib/chain/types";
+import type { Result, Scenario, Settings } from "@/lib/chain/types";
 
 // The tabs (Radix Tabs, Motion indicator) and every panel are separate chunks, loaded on approach.
 const AnalysisTabsLive = lazy(() => import("./analysis-tabs-live").then((m) => ({ default: m.AnalysisTabsLive })));
@@ -14,7 +14,17 @@ const AnalysisTabsLive = lazy(() => import("./analysis-tabs-live").then((m) => (
  * the main thread and the DOM belong to the scenario and its result. Until then it holds its place
  * (a tab row and a panel's height), below the fold on every screen.
  */
-export function AnalysisTabs({ locale, settings, result }: { locale: Locale; settings: Settings; result: Result | null }) {
+export function AnalysisTabs({
+  locale,
+  settings,
+  result,
+  resultScenario,
+}: {
+  locale: Locale;
+  settings: Settings;
+  result: Result | null;
+  resultScenario: Scenario | null;
+}) {
   const t = consoleMessages[locale].tabs;
   const [ref, armed] = useArmOnApproach<HTMLElement>();
   const hold = <div aria-hidden className="min-h-[36.75rem]" />;
@@ -25,7 +35,7 @@ export function AnalysisTabs({ locale, settings, result }: { locale: Locale; set
       </h2>
       {armed ? (
         <Suspense fallback={hold}>
-          <AnalysisTabsLive locale={locale} settings={settings} result={result} />
+          <AnalysisTabsLive locale={locale} settings={settings} result={result} resultScenario={resultScenario} />
         </Suspense>
       ) : (
         hold
