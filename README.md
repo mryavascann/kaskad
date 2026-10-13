@@ -141,7 +141,7 @@ Pool depth was measured in **2026**, not at the 2025 event, and is explicitly an
 | **Perpl: Best Analytics / Risk Tool** | Reads open positions and margin/insurance parameters from Perpl contracts, plus the public L2 order book; models liquidation absorption, backstop demand, and residual deficits. | [Panel](https://kaskad42.vercel.app/perps), [reader](web/lib/kaskad/perpl.ts), [model](web/lib/chain/perpl-model.ts), [#12](https://github.com/mryavascann/kaskad/pull/12). Read-only analytics; no hedge bot. |
 | **Mera: Best Mera-Powered UX on Monad** | Passkeys are the production account layer; the sponsor funds gas and the user signs in the browser. | [`mera.ts`](web/lib/kaskad/mera.ts), [`signer-mode.ts`](web/lib/chain/signer-mode.ts), [passkey gate](web/views/shared/tx/passkey-gate.tsx), [#4](https://github.com/mryavascann/kaskad/pull/4). |
 | **Mera: One Passkey, Many Keys** | One PRF output also derives an AES-256-GCM encryption key, an anonymous watchlist ID, and a write token using distinct HKDF labels. | [`passkey-keys.ts`](web/lib/kaskad/passkey-keys.ts), [watchlist API](web/app/api/watchlist/route.ts), [#5](https://github.com/mryavascann/kaskad/pull/5). Production persistence requires Upstash/Vercel KV. |
-| **Nansen** | Planned “Who is exposed” borrower-label analysis. | Work in progress, awaiting a valid API key and integration into `main`; no shipped Nansen feature or completed award claim yet. |
+| **Nansen** | “Who is exposed” joins standard Nansen borrower labels with the cascade’s per-position results. | [`exposure.ts`](web/lib/chain/exposure.ts), [labels API](web/app/api/labels/route.ts). Real provider access verified; deployment pending review. |
 
 The same project evidence supports **Grand Champion** consideration. **Community Team** eligibility is awaiting organizer confirmation. The separate **Best use of Perpl's API** hedge-bot bounty is outside this submission's scope.
 
@@ -325,7 +325,7 @@ This higher limit is only for the local test harness; it does not demonstrate th
 
 As of **11 October 2026**:
 
-- Complete and verify the Nansen integration after a valid API key is configured.
+- Deploy the verified Nansen integration after review.
 - Add the continuous Envio HyperIndex/keeper pipeline and source-block freshness indicator.
 - Extend the shared RPC/sponsor limiter to the remaining API routes, whose rate limits are still per instance.
 - Verify end-to-end persistent watchlists and maintain the demo's testnet gas budget with `npm --prefix scripts run budget`.
@@ -351,3 +351,13 @@ Discovery starts with the complete active-debt positions in the shipped snapshot
 Each invocation processes at most 200 successful pages by default, then exits nonzero if catch-up is incomplete, preserving the checkpoint and existing `positions.json`. Rerun to continue, or explicitly choose `--rpc-pages=2000` (maximum 20000). Ranges start at 1000 blocks and shrink if the provider rejects them. A long initial catch-up may take substantial time. `--borrowers-only` stops after discovery and does not replace position data. Without that flag, account reads are pinned to the same finalized target block; an RPC that cannot serve that historical state will fail rather than silently use another block.
 
 The existing HyperSync path remains available when a real token is configured. This RPC alternative does not constitute an Envio HyperIndex deployment. It also does not reload the testnet contracts or run a continuous keeper. Those are separate operations; testnet writes still need a cost estimate and approval. The recorded demo dataset stays unchanged until a complete refresh is deliberately performed.
+
+### Nansen borrower labels
+
+The console’s **Who is exposed** tab adds a read-only borrower/category view for real Aave books. It matches the packed positions in the recorded snapshot to the exact, independently checked simulation result. Ambiguous identical packed positions are left unidentified. Calibrated books do not receive borrower identities.
+
+Set `NANSEN_API_KEY` in `web/.env.local` and in the Vercel server environment, then restart/redeploy. The key is never public. Production requires the same writable Redis configuration as the existing API protection. Lookups are limited to the largest 60 borrowers of each recorded book, using Nansen’s [standard address-label endpoint](https://docs.nansen.ai/api/profiler/address-labels): at most the first 100 labels per address; premium Smart Money labels are excluded. Labels are cached for seven days.
+
+Each cache miss takes a shared address lock and consumes shared limits of 60 upstream calls per minute and 600 per 24-hour window across all visitors. Page requests are limited to 20/minute per client. These are request caps, not a monetary spending guarantee; provider pricing/credits still apply. A failed cache or quota check blocks upstream requests. Invalid credentials, exhausted credits, throttling and unavailable services have separate safe errors and a retry action. No Nansen request is made until this tab is opened.
+
+Validation status: automated tests and the production build pass locally. On 13 October 2026, the local API returned HTTP 200 after querying all 57 syrupUSDC borrowers with the real provider. No standard labels were returned for those addresses; the UI retains their addresses and reports them as unlabelled. Deployment remains subject to review.

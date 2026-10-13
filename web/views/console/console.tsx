@@ -83,7 +83,7 @@ export function Console({ locale, presets, nowMs, initial = null, initialAssumpt
           <ResultStage locale={locale} settings={settings} preview={preview} initial={initial} />
         </div>
       </div>
-      <AnalysisTabs locale={locale} settings={settings} result={preview.result} />
+      <AnalysisTabs locale={locale} settings={settings} result={preview.result} resultScenario={preview.resultScenario} />
     </div>
   );
 }
