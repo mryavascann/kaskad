@@ -6,6 +6,7 @@
 
 <p align="center"><strong>When collateral falls, can liquidators actually clear the debt?</strong></p>
 <p align="center">On-chain liquidation stress tests and verifiable risk controls on Monad.</p>
+<p align="center">🏆 <strong>1st place · <a href="https://blitz.devnads.com/events/blitz-istanbul-Sep-2026">Monad Blitz Istanbul v2</a></strong> (26 September 2026, 38 projects)</p>
 <p align="center">
   <a href="https://kaskad42.vercel.app">Try Kaskad</a> ·
   <a href="https://youtu.be/OZ5R2g6rRJo">Watch the demo</a> ·
